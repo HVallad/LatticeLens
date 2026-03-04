@@ -1,0 +1,134 @@
+[
+    {
+        "code": "ADR-01",
+        "layer": "WHY",
+        "type": "Architecture Decision Record",
+        "fact_text": "Adopted event-driven architecture using message queues over synchronous REST calls for inter-service communication. Decision driven by need for fault tolerance and decoupling — if the inference service goes down, requests queue rather than fail.",
+        "tags": ["architecture", "event-driven", "fault-tolerance", "messaging", "decoupling"],
+        "status": "Active",
+        "confidence": "Confirmed",
+        "owner": "architecture-team",
+        "refs": ["DES-01", "RISK-03", "API-01"]
+    },
+    {
+        "code": "ADR-03",
+        "layer": "WHY",
+        "type": "Architecture Decision Record",
+        "fact_text": "Selected GPT-4o over Claude 3.5 Sonnet for primary inference due to 40% lower p95 latency on structured output tasks. Claude retained as fallback for complex reasoning tasks exceeding 4k output.",
+        "tags": ["model-selection", "latency", "inference", "fallback-strategy", "cost-tradeoff"],
+        "status": "Active",
+        "confidence": "Confirmed",
+        "owner": "architecture-team",
+        "refs": ["PRD-01", "RISK-07", "MC-01"]
+    },
+    {
+        "code": "PRD-01",
+        "layer": "WHY",
+        "type": "Product Requirement",
+        "fact_text": "System must support 10,000 concurrent users with p95 response latency under 2 seconds for standard queries. Batch processing queries may take up to 30 seconds.",
+        "tags": ["scaling", "latency", "throughput", "user-facing", "performance-requirement"],
+        "status": "Active",
+        "confidence": "Confirmed",
+        "owner": "product-team",
+        "refs": ["ADR-01", "MON-01", "RISK-05"]
+    },
+    {
+        "code": "DES-01",
+        "layer": "WHY",
+        "type": "Design Proposal Decision",
+        "fact_text": "Inference, retrieval, and orchestration run as independent services with API contracts between them. Monolith approach rejected due to scaling constraints.",
+        "tags": ["architecture", "microservices", "decoupling", "api"],
+        "status": "Active",
+        "confidence": "Confirmed",
+        "owner": "architecture-team",
+        "refs": ["ADR-01", "API-01", "RUN-01"]
+    },
+    {
+        "code": "MC-01",
+        "layer": "GUARDRAILS",
+        "type": "Model Card Entry",
+        "fact_text": "GPT-4o achieves 94% accuracy on English structured output tasks but drops to 78% on non-English. Known weakness: ambiguous multi-step instructions.",
+        "tags": ["model-selection", "accuracy", "multilingual", "limitations"],
+        "status": "Active",
+        "confidence": "Confirmed",
+        "owner": "ml-team",
+        "refs": ["ADR-03", "ETH-01", "RISK-02"]
+    },
+    {
+        "code": "AUP-05",
+        "layer": "GUARDRAILS",
+        "type": "Acceptable Use Policy Rule",
+        "fact_text": "Agent must not generate, store, or transmit personally identifiable information (PII) beyond what is strictly necessary for the current task. All PII must be purged from context within the same session.",
+        "tags": ["privacy", "pii", "data-minimization", "user-facing", "compliance", "regulatory"],
+        "status": "Active",
+        "confidence": "Confirmed",
+        "owner": "compliance-team",
+        "refs": ["DG-01", "DG-03", "COMP-01", "COMP-04", "ETH-02"]
+    },
+    {
+        "code": "RISK-07",
+        "layer": "GUARDRAILS",
+        "type": "Risk Assessment Finding",
+        "fact_text": "Prompt injection via user-uploaded documents rated HIGH severity (likelihood: 4/5, impact: 5/5). Mitigation: input sanitization + document content sandboxing + output validation against original intent. Residual risk: MEDIUM after mitigation.",
+        "tags": ["security", "prompt-injection", "high-severity", "user-input", "mitigation"],
+        "status": "Active",
+        "confidence": "Confirmed",
+        "owner": "security-team",
+        "refs": ["ADR-03", "AUP-02", "SP-03", "MON-04"]
+    },
+    {
+        "code": "DG-01",
+        "layer": "GUARDRAILS",
+        "type": "Data Governance Rule",
+        "fact_text": "All PII must be encrypted at rest (AES-256) and in transit (TLS 1.3). No PII in logs, including debug mode. Audit trail required for all PII access events.",
+        "tags": ["privacy", "pii", "encryption", "logging", "compliance"],
+        "status": "Active",
+        "confidence": "Confirmed",
+        "owner": "security-team",
+        "refs": ["AUP-05", "COMP-04", "SP-03"]
+    },
+    {
+        "code": "SP-01",
+        "layer": "HOW",
+        "type": "System Prompt Rule",
+        "fact_text": "Agent must identify itself as an AI assistant in its first response to any new user session. Format: 'I'm [Agent Name], an AI assistant that [capability description]. How can I help?'",
+        "tags": ["transparency", "user-facing", "system-prompt", "identity", "trust"],
+        "status": "Active",
+        "confidence": "Confirmed",
+        "owner": "product-team",
+        "refs": ["ETH-01", "AUP-01", "COMP-01"]
+    },
+    {
+        "code": "API-01",
+        "layer": "HOW",
+        "type": "API Specification",
+        "fact_text": "/chat endpoint accepts max 4096 input tokens, returns max 8192 output tokens. Rate limit: 100 requests per minute per API key. Auth: Bearer token via Authorization header.",
+        "tags": ["api", "rate-limiting", "authentication", "user-facing", "scaling"],
+        "status": "Active",
+        "confidence": "Confirmed",
+        "owner": "backend-team",
+        "refs": ["ADR-01", "DES-01", "MON-01"]
+    },
+    {
+        "code": "MON-01",
+        "layer": "HOW",
+        "type": "Monitoring Rule",
+        "fact_text": "Alert on-call when p95 latency exceeds 2 seconds for 5 consecutive minutes. Escalate to engineering lead if not acknowledged within 15 minutes. Auto-scale inference pods if latency breach persists for 10 minutes.",
+        "tags": ["monitoring", "latency", "alerting", "auto-scaling", "incident-response", "ops-team"],
+        "status": "Active",
+        "confidence": "Confirmed",
+        "owner": "ops-team",
+        "refs": ["PRD-01", "RUN-01", "RISK-05"]
+    },
+    {
+        "code": "RUN-01",
+        "layer": "HOW",
+        "type": "Runbook Procedure",
+        "fact_text": "Production rollback requires approval from on-call engineering lead. Rollback procedure: revert container image tag, verify health checks, confirm latency recovery within 5 minutes. If not recovered, escalate to incident commander.",
+        "tags": ["deploy-time", "rollback", "incident-response", "ops-team", "approval"],
+        "status": "Active",
+        "confidence": "Confirmed",
+        "owner": "ops-team",
+        "refs": ["MON-01", "DES-01"]
+    }
+]
