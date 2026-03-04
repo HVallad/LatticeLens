@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "latticelens": {
+      "command": "python",
+      "args": ["-m", "latticelens_mcp"],
+      "env": {
+        "LATTICELENS_API_URL": "http://localhost:8000/api/v1"
+      }
+    }
+  }
+}
