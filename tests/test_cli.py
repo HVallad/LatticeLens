@@ -1,117 +1,144 @@
+"""CLI integration tests."""
+
+from __future__ import annotations
+
 import json
-from unittest.mock import patch
+import os
+from pathlib import Path
 
 import pytest
 from typer.testing import CliRunner
 
-from latticelens.cli.main import app
+from lattice_lens.cli.main import app
+from lattice_lens.config import FACTS_DIR, LATTICE_DIR, ROLES_DIR
 
 runner = CliRunner()
 
 
-def mock_api_get(path):
-    if path == "/health":
-        return {
-            "status": "healthy",
-            "version": "0.1.0",
-            "facts_total": 12,
-            "facts_active": 10,
-            "facts_stale": 1,
-        }
-    elif path.startswith("/facts/") and "/history" in path:
-        return [
-            {
-                "version": 1,
-                "fact_text": "Original text",
-                "tags": ["test", "cli"],
-                "status": "Active",
-                "confidence": "Confirmed",
-                "changed_by": "test-user",
-                "changed_at": "2026-03-01T00:00:00Z",
-                "change_reason": "Initial",
-            }
-        ]
-    elif path.startswith("/facts/"):
-        return {
-            "id": "00000000-0000-0000-0000-000000000001",
-            "code": "ADR-03",
-            "layer": "WHY",
-            "type": "Architecture Decision Record",
-            "fact_text": "Test fact text for CLI testing purposes.",
-            "tags": ["test", "cli"],
-            "status": "Active",
-            "confidence": "Confirmed",
-            "version": 1,
-            "owner": "test-team",
-            "refs": [],
-            "superseded_by": None,
-            "review_by": None,
-            "created_at": "2026-03-01T00:00:00Z",
-            "updated_at": "2026-03-01T00:00:00Z",
-            "is_stale": False,
-        }
-    return {}
+@pytest.fixture
+def cli_dir(tmp_path: Path, monkeypatch):
+    """Set cwd to tmp_path for CLI tests."""
+    monkeypatch.chdir(tmp_path)
+    return tmp_path
 
 
-@patch("latticelens.cli.main.api_get", side_effect=mock_api_get)
-def test_health_command(mock_get):
-    result = runner.invoke(app, ["health"])
+@pytest.fixture
+def initialized_dir(cli_dir: Path):
+    """Run lattice init and return the dir."""
+    result = runner.invoke(app, ["init"])
     assert result.exit_code == 0
-    assert "healthy" in result.output
+    return cli_dir
 
 
-@patch("latticelens.cli.main.api_get", side_effect=mock_api_get)
-def test_fact_get(mock_get):
-    result = runner.invoke(app, ["fact", "get", "ADR-03"])
-    assert result.exit_code == 0
-    assert "ADR-03" in result.output
+@pytest.fixture
+def seeded_dir(initialized_dir: Path):
+    """Run lattice init + seed and return the dir."""
+    # Copy seed file to expected location
+    import shutil
+    seed_src = Path(__file__).resolve().parent.parent / "seed"
+    seed_dst = initialized_dir / "seed"
+    if seed_src.exists():
+        shutil.copytree(seed_src, seed_dst, dirs_exist_ok=True)
 
-
-@patch("latticelens.cli.main.api_get", side_effect=mock_api_get)
-def test_fact_get_json(mock_get):
-    result = runner.invoke(app, ["fact", "get", "ADR-03", "--json"])
-    assert result.exit_code == 0
-    data = json.loads(result.output)
-    assert data["code"] == "ADR-03"
-
-
-@patch("latticelens.cli.main.api_post")
-def test_fact_list_json(mock_post):
-    mock_post.return_value = {
-        "facts": [
-            {
-                "id": "00000000-0000-0000-0000-000000000001",
-                "code": "ADR-03",
-                "layer": "WHY",
-                "type": "Architecture Decision Record",
-                "fact_text": "Test",
-                "tags": ["test", "cli"],
-                "status": "Active",
-                "confidence": "Confirmed",
-                "version": 1,
-                "owner": "test-team",
-                "refs": [],
-                "superseded_by": None,
-                "review_by": None,
-                "created_at": "2026-03-01T00:00:00Z",
-                "updated_at": "2026-03-01T00:00:00Z",
-                "is_stale": False,
-            }
-        ],
-        "total": 1,
-        "page": 1,
-        "page_size": 50,
-        "total_pages": 1,
-    }
-    result = runner.invoke(app, ["fact", "list", "--json"])
-    assert result.exit_code == 0
-    data = json.loads(result.output)
-    assert "facts" in data
-
-
-@patch("latticelens.cli.main.api_post")
-def test_seed_command(mock_post):
-    mock_post.return_value = [{"code": f"FACT-{i}"} for i in range(12)]
     result = runner.invoke(app, ["seed"])
     assert result.exit_code == 0
-    assert "loaded" in result.output.lower() or "facts" in result.output.lower()
+    return initialized_dir
+
+
+class TestInitCommand:
+    def test_init_creates_structure(self, cli_dir: Path):
+        result = runner.invoke(app, ["init"])
+        assert result.exit_code == 0
+
+        lattice = cli_dir / LATTICE_DIR
+        assert lattice.is_dir()
+        assert (lattice / FACTS_DIR).is_dir()
+        assert (lattice / ROLES_DIR).is_dir()
+        assert (lattice / "config.yaml").is_file()
+        assert (lattice / ".gitignore").is_file()
+
+    def test_init_already_exists(self, initialized_dir: Path):
+        result = runner.invoke(app, ["init"])
+        assert result.exit_code != 0
+        assert "already exists" in result.output
+
+
+class TestSeedCommand:
+    def test_seed_loads_facts(self, seeded_dir: Path):
+        facts_dir = seeded_dir / LATTICE_DIR / FACTS_DIR
+        yaml_files = list(facts_dir.glob("*.yaml"))
+        assert len(yaml_files) >= 12  # 12 seed + placeholders
+
+
+class TestFactGetCommand:
+    def test_fact_get_json(self, seeded_dir: Path):
+        result = runner.invoke(app, ["fact", "get", "ADR-01", "--json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["code"] == "ADR-01"
+        assert data["layer"] == "WHY"
+
+    def test_fact_get_panel(self, seeded_dir: Path):
+        result = runner.invoke(app, ["fact", "get", "ADR-01"])
+        assert result.exit_code == 0
+        assert "ADR-01" in result.output
+
+    def test_fact_get_not_found(self, seeded_dir: Path):
+        result = runner.invoke(app, ["fact", "get", "NOPE-99"])
+        assert result.exit_code != 0
+
+
+class TestFactLsCommand:
+    def test_fact_ls_all(self, seeded_dir: Path):
+        result = runner.invoke(app, ["fact", "ls"])
+        assert result.exit_code == 0
+        assert "ADR-01" in result.output
+
+    def test_fact_ls_filter_layer(self, seeded_dir: Path):
+        result = runner.invoke(app, ["fact", "ls", "--layer", "WHY"])
+        assert result.exit_code == 0
+        assert "ADR-01" in result.output
+        # HOW facts shouldn't appear
+        assert "RUN-01" not in result.output
+
+    def test_fact_ls_json(self, seeded_dir: Path):
+        result = runner.invoke(app, ["fact", "ls", "--json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert isinstance(data, list)
+        assert len(data) > 0
+
+
+class TestFactDeprecateCommand:
+    def test_deprecate(self, seeded_dir: Path):
+        result = runner.invoke(app, ["fact", "deprecate", "ADR-01", "--reason", "test"])
+        assert result.exit_code == 0
+        assert "Deprecated" in result.output
+
+    def test_deprecate_not_found(self, seeded_dir: Path):
+        result = runner.invoke(app, ["fact", "deprecate", "NOPE-99", "--reason", "test"])
+        assert result.exit_code != 0
+
+
+class TestStatusCommand:
+    def test_status_output(self, seeded_dir: Path):
+        result = runner.invoke(app, ["status"])
+        assert result.exit_code == 0
+        assert "yaml" in result.output.lower()
+        assert "Total facts" in result.output or "total" in result.output.lower()
+
+
+class TestValidateCommand:
+    def test_validate_seeded(self, seeded_dir: Path):
+        result = runner.invoke(app, ["validate"])
+        # Should pass (no errors), may have warnings for missing refs
+        assert result.exit_code == 0
+
+
+class TestReindexCommand:
+    def test_reindex(self, seeded_dir: Path):
+        result = runner.invoke(app, ["reindex"])
+        assert result.exit_code == 0
+        assert "Rebuilt" in result.output
+        index_file = seeded_dir / LATTICE_DIR / "index.yaml"
+        assert index_file.is_file()
