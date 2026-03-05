@@ -2,9 +2,10 @@ code: RISK-05
 layer: GUARDRAILS
 type: Risk Register Entry
 fact: 'The valid code prefix vocabulary (ADR, PRD, DES, SP, API, RUN, MON, DG, AUP,
-  RISK, MC, HOW) is hardcoded in config.py as VALID_CODE_PREFIXES. Adding new prefixes
-  requires a code change and package release. Mitigation: Phase 3+ may move prefix
-  configuration to .lattice/config.yaml for per-project customization.'
+  RISK, MC, HOW) is hardcoded in config.py as LAYER_PREFIXES, a dict mapping each
+  layer (WHY, GUARDRAILS, HOW) to its allowed prefixes. Adding new prefixes requires
+  a code change and package release. Mitigation: Phase 3+ may move prefix configuration
+  to .lattice/config.yaml for per-project customization.'
 tags:
 - code-prefixes
 - configuration
@@ -12,7 +13,7 @@ tags:
 - risk
 status: Active
 confidence: Confirmed
-version: 1
+version: 2
 refs:
 - ADR-05
 - ADR-12
@@ -20,4 +21,4 @@ superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
 created_at: '2026-03-05T13:00:35.385209'
-updated_at: '2026-03-05T13:00:35.385242'
+updated_at: '2026-03-05T18:10:58.042931'

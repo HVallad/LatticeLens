@@ -65,3 +65,8 @@
 {"timestamp": "2026-03-05T13:33:12.768360", "action": "update", "code": "AUP-08", "reason": "Promoted to Active: Policy validated and accepted for enforcement"}
 {"timestamp": "2026-03-05T14:49:41.995337", "action": "update", "code": "DG-04", "reason": "Updated to match actual fact ls default: Active+Draft+Under Review (not Active-only)"}
 {"timestamp": "2026-03-05T15:45:02.299981", "action": "create", "code": "RISK-07", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T18:10:35.007191", "action": "update", "code": "AUP-08", "reason": "Fact text contained incorrect founding fact count (claimed 59, actually 61+). Governance rule about Draft-first lifecycle is already captured in DG-06."}
+{"timestamp": "2026-03-05T18:10:58.044485", "action": "update", "code": "RISK-05", "reason": "Fix: constant is named LAYER_PREFIXES, not VALID_CODE_PREFIXES"}
+{"timestamp": "2026-03-05T18:11:02.559796", "action": "update", "code": "AUP-06", "reason": "Fix: removed incorrect claim about FactIndex.build() detecting duplicates; clarified two actual enforcement levels"}
+{"timestamp": "2026-03-05T18:11:06.978458", "action": "update", "code": "RISK-06", "reason": "Fix: marked thresholds as future/not-yet-implemented \u2014 values do not exist in current codebase"}
+{"timestamp": "2026-03-05T18:11:10.841965", "action": "update", "code": "DG-06", "reason": "Fix: clarified Review Expired is a runtime condition, not a FactStatus enum value"}

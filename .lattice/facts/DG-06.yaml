@@ -6,8 +6,9 @@ fact: 'Facts progress through a defined lifecycle that controls context inclusio
   peer validates, may be included with confidence Provisional. Active: enters the
   live index, primary content of agent context. Deprecated: no longer relevant, excluded
   from queries but preserved for audit. Superseded: replaced by a newer fact, must
-  point to replacement via superseded_by. Review Expired: past review_by date, flagged
-  and downgraded to Provisional until re-validated.'
+  point to replacement via superseded_by. Review Expired is not a formal FactStatus
+  enum value but a runtime condition: facts past their review_by date are flagged
+  and downgraded to Provisional confidence during context assembly.'
 tags:
 - governance
 - lifecycle
@@ -15,7 +16,7 @@ tags:
 - status
 status: Active
 confidence: Confirmed
-version: 1
+version: 2
 refs:
 - DES-01
 - AUP-01
@@ -25,4 +26,4 @@ superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
 created_at: '2026-03-05T13:06:54.483174'
-updated_at: '2026-03-05T13:06:54.483245'
+updated_at: '2026-03-05T18:11:10.839604'

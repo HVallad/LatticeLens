@@ -1,13 +1,13 @@
 code: RISK-06
 layer: GUARDRAILS
 type: Risk Register Entry
-fact: Storage tier promotion uses advisory thresholds â€” warn at 1,500 facts, 
-  suggest upgrade at 2,000 â€” but the system must never auto-migrate. The 
-  developer always decides when to move between tiers. Forced migration would 
-  violate the portability principle and risk data loss. The CLI prints a 
-  performance advisory at the warning threshold and a concrete upgrade 
-  suggestion at the promotion threshold, but takes no action without explicit 
-  user command.
+fact: Storage tier promotion is planned to use advisory thresholds — warn at 
+  1,500 facts, suggest upgrade at 2,000 — but this is not yet implemented. The 
+  system must never auto-migrate. The developer always decides when to move 
+  between tiers. Forced migration would violate the portability principle and 
+  risk data loss. Future implementation should print a performance advisory at 
+  the warning threshold and a concrete upgrade suggestion at the promotion 
+  threshold, but take no action without explicit user command.
 tags:
 - auto-promote
 - risk
@@ -15,7 +15,7 @@ tags:
 - thresholds
 status: Active
 confidence: Confirmed
-version: 1
+version: 2
 refs:
 - DES-06
 - DES-02
@@ -24,4 +24,4 @@ superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
 created_at: '2026-03-05T13:06:56.192012'
-updated_at: '2026-03-05T13:06:56.192054'
+updated_at: '2026-03-05T18:11:06.976650'
