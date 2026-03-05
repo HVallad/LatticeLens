@@ -1,0 +1,28 @@
+code: API-02
+layer: HOW
+type: API Contract
+fact: The graph service exposes three public functions — impact_analysis(), 
+  find_orphans(), and find_contradiction_candidates() — plus a 
+  load_role_templates() helper. All accept a FactIndex as their primary 
+  argument, keeping the service stateless. ImpactResult is a dataclass returned 
+  by impact_analysis() containing source_code, directly_affected, 
+  transitively_affected, all_affected sets, affected_roles list, and 
+  depth_reached integer.
+tags:
+- api
+- dataclass
+- graph-service
+- stateless
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- SP-04
+- SP-05
+- DES-04
+- ADR-10
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:00:29.652604'
+updated_at: '2026-03-05T13:00:29.652633'

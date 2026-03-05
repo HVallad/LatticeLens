@@ -1,0 +1,23 @@
+code: DES-01
+layer: WHY
+type: Design Proposal Decision
+fact: Knowledge is organized into three layers — WHY (decisions, 
+  requirements), GUARDRAILS (constraints, policies, risks), and HOW (procedures,
+  specs, runbooks). Each layer has designated code prefixes to enforce 
+  consistent categorization.
+tags:
+- architecture
+- design
+- knowledge-organization
+- three-layer-model
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- ADR-03
+- SP-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T12:29:43.662801'
+updated_at: '2026-03-05T12:29:43.662832'

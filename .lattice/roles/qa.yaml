@@ -1,0 +1,16 @@
+name: QA Agent
+description: Quality assurance and testing
+query:
+  layers:
+  - GUARDRAILS
+  - HOW
+  types:
+  - Risk Assessment Finding
+  - Acceptable Use Policy Rule
+  - Monitoring Rule
+  tags:
+  - security
+  - compliance
+  - monitoring
+  max_facts: 20
+  extra: []

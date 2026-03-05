@@ -1,0 +1,24 @@
+code: DES-03
+layer: WHY
+type: Design Proposal Decision
+fact: The 12 seed facts in seed/example_facts.yaml model an AI agent system 
+  domain (event-driven architecture, GPT-4o model selection, PII handling, 
+  prompt injection risks) rather than LatticeLens itself. This demonstrates that
+  LatticeLens is domain-agnostic. The seed command also creates placeholder 
+  Draft facts for 15 referenced codes not present in the seed set.
+tags:
+- design
+- domain-agnostic
+- examples
+- seed-data
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- DES-01
+- RUN-02
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:00:30.919304'
+updated_at: '2026-03-05T13:00:30.919335'

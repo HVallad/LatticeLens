@@ -1,0 +1,28 @@
+code: DES-08
+layer: WHY
+type: Design Proposal Decision
+fact: The Context Assembly Engine is the "lens" in LatticeLens. It queries the 
+  Fact Index to construct each agent role's context window with exactly the 
+  facts relevant to that role, respecting a token budget. Each role has a query 
+  template selecting facts by layer, type, status, and tags. Dynamic expansion 
+  supports tag-based pulls, reference traversal, confidence filtering, recency 
+  weighting, and severity filtering. Version pinning records which fact versions
+  each agent invocation used for full audit reproducibility.
+tags:
+- context-assembly
+- design
+- role-scoping
+- token-budget
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- PRD-01
+- DES-01
+- ADR-10
+- PRD-02
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:06:53.887159'
+updated_at: '2026-03-05T13:06:53.887190'

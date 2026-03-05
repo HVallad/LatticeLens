@@ -1,0 +1,28 @@
+code: DG-06
+layer: GUARDRAILS
+type: Data Governance Rule
+fact: 'Facts progress through a defined lifecycle that controls context inclusion.
+  Draft: author creates initial fact, never included in agent context. Under Review:
+  peer validates, may be included with confidence Provisional. Active: enters the
+  live index, primary content of agent context. Deprecated: no longer relevant, excluded
+  from queries but preserved for audit. Superseded: replaced by a newer fact, must
+  point to replacement via superseded_by. Review Expired: past review_by date, flagged
+  and downgraded to Provisional until re-validated.'
+tags:
+- governance
+- lifecycle
+- state-machine
+- status
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- DES-01
+- AUP-01
+- AUP-04
+- DG-04
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:06:54.483174'
+updated_at: '2026-03-05T13:06:54.483245'

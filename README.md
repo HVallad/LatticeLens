@@ -43,7 +43,7 @@ This creates a `.lattice/` directory in your project with:
 
 ```
 .lattice/
-├── config.yaml     # Backend settings
+├── config.yaml     # Backend settings + schema version
 ├── facts/          # Individual fact YAML files
 ├── roles/          # Role query templates (planning, architecture, etc.)
 ├── history/        # Append-only changelog (JSONL)
@@ -106,6 +106,49 @@ lattice validate
 # Auto-fix tags (normalize, sort, deduplicate)
 lattice validate --fix
 ```
+
+### Knowledge graph
+
+```bash
+# What breaks if I change ADR-03? Shows direct, transitive, and affected roles
+lattice graph impact ADR-03
+
+# Limit traversal depth (default: 3)
+lattice graph impact ADR-03 --depth 1
+
+# Find facts with no references in or out
+lattice graph orphans
+
+# Find active fact pairs sharing tags across different layers/owners
+lattice graph contradictions
+```
+
+All graph commands support `--json` for machine-readable output.
+
+### Git integration
+
+```bash
+# Fact-level diff summary (which codes changed, which fields)
+lattice diff
+
+# Show only staged changes
+lattice diff --staged
+
+# Git history for all facts
+lattice log
+
+# History for a specific fact
+lattice log ADR-03 --limit 10
+```
+
+### Upgrading
+
+```bash
+# Migrate lattice to latest schema version (safe, idempotent)
+lattice upgrade
+```
+
+Applies versioned migrations automatically. The lattice schema version is tracked in `.lattice/config.yaml`.
 
 ### Other commands
 
@@ -186,13 +229,13 @@ ruff check src/ tests/
 
 ## Roadmap
 
-### Phase 1 — Core CLI + YAML Backend (current)
+### Phase 1 — Core CLI + YAML Backend ✓
 
 Git-native fact storage, full CRUD, filtering, validation, seed data. The foundation everything else builds on.
 
-### Phase 2 — Knowledge Graph + Git Integration
+### Phase 2 — Knowledge Graph + Git Integration (current)
 
-Impact analysis ("if I change ADR-03, what breaks?"), orphan detection, git-aware diffs and history scoped to `.lattice/facts/`.
+Impact analysis (`lattice graph impact`), orphan detection, contradiction candidates, git-aware diffs (`lattice diff`) and history (`lattice log`), versioned schema upgrades (`lattice upgrade`).
 
 ### Phase 3 — Context Assembly Engine
 

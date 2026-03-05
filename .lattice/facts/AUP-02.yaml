@@ -1,0 +1,23 @@
+code: AUP-02
+layer: GUARDRAILS
+type: Acceptable Use Policy Rule
+fact: A fact's code is immutable after creation. Attempts to change the code 
+  field during edit are rejected by the CLI. This ensures referential integrity 
+  — any fact referencing a code can trust it will never silently change 
+  identity.
+tags:
+- data-integrity
+- immutability
+- policy
+- referential-integrity
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- ADR-04
+- DG-01
+superseded_by:
+owner: architecture-team
+review_by:
+created_at: '2026-03-05T12:45:00.700617'
+updated_at: '2026-03-05T12:45:00.700647'

@@ -1,0 +1,23 @@
+code: ADR-08
+layer: WHY
+type: Architecture Decision Record
+fact: Adopted Rich library for all CLI formatting — tables, trees, panels, and
+  colored output. Typer has native Rich integration, so formatted output 
+  requires no extra wiring. All commands use Rich Console for stdout and a 
+  separate Console(stderr=True) for errors.
+tags:
+- cli
+- developer-experience
+- formatting
+- rich
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- ADR-01
+- DES-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T12:45:00.094674'
+updated_at: '2026-03-05T12:45:00.094706'

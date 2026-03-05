@@ -1,0 +1,26 @@
+code: DG-07
+layer: GUARDRAILS
+type: Data Governance Rule
+fact: 'Tags use a controlled vocabulary organized into five categories: domain (model-selection,
+  inference, latency, scaling), concern (security, privacy, bias, compliance), lifecycle
+  (design-time, runtime, incident-response), stakeholder (end-user, developer, auditor),
+  and risk (high-severity, mitigated, accepted-risk). Free tags outside the vocabulary
+  are allowed but must be lowercase and hyphenated. Tags used more than 3 times across
+  the lattice should be reviewed for inclusion in the controlled vocabulary.'
+tags:
+- controlled-vocabulary
+- governance
+- tag-vocabulary
+- taxonomy
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- DG-02
+- DG-03
+- DES-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:06:55.056044'
+updated_at: '2026-03-05T13:06:55.056073'

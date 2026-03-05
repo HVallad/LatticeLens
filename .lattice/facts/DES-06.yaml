@@ -1,0 +1,27 @@
+code: DES-06
+layer: WHY
+type: Design Proposal Decision
+fact: 'LatticeLens uses a four-tier progressive storage architecture. Tier 1: YAML
+  flat files for getting started (git-native, zero infrastructure). Tier 2: SQLite
+  for scaling locally to 100K facts. Tier 3: MCP server for shared and centralized
+  access. Tier 4: Enterprise relational database (via SQLAlchemy) for multi-user,
+  multi-project deployments. All tiers share the same CLI, LatticeStore interface,
+  and fact schema. The developer decides when to move between tiers — the system
+  advises but never forces.'
+tags:
+- design
+- progressive-architecture
+- scalability
+- storage-tiers
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- DES-02
+- ADR-03
+- PRD-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:06:52.615573'
+updated_at: '2026-03-05T13:06:52.615604'

@@ -1,0 +1,22 @@
+code: ADR-05
+layer: WHY
+type: Architecture Decision Record
+fact: Requires Python 3.11+ as minimum version. Enables modern type hint syntax 
+  (X | Y unions), improved error messages, and performance gains from the 
+  specializing adaptive interpreter. Avoids backport complexity for older Python
+  versions.
+tags:
+- compatibility
+- developer-experience
+- python
+- runtime
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- PRD-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-12-01'
+created_at: '2026-03-05T12:44:58.251389'
+updated_at: '2026-03-05T12:44:58.251423'

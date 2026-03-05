@@ -1,0 +1,24 @@
+code: DES-04
+layer: WHY
+type: Design Proposal Decision
+fact: Contradiction candidates are defined as pairs of Active facts sharing at 
+  least N tags (default 2) but differing in layer or owner. This heuristic flags
+  potential conflicts for human review, not confirmed contradictions. The O(n^2)
+  pairwise comparison is acceptable for expected lattice sizes. Only Active 
+  facts are considered — Deprecated and Draft facts are excluded.
+tags:
+- algorithm
+- contradiction-detection
+- design
+- heuristic
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- SP-02
+- DES-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:00:31.549657'
+updated_at: '2026-03-05T13:00:31.549687'

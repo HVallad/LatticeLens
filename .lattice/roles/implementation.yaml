@@ -1,0 +1,16 @@
+name: Implementation Agent
+description: Code-level implementation guidance
+query:
+  layers:
+  - HOW
+  - GUARDRAILS
+  types:
+  - API Specification
+  - System Prompt Rule
+  - Data Governance Rule
+  tags:
+  - api
+  - system-prompt
+  - rate-limiting
+  max_facts: 25
+  extra: []

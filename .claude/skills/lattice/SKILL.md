@@ -108,6 +108,84 @@ lattice fact edit ADR-03
 lattice fact deprecate ADR-03 --reason "Superseded by ADR-04"
 ```
 
+## Knowledge Graph (Phase 2)
+
+### Impact analysis
+
+```bash
+# What breaks if I change ADR-03?
+lattice graph impact ADR-03
+
+# Limit traversal depth (default: 3)
+lattice graph impact ADR-03 --depth 1
+
+# JSON output
+lattice graph impact ADR-03 --json
+```
+
+Shows directly affected facts (those that reference the code), transitively affected facts (2+ hops away), and which agent roles would be impacted.
+
+### Orphan detection
+
+```bash
+# Find facts with no references in or out
+lattice graph orphans
+
+# JSON list of orphan codes
+lattice graph orphans --json
+```
+
+### Contradiction candidates
+
+```bash
+# Find active fact pairs sharing 2+ tags across different layers/owners
+lattice graph contradictions
+
+# Adjust sensitivity (default: 2 shared tags)
+lattice graph contradictions --min-tags 3
+
+# JSON output
+lattice graph contradictions --json
+```
+
+These are candidates for human review — not confirmed contradictions.
+
+## Git Integration (Phase 2)
+
+### Fact-level diffs
+
+```bash
+# Show which facts changed (unstaged)
+lattice diff
+
+# Show only staged changes
+lattice diff --staged
+```
+
+Parses `git diff` scoped to `.lattice/facts/` and shows a summary: which fact codes changed, which fields, and counts of added/modified/deleted.
+
+### Fact history
+
+```bash
+# Recent changes to any fact
+lattice log
+
+# History of a specific fact
+lattice log ADR-03
+
+# Limit entries (default: 20)
+lattice log --limit 5
+```
+
+## Upgrading
+
+```bash
+# Migrate lattice to latest schema version
+lattice upgrade
+```
+
+Runs versioned migrations (e.g., v0.1.0 → v0.2.0 role template format change). Safe to run at any time — idempotent and skips already-applied migrations. The current version is tracked in `.lattice/config.yaml`.
+
 ## Validation and Maintenance
 
 ```bash
@@ -139,13 +217,33 @@ These are enforced on every write:
 9. Refs to non-existent codes produce warnings (not errors)
 10. `created_at` is never modified after initial creation
 
+## Role Templates (Phase 2 format)
+
+Role templates in `.lattice/roles/*.yaml` define which facts matter to each agent role. Used by `lattice graph impact` to determine affected roles.
+
+```yaml
+# .lattice/roles/planning.yaml
+name: Planning Agent
+description: "Product Strategist — scopes work, defines acceptance criteria"
+query:
+  layers: ["WHY"]
+  types: ["Architecture Decision Record", "Product Requirement"]
+  tags: ["architecture", "scaling", "performance-requirement"]
+  max_facts: 20
+  extra:
+    - layer: "GUARDRAILS"
+      types: ["Acceptable Use Policy Rule"]
+```
+
+Five default roles are created by `lattice init`: planning, architecture, implementation, qa, deploy.
+
 ## Directory Structure
 
 ```
 .lattice/
-├── config.yaml          # Backend settings
+├── config.yaml          # Backend settings + schema version
 ├── facts/               # One YAML file per fact ({CODE}.yaml)
-├── roles/               # Role query templates for context assembly
+├── roles/               # Role query templates (planning, architecture, etc.)
 ├── history/             # changelog.jsonl (append-only audit log)
 ├── index.yaml           # Generated index (in .gitignore)
 └── .gitignore

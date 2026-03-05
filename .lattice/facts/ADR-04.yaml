@@ -1,0 +1,24 @@
+code: ADR-04
+layer: WHY
+type: Architecture Decision Record
+fact: Adopted Pydantic v2 for data validation. Every fact is validated at 
+  creation and edit time via a Pydantic BaseModel with custom validators for 
+  code format, layer-prefix consistency, tag normalization, and superseded-by 
+  constraints.
+tags:
+- architecture
+- data-integrity
+- pydantic
+- validation
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- DG-01
+- RISK-01
+- SP-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T12:29:41.710387'
+updated_at: '2026-03-05T12:29:41.710416'

@@ -1,0 +1,24 @@
+code: ADR-06
+layer: WHY
+type: Architecture Decision Record
+fact: References to non-existent fact codes produce warnings, not errors (soft 
+  ref integrity). This allows facts to be created in any order, enables partial 
+  lattices, and avoids circular dependency problems during initial knowledge 
+  capture. Broken refs are surfaced by lattice validate.
+tags:
+- data-integrity
+- design
+- flexibility
+- soft-refs
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- DES-01
+- MC-01
+- MON-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T12:44:58.892075'
+updated_at: '2026-03-05T12:44:58.892105'

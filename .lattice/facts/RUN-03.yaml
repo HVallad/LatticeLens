@@ -1,0 +1,24 @@
+code: RUN-03
+layer: HOW
+type: Runbook Procedure
+fact: Testing uses pytest with tmp_path fixtures for filesystem isolation. CLI 
+  tests use Typer's CliRunner with monkeypatch.chdir for working directory 
+  control. conftest.py provides make_fact() helper for building test facts, 
+  yaml_store fixture for empty stores, and seeded_store fixture with 12 
+  pre-loaded facts.
+tags:
+- developer-experience
+- fixtures
+- pytest
+- testing
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- ADR-01
+- ADR-04
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T12:45:04.892589'
+updated_at: '2026-03-05T12:45:04.892618'

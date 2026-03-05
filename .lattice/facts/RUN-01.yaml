@@ -1,0 +1,23 @@
+code: RUN-01
+layer: HOW
+type: Runbook Procedure
+fact: Schema migrations are handled by lattice upgrade. Migrations are defined 
+  as an ordered list of (version, description, function) tuples. The runner 
+  reads the current version from config.yaml, applies only needed migrations in 
+  order, and stamps the new version. Always idempotent and safe to re-run.
+tags:
+- migration
+- operations
+- upgrade
+- versioning
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- DG-01
+- PRD-01
+superseded_by:
+owner: architecture-team
+review_by:
+created_at: '2026-03-05T12:29:48.444314'
+updated_at: '2026-03-05T12:29:48.444343'

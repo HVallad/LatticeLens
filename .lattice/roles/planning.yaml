@@ -1,0 +1,17 @@
+name: Planning Agent
+description: Product Strategist — scopes work, defines acceptance criteria
+query:
+  layers:
+  - WHY
+  types:
+  - Architecture Decision Record
+  - Product Requirement
+  tags:
+  - architecture
+  - scaling
+  - performance-requirement
+  max_facts: 20
+  extra:
+  - layer: GUARDRAILS
+    types:
+    - Acceptable Use Policy Rule

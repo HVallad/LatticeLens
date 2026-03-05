@@ -1,0 +1,23 @@
+code: RUN-02
+layer: HOW
+type: Runbook Procedure
+fact: lattice seed loads 12 example facts from seed/example_facts.yaml covering 
+  all three layers (4 WHY, 4 GUARDRAILS, 4 HOW). It also creates placeholder 
+  Draft facts for any referenced codes that don't exist in the seed set. Seed is
+  idempotent — running it twice does not create duplicates.
+tags:
+- examples
+- onboarding
+- operations
+- seed-data
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- DES-01
+- MON-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T12:45:04.297609'
+updated_at: '2026-03-05T12:45:04.297642'

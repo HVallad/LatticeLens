@@ -1,0 +1,25 @@
+code: ADR-12
+layer: WHY
+type: Architecture Decision Record
+fact: Runtime settings use pydantic-settings with env_prefix LATTICE_, allowing 
+  environment variables like LATTICE_ANTHROPIC_API_KEY to configure the 
+  application without modifying config.yaml. The Settings class declares 
+  lattice_root (auto-discovered), anthropic_api_key (empty default), and 
+  extraction_model (defaults to claude-sonnet-4-20250514) for Phase 4 LLM 
+  extraction.
+tags:
+- configuration
+- environment-variables
+- extensibility
+- pydantic
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- ADR-04
+- PRD-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-12-01'
+created_at: '2026-03-05T13:00:29.019816'
+updated_at: '2026-03-05T13:00:29.019865'

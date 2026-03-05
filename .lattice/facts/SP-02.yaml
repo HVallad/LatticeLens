@@ -1,0 +1,24 @@
+code: SP-02
+layer: HOW
+type: System Prompt Rule
+fact: Impact analysis traverses the reverse reference graph using BFS with a 
+  visited set to prevent infinite loops on circular refs. At each depth level, 
+  facts referencing the current code are collected. Depth 1 results are 
+  "directly affected", depth 2+ are "transitively affected". The max_depth 
+  parameter (default 3) bounds traversal.
+tags:
+- algorithm
+- graph-traversal
+- impact-analysis
+- phase-2
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- DES-02
+- RISK-02
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T12:45:05.458390'
+updated_at: '2026-03-05T12:45:05.458420'

@@ -1,0 +1,23 @@
+code: DES-02
+layer: WHY
+type: Design Proposal Decision
+fact: Storage is abstracted behind a LatticeStore protocol. All CLI commands and
+  the future MCP server program against this protocol, allowing the backend to 
+  be swapped (YAML files today, potentially SQLite later) without changing 
+  business logic.
+tags:
+- architecture
+- extensibility
+- protocol
+- storage-abstraction
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- ADR-03
+- API-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T12:29:44.277265'
+updated_at: '2026-03-05T12:29:44.277295'

@@ -1,0 +1,17 @@
+name: Architecture Agent
+description: System design and technical decisions
+query:
+  layers:
+  - WHY
+  - GUARDRAILS
+  types:
+  - Architecture Decision Record
+  - Design Proposal Decision
+  - Risk Assessment Finding
+  tags:
+  - architecture
+  - microservices
+  - decoupling
+  - api
+  max_facts: 30
+  extra: []

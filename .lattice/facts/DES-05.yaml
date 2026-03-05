@@ -1,0 +1,26 @@
+code: DES-05
+layer: WHY
+type: Design Proposal Decision
+fact: 'LatticeLens solves the context crisis in multi-agent systems. When multiple
+  agents collaborate, context management breaks down: granularity is too coarse, cross-cutting
+  facts are buried in documents, updates force full re-slicing, deduplication across
+  documents is impossible, and silent drift between documented intent and implemented
+  reality grows unchecked. LatticeLens replaces document-level context with atomic,
+  versioned, governed facts.'
+tags:
+- context-crisis
+- motivation
+- multi-agent
+- problem-statement
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- PRD-01
+- PRD-02
+- DES-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:06:51.985902'
+updated_at: '2026-03-05T13:06:51.985937'
