@@ -1,0 +1,25 @@
+code: MC-02
+layer: GUARDRAILS
+type: Monitoring Check
+fact: FactIndex.build() is resilient to corrupt or unparseable YAML files. When 
+  a file fails to load, the error is logged as a warning and the file is 
+  skipped. The index continues building from remaining valid files. This 
+  partial-index approach ensures that one bad file does not block all lattice 
+  operations. The validate command separately reports per-file parse errors.
+tags:
+- error-handling
+- index
+- partial-build
+- resilience
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- ADR-03
+- MC-01
+- SP-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:00:33.503543'
+updated_at: '2026-03-05T13:00:33.503581'

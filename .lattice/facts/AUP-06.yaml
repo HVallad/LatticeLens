@@ -1,0 +1,26 @@
+code: AUP-06
+layer: GUARDRAILS
+type: Acceptable Use Policy Rule
+fact: Duplicate fact codes are a hard validation error enforced at two levels. 
+  First, the Fact model's code_format validator rejects malformed codes on 
+  parse. Second, YAMLLatticeStore.add() checks the store for existing codes and 
+  raises ValueError on duplicates. FactIndex.build() also detects duplicate 
+  codes during indexing. This triple guard ensures code uniqueness across the 
+  lattice.
+tags:
+- duplicate-detection
+- store
+- uniqueness
+- validation
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- ADR-05
+- ADR-03
+- MC-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:00:30.281888'
+updated_at: '2026-03-05T13:00:30.281920'

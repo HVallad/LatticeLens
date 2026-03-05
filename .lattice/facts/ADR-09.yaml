@@ -1,0 +1,24 @@
+code: ADR-09
+layer: WHY
+type: Architecture Decision Record
+fact: LATTICE_VERSION follows a semver convention where the minor version tracks
+  implementation phases (0.1.0 = Phase 1, 0.2.0 = Phase 2) and the patch version
+  tracks fixes within a phase. The lattice upgrade migration runner compares 
+  version tuples to determine which migrations to apply, establishing backward 
+  compatibility boundaries at each minor version bump.
+tags:
+- compatibility
+- migration
+- semver
+- versioning
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- RUN-01
+- PRD-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:00:26.963551'
+updated_at: '2026-03-05T13:00:26.963587'

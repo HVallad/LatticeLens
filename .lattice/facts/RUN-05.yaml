@@ -1,0 +1,25 @@
+code: RUN-05
+layer: HOW
+type: Runbook Entry
+fact: lattice reindex rebuilds the .lattice/index.json file from all YAML files 
+  in .lattice/facts/. The index stores forward refs (code -> codes it 
+  references) and reverse refs (code -> codes that reference it). Reindexing is 
+  idempotent and recovers from stale or corrupt index files. It should be run 
+  after bulk edits or manual YAML changes outside the CLI.
+tags:
+- cli
+- index
+- recovery
+- reindex
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- ADR-03
+- MC-02
+- SP-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:00:36.625017'
+updated_at: '2026-03-05T13:00:36.625057'

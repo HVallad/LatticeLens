@@ -1,0 +1,25 @@
+code: SP-04
+layer: HOW
+type: Standard Procedure
+fact: lattice graph impact CODE performs breadth-first reverse-reference 
+  traversal from the given fact code. It collects directly affected facts (depth
+  1) and transitively affected facts (depth 2+) up to --depth N (default 3). A 
+  visited set prevents infinite loops from circular references. Results include 
+  affected role templates matched against each affected fact's layer and type.
+tags:
+- bfs
+- graph
+- impact-analysis
+- reverse-refs
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- DES-04
+- ADR-10
+- SP-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:00:37.215384'
+updated_at: '2026-03-05T13:00:37.215413'

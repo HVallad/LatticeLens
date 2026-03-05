@@ -1,0 +1,24 @@
+code: RISK-04
+layer: GUARDRAILS
+type: Risk Register Entry
+fact: 'The fact owner field is free-text, not validated against a registry. Typos
+  in owner values (e.g., "arch-team" vs "architecture-team") cause false positives
+  in contradiction candidate detection, which flags pairs with differing owners. Mitigation:
+  teams should establish naming conventions. Future phases may add owner validation
+  against a .lattice/owners.yaml file.'
+tags:
+- contradiction-detection
+- free-text
+- owner-field
+- risk
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- DES-04
+- ADR-05
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:00:34.765690'
+updated_at: '2026-03-05T13:00:34.765720'

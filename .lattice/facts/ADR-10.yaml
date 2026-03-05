@@ -1,0 +1,25 @@
+code: ADR-10
+layer: WHY
+type: Architecture Decision Record
+fact: lattice init creates five default agent role templates — planning, 
+  architecture, implementation, qa, deploy — reflecting a typical AI agent 
+  development pipeline. Each role has a query block with layers, types, tags, 
+  max_facts, and extra rules. These templates are consumed by lattice graph 
+  impact for affected-role analysis and will power Phase 3 context assembly.
+tags:
+- agent-pipeline
+- defaults
+- design
+- roles
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- DES-01
+- SP-03
+- PRD-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:00:27.648069'
+updated_at: '2026-03-05T13:00:27.648100'

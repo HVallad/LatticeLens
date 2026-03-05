@@ -1,0 +1,25 @@
+code: RISK-03
+layer: GUARDRAILS
+type: Risk Register Entry
+fact: 'The fact type field is free-text, not an enum. Inconsistent type strings (e.g.,
+  "Architecture Decision Record" vs "ADR" vs "Arch Decision") will cause role template
+  matching to miss facts silently. Mitigation: future phases should add type normalization
+  or a controlled vocabulary. Currently, the seed data and documentation establish
+  conventions but do not enforce them.'
+tags:
+- free-text
+- risk
+- role-matching
+- type-field
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- ADR-05
+- DES-04
+- ADR-10
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:00:34.155675'
+updated_at: '2026-03-05T13:00:34.155705'

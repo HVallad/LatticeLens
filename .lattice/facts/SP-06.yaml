@@ -1,0 +1,24 @@
+code: SP-06
+layer: HOW
+type: Standard Procedure
+fact: lattice diff [--staged] scopes git diff to .lattice/facts/ and parses the 
+  unified diff output to extract changed fact codes and modified fields. lattice
+  log [CODE] [--limit N] scopes git log to .lattice/facts/ and optionally 
+  follows a single fact file with --follow. Both commands check for git 
+  availability first and print a graceful error if not in a git repo.
+tags:
+- cli
+- diff
+- git-integration
+- log
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- ADR-03
+- SP-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:00:38.486294'
+updated_at: '2026-03-05T13:00:38.486324'
