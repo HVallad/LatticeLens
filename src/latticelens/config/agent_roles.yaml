@@ -1,0 +1,55 @@
+roles:
+  planning:
+    description: "Product Strategist - scopes work, defines acceptance criteria"
+    query:
+      layers: ["WHY"]
+      types: ["Architecture Decision Record", "Product Requirement"]
+      status: ["Active"]
+      extra:
+        layer: "GUARDRAILS"
+        types: ["Acceptable Use Policy Rule"]
+
+  architecture:
+    description: "Systems Architect - designs components, annotates risks"
+    query:
+      layers: ["WHY"]
+      types: ["Architecture Decision Record", "Design Proposal Decision"]
+      status: ["Active"]
+      extra_layers:
+        - layer: "GUARDRAILS"
+          types: ["Model Card Entry", "Risk Assessment Finding", "Data Governance Rule"]
+        - layer: "HOW"
+          types: ["API Specification"]
+
+  implementation:
+    description: "Senior Developer - writes code, configures prompts"
+    query:
+      layers: ["GUARDRAILS"]
+      types: ["Acceptable Use Policy Rule", "Data Governance Rule"]
+      status: ["Active"]
+      extra:
+        layer: "HOW"
+        types: ["System Prompt Rule", "API Specification", "MLOps Pipeline Rule"]
+
+  qa:
+    description: "Quality & Compliance Reviewer - validates against criteria"
+    query:
+      layers: ["WHY"]
+      types: ["Product Requirement", "Ethical Review Finding"]
+      status: ["Active"]
+      extra_layers:
+        - layer: "GUARDRAILS"
+          types: ["Model Card Entry", "Acceptable Use Policy Rule", "Risk Assessment Finding", "Compliance Requirement"]
+        - layer: "HOW"
+          types: ["Monitoring Rule"]
+
+  deploy:
+    description: "DevOps / Release Engineer - deploys and monitors"
+    query:
+      layers: ["GUARDRAILS"]
+      types: ["Risk Assessment Finding"]
+      tags_any: ["deploy-time", "high-severity"]
+      status: ["Active"]
+      extra:
+        layer: "HOW"
+        types: ["Runbook Procedure", "MLOps Pipeline Rule", "Monitoring Rule"]
