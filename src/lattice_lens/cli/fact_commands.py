@@ -21,11 +21,13 @@ from lattice_lens.cli.helpers import require_lattice
 from lattice_lens.config import LAYER_PREFIXES
 from lattice_lens.models import Fact, FactConfidence, FactLayer, FactStatus
 from lattice_lens.services.fact_service import (
+    PROMOTION_TRANSITIONS,
     check_refs,
     create_fact,
     infer_layer,
     is_stale,
     next_code,
+    promote_fact,
 )
 
 console = Console()
@@ -65,6 +67,14 @@ def _add_from_file(store, path: Path):
     except ValidationError as e:
         err_console.print(f"[red]Validation error:[/red]\n{e}")
         raise typer.Exit(1)
+
+    # AUP-08: Warn when importing a fact that isn't Draft
+    if fact.status != FactStatus.DRAFT:
+        console.print(
+            f"[yellow]Warning:[/yellow] Fact {fact.code} has status '{fact.status.value}'. "
+            f"Per AUP-08, new facts should start as Draft and be promoted via "
+            f"[bold]lattice fact promote[/bold]."
+        )
 
     try:
         created, warnings = create_fact(store, fact)
@@ -305,6 +315,22 @@ def fact_edit(
                 console.print("[dim]No changes detected.[/dim]")
                 raise typer.Exit(0)
 
+            # Block promotion-direction status changes — use `lattice fact promote`
+            if "status" in changes:
+                old_status = FactStatus(old_data["status"])
+                new_status = FactStatus(changes["status"])
+                if PROMOTION_TRANSITIONS.get(old_status) == new_status:
+                    err_console.print(
+                        f"[red]Error:[/red] Cannot promote {code} via edit. "
+                        f"Use [bold]lattice fact promote {code} --reason \"...\"[/bold] "
+                        f"to transition {old_status.value} → {new_status.value}."
+                    )
+                    retry = typer.confirm("Re-edit?", default=True)
+                    if not retry:
+                        console.print("[yellow]Aborted.[/yellow]")
+                        raise typer.Exit(0)
+                    continue
+
             result = store.update(code, changes, "Edited via CLI")
             warnings = check_refs(store, result.refs)
             for w in warnings:
@@ -315,6 +341,29 @@ def fact_edit(
             break
     finally:
         Path(tmp_path).unlink(missing_ok=True)
+
+
+@fact_app.command("promote")
+def fact_promote(
+    code: str = typer.Argument(help="Fact code to promote"),
+    reason: str = typer.Option(..., "--reason", help="Reason for promotion"),
+):
+    """Promote a fact: Draft -> Under Review -> Active."""
+    store = require_lattice()
+
+    try:
+        result = promote_fact(store, code, reason)
+    except FileNotFoundError:
+        err_console.print(f"[red]Error:[/red] Fact '{code}' not found")
+        raise typer.Exit(1)
+    except ValueError as e:
+        err_console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(1)
+
+    console.print(
+        f"[green]Promoted[/green] {result.code} to {result.status.value} "
+        f"(v{result.version}): {reason}"
+    )
 
 
 @fact_app.command("deprecate")

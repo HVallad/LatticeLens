@@ -93,9 +93,14 @@ lattice fact add --from my-fact.yaml
 # Open in $EDITOR, validates on save, bumps version
 lattice fact edit ADR-03
 
+# Promote through lifecycle: Draft -> Under Review -> Active
+lattice fact promote ADR-03 --reason "Reviewed and approved by team"
+
 # Soft delete (no hard deletes — facts are Deprecated, never removed)
 lattice fact deprecate ADR-03 --reason "Superseded by ADR-04"
 ```
+
+New facts default to `Draft` status and must be promoted through the lifecycle before they appear in agent context.
 
 ### Validate integrity
 
@@ -124,6 +129,24 @@ lattice graph contradictions
 ```
 
 All graph commands support `--json` for machine-readable output.
+
+### Context assembly
+
+```bash
+# Assemble governed facts for the planning agent role
+lattice context planning
+
+# Respect a token budget — loads highest-priority facts first
+lattice context planning --budget 4000
+
+# JSON output — pipe directly into an agent prompt
+lattice context planning --json
+
+# Different roles get different facts
+lattice context architecture --budget 8000 --json
+```
+
+Context assembly follows priority loading: Confirmed facts first, then Provisional if budget remains. Draft, Deprecated, and Superseded facts are never included. Facts that exist but weren't loaded are listed as REFS pointers so the agent knows what it's missing.
 
 ### Git integration
 
@@ -206,6 +229,122 @@ review_by: 2026-06-01
 
 ## Claude Code Integration
 
+### Governance Hook (Recommended)
+
+LatticeLens includes a `UserPromptSubmit` hook that automatically injects your project's governance rules into every Claude Code conversation. When active, the hook:
+
+1. **Enforces governance** — All active GUARDRAILS-layer rules (AUP, DG, RISK, MC) are injected as mandatory context. The agent is instructed to follow these rules and **raise conflicts before proceeding** if a request would violate any rule, citing the specific rule code.
+2. **Encourages knowledge discovery** — A summary of available WHY/HOW facts is included with instructions to run `lattice context <role> --json` before starting development work.
+3. **Silent when absent** — If the project has no `.lattice/` directory, the hook produces no output and does not interfere.
+
+#### Setup
+
+**Step 1:** Install LatticeLens so the `lattice` command is on your PATH:
+
+```bash
+pip install -e .
+```
+
+**Step 2:** Add the hook configuration to your project's `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "lattice evaluate",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+That's it. Every prompt you submit in Claude Code will now be preceded by the project's governance briefing.
+
+#### What the agent sees
+
+When you submit a prompt, Claude sees something like:
+
+```
+# LatticeLens Governance Briefing
+
+## Mandatory Rules
+You MUST follow these governance rules for this project. If the user's
+request would violate any of these rules, you MUST raise the conflict
+before proceeding — cite the specific rule code (e.g. AUP-01)...
+
+### [AUP-01] Acceptable Use Policy Rule (Confirmed)
+Facts are never hard-deleted...
+
+### [DG-06] Data Governance Rule (Confirmed)
+Facts progress through a defined lifecycle...
+
+## Project Knowledge Available
+This project has a knowledge lattice you should consult before development:
+
+**WHY layer** (architectural decisions & requirements):
+- 13 Architecture Decision Records
+- 3 Product Requirements
+...
+
+### Before starting work, load relevant context:
+- For planning/scoping: `lattice context planning --json`
+- For coding tasks: `lattice context implementation --json`
+...
+```
+
+#### Manual testing
+
+You can preview what the hook outputs at any time:
+
+```bash
+# Text briefing (what Claude sees)
+lattice evaluate
+
+# JSON format (for scripting or the agent hook variant)
+lattice evaluate --json
+
+# Test from a specific directory
+lattice evaluate --path /path/to/project
+
+# Diagnostics on stderr
+lattice evaluate --verbose
+```
+
+#### Agent hook variant (optional)
+
+For deeper AI-powered evaluation, you can use an agent-type hook instead of (or in addition to) the command hook. This spawns a Claude sub-agent that loads the lattice context and reasons about whether the prompt aligns with governance rules:
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "You are a governance reviewer. Run `lattice evaluate --json` to load this project's governance rules and knowledge summary. Then evaluate whether the user's prompt might lead to actions that violate any governance rules, or whether there are relevant architectural decisions or design patterns the agent should review first. Output your assessment. $ARGUMENTS",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+This is slower (~5–10s per prompt) but can catch subtler conflicts that simple context injection might miss.
+
+### Skill
+
 A `/lattice` skill is included for Claude Code users. Type `/lattice` in any Claude Code session to get usage guidance, or `/lattice how do I filter by tag` to ask a specific question.
 
 To make it available globally (outside this repo), copy the skill to your personal skills directory:
@@ -233,13 +372,13 @@ ruff check src/ tests/
 
 Git-native fact storage, full CRUD, filtering, validation, seed data. The foundation everything else builds on.
 
-### Phase 2 — Knowledge Graph + Git Integration (current)
+### Phase 2 — Knowledge Graph + Git Integration ✓
 
 Impact analysis (`lattice graph impact`), orphan detection, contradiction candidates, git-aware diffs (`lattice diff`) and history (`lattice log`), versioned schema upgrades (`lattice upgrade`).
 
-### Phase 3 — Context Assembly Engine
+### Phase 3 — Context Assembly + Fact Lifecycle ✓
 
-Role-scoped, token-budgeted context assembly. Run `lattice context planning` and get exactly the facts the Planning Agent needs, fitted to a token budget.
+Lifecycle commands (`lattice fact promote`), role-scoped token-budgeted context assembly (`lattice context planning --budget 4000`), priority loading (Confirmed first, Provisional if budget remains), REFS pointers for excluded facts.
 
 ### Phase 4 — LLM Extraction + Import/Export
 

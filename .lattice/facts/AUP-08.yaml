@@ -13,9 +13,9 @@ tags:
 - governance
 - lifecycle
 - workflow
-status: Draft
-confidence: Provisional
-version: 1
+status: Active
+confidence: Confirmed
+version: 3
 refs:
 - DG-06
 - DG-04
@@ -24,4 +24,4 @@ superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
 created_at: '2026-03-05T13:13:58.193764'
-updated_at: '2026-03-05T13:13:58.193797'
+updated_at: '2026-03-05T13:33:12.765374'

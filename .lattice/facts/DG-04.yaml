@@ -1,11 +1,12 @@
 code: DG-04
 layer: GUARDRAILS
 type: Data Governance Rule
-fact: The lattice fact ls command defaults to showing only Active facts. 
-  Deprecated and Superseded facts are hidden from default listings to reduce 
-  noise. Users can override this with --status filters to see all lifecycle 
-  states. This ensures day-to-day workflows focus on current knowledge without 
-  losing access to historical decisions.
+fact: The lattice fact ls command defaults to showing Active, Draft, and Under 
+  Review facts. Deprecated and Superseded facts are hidden from default listings
+  to reduce noise. Users can override this with --status filters to see all 
+  lifecycle states. This default ensures developers see both current knowledge 
+  and in-progress facts awaiting promotion, while hiding retired facts from 
+  day-to-day workflows.
 tags:
 - cli
 - developer-experience
@@ -13,7 +14,7 @@ tags:
 - status-filter
 status: Active
 confidence: Confirmed
-version: 1
+version: 2
 refs:
 - ADR-05
 - SP-01
@@ -21,4 +22,4 @@ superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
 created_at: '2026-03-05T13:00:32.201052'
-updated_at: '2026-03-05T13:00:32.201085'
+updated_at: '2026-03-05T14:49:41.992659'

@@ -6,7 +6,7 @@ import re
 from datetime import datetime
 
 from lattice_lens.config import LAYER_PREFIXES
-from lattice_lens.models import Fact, FactStatus
+from lattice_lens.models import Fact, FactConfidence, FactStatus
 from lattice_lens.store.yaml_store import YamlFileStore
 
 
@@ -77,3 +77,40 @@ def is_stale(fact: Fact) -> bool:
     if fact.review_by is None:
         return False
     return fact.review_by < datetime.now().date()
+
+
+# Valid lifecycle transitions: current_status -> next_status
+PROMOTION_TRANSITIONS: dict[FactStatus, FactStatus] = {
+    FactStatus.DRAFT: FactStatus.UNDER_REVIEW,
+    FactStatus.UNDER_REVIEW: FactStatus.ACTIVE,
+}
+
+
+def promote_fact(store: YamlFileStore, code: str, reason: str) -> Fact:
+    """Promote a fact one step through the lifecycle.
+
+    Draft -> Under Review -> Active.
+    Raises ValueError if the fact cannot be promoted.
+    """
+    fact = store.get(code)
+    if fact is None:
+        raise FileNotFoundError(f"Fact {code} not found")
+
+    next_status = PROMOTION_TRANSITIONS.get(fact.status)
+    if next_status is None:
+        raise ValueError(
+            f"Cannot promote {code}: status '{fact.status.value}' is not promotable. "
+            f"Only Draft and Under Review facts can be promoted."
+        )
+
+    changes: dict = {"status": next_status.value}
+
+    # When promoting to Active, set confidence to Confirmed
+    if next_status == FactStatus.ACTIVE:
+        changes["confidence"] = FactConfidence.CONFIRMED.value
+
+    # When promoting to Under Review, set confidence to Provisional
+    if next_status == FactStatus.UNDER_REVIEW:
+        changes["confidence"] = FactConfidence.PROVISIONAL.value
+
+    return store.update(code, changes, f"Promoted to {next_status.value}: {reason}")
