@@ -11,10 +11,10 @@ tags:
 - typer
 status: Active
 confidence: Confirmed
-version: 1
+version: 2
 refs:
 - DES-01
-- HOW-SP-01
+- SP-01
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
