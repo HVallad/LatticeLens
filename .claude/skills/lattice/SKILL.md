@@ -102,6 +102,18 @@ lattice fact ls --json
 lattice fact edit ADR-03
 ```
 
+### Promoting through lifecycle
+
+```bash
+# Draft -> Under Review (one step per invocation)
+lattice fact promote ADR-03 --reason "Ready for peer review"
+
+# Under Review -> Active
+lattice fact promote ADR-03 --reason "Reviewed and approved"
+```
+
+New facts default to `Draft`. They must be promoted through `Under Review` to `Active` before they appear in agent context. The `--reason` flag is required.
+
 ### Deprecating (no hard deletes)
 
 ```bash
@@ -149,6 +161,30 @@ lattice graph contradictions --json
 ```
 
 These are candidates for human review — not confirmed contradictions.
+
+## Context Assembly (Phase 3)
+
+Assemble governed, token-budgeted facts for an agent role:
+
+```bash
+# Assemble facts for the planning role
+lattice context planning
+
+# With a token budget — loads highest-priority facts first
+lattice context planning --budget 4000
+
+# JSON output for piping into agent prompts
+lattice context planning --json
+```
+
+**Priority loading** (per AUP-07):
+1. Confirmed facts first, sorted by tag relevance to the role
+2. Provisional facts if budget remains
+3. Never Draft, Deprecated, or Superseded
+
+Facts that exist but weren't loaded are listed as **REFS pointers** so the agent knows what it's missing.
+
+Available roles are defined in `.lattice/roles/*.yaml`. Default roles: `planning`, `architecture`, `implementation`, `qa`, `deploy`.
 
 ## Git Integration (Phase 2)
 

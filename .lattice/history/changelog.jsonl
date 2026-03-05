@@ -59,3 +59,9 @@
 {"timestamp": "2026-03-05T13:06:56.200734", "action": "create", "code": "RISK-06", "reason": "Initial creation"}
 {"timestamp": "2026-03-05T13:13:58.197340", "action": "create", "code": "AUP-08", "reason": "Initial creation"}
 {"timestamp": "2026-03-05T13:13:58.835005", "action": "create", "code": "PRD-03", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T13:32:56.019330", "action": "update", "code": "PRD-03", "reason": "Promoted to Under Review: Phase 3 implementation starting, requirements reviewed and accepted"}
+{"timestamp": "2026-03-05T13:33:03.846309", "action": "update", "code": "PRD-03", "reason": "Promoted to Active: Requirements validated, ready for active use"}
+{"timestamp": "2026-03-05T13:33:12.139173", "action": "update", "code": "AUP-08", "reason": "Promoted to Under Review: Lifecycle enforcement policy reviewed"}
+{"timestamp": "2026-03-05T13:33:12.768360", "action": "update", "code": "AUP-08", "reason": "Promoted to Active: Policy validated and accepted for enforcement"}
+{"timestamp": "2026-03-05T14:49:41.995337", "action": "update", "code": "DG-04", "reason": "Updated to match actual fact ls default: Active+Draft+Under Review (not Active-only)"}
+{"timestamp": "2026-03-05T15:45:02.299981", "action": "create", "code": "RISK-07", "reason": "Initial creation"}

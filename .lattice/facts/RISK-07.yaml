@@ -1,0 +1,29 @@
+code: RISK-07
+layer: GUARDRAILS
+type: Risk Register Entry
+fact: "The lattice evaluate command rebuilds the full FactIndex on every invocation
+  by scanning all YAML files in .lattice/facts/. When triggered by an external hook
+  system on every user prompt, this adds per-prompt I/O overhead proportional to total
+  fact count. At the current scale (tens to low hundreds of facts) this completes
+  in under 100ms and is acceptable. At 1,000+ facts the cumulative overhead may become
+  noticeable. Mitigation: future phases could introduce a cached index with file-watcher
+  invalidation, or the evaluate command could read only GUARDRAILS-prefixed files
+  (AUP-*, DG-*, RISK-*, MC-*, COMP-*) instead of building the full index. This risk
+  extends RISK-02's index rebuild concern to the new evaluate code path."
+tags:
+- evaluate
+- index
+- performance
+- risk
+- scaling
+status: Draft
+confidence: Provisional
+version: 1
+refs:
+- RISK-02
+- DES-02
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T15:45:02.295416'
+updated_at: '2026-03-05T15:45:02.295448'
