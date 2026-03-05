@@ -1,0 +1,26 @@
+code: DES-07
+layer: WHY
+type: Design Proposal Decision
+fact: "Bidirectional reconciliation is LatticeLens's most defensible capability. It
+  verifies knowledge against codebases in both directions: Facts-to-Code checks whether
+  documented decisions match implementation, and Code-to-Facts surfaces code behaviors
+  with no corresponding fact. A reconciliation agent produces a report categorizing
+  each finding as confirmed, stale, untracked, or orphaned. No competing tool combines
+  curated fact governance with live codebase verification."
+tags:
+- bidirectional
+- defensibility
+- design
+- reconciliation
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- PRD-01
+- DES-05
+- DES-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:06:53.227312'
+updated_at: '2026-03-05T13:06:53.227344'

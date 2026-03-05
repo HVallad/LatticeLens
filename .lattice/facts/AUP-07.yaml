@@ -1,0 +1,27 @@
+code: AUP-07
+layer: GUARDRAILS
+type: Acceptable Use Policy Rule
+fact: Context assembly must follow priority loading rules. Load all facts with 
+  confidence Confirmed first. Within Confirmed, sort by relevance to agent role 
+  via tag match score. Load Provisional facts only if token budget remains. 
+  Never load Deprecated or Superseded facts. Include REFS pointers even for 
+  facts not loaded, so the agent knows what exists but is not in context. This 
+  ensures agents always receive the highest-quality facts first within their 
+  budget.
+tags:
+- context-assembly
+- governance
+- priority-loading
+- token-budget
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- DES-08
+- DG-06
+- DES-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:06:51.345657'
+updated_at: '2026-03-05T13:06:51.345689'

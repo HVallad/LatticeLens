@@ -1,0 +1,25 @@
+code: PRD-02
+layer: WHY
+type: Product Requirement
+fact: LatticeLens must remain AI tool and model agnostic. It is not tied to any 
+  specific AI model (GPT, Claude, Gemini, open-source), agent framework 
+  (LangChain, CrewAI, CoderClaw), or orchestration tool. It is a substrate — 
+  the knowledge governance layer that any agent framework can build on. The 
+  integration model exposes a clean API surface that external orchestrators 
+  consume. This agnosticism is a core product requirement, not a convenience.
+tags:
+- framework-agnostic
+- model-agnostic
+- product-identity
+- tool-agnostic
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- PRD-01
+- DES-02
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:06:55.612707'
+updated_at: '2026-03-05T13:06:55.612736'
