@@ -1,0 +1,157 @@
+"""Schema and integrity validation for the lattice."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+
+from pydantic import ValidationError
+from ruamel.yaml import YAML
+
+from lattice_lens.config import LAYER_PREFIXES
+from lattice_lens.models import Fact
+
+yaml = YAML()
+
+
+@dataclass
+class ValidationResult:
+    """Collects errors and warnings from a validation run."""
+
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+
+    @property
+    def ok(self) -> bool:
+        return len(self.errors) == 0
+
+    def add_error(self, msg: str):
+        self.errors.append(msg)
+
+    def add_warning(self, msg: str):
+        self.warnings.append(msg)
+
+
+def validate_lattice(facts_dir: Path) -> ValidationResult:
+    """Run all integrity checks on the .lattice/facts/ directory."""
+    result = ValidationResult()
+
+    if not facts_dir.exists():
+        result.add_error(f"Facts directory does not exist: {facts_dir}")
+        return result
+
+    yaml_files = sorted(facts_dir.glob("*.yaml"))
+    if not yaml_files:
+        result.add_warning("No fact files found")
+        return result
+
+    seen_codes: dict[str, str] = {}  # code -> filename
+    all_codes: set[str] = set()
+    all_facts: list[Fact] = []
+    today = datetime.now().date()
+
+    for path in yaml_files:
+        # Check YAML parsing
+        try:
+            with open(path) as f:
+                data = yaml.load(f)
+        except Exception as e:
+            result.add_error(f"{path.name}: YAML parse error: {e}")
+            continue
+
+        if data is None:
+            result.add_error(f"{path.name}: Empty YAML file")
+            continue
+
+        # Check Pydantic validation
+        try:
+            fact = Fact(**data)
+        except ValidationError as e:
+            result.add_error(f"{path.name}: Validation error: {e}")
+            continue
+
+        # Check for duplicate codes
+        if fact.code in seen_codes:
+            result.add_error(
+                f"{path.name}: Duplicate code '{fact.code}' "
+                f"(also in {seen_codes[fact.code]})"
+            )
+        else:
+            seen_codes[fact.code] = path.name
+
+        all_codes.add(fact.code)
+        all_facts.append(fact)
+
+        # Check code-layer prefix consistency
+        prefix = fact.code.split("-")[0]
+        allowed = LAYER_PREFIXES.get(fact.layer.value, [])
+        if prefix not in allowed:
+            result.add_error(
+                f"{path.name}: Code prefix '{prefix}' not valid for layer "
+                f"{fact.layer.value} (allowed: {allowed})"
+            )
+
+        # Check tag normalization
+        for tag in fact.tags:
+            if tag != tag.lower():
+                result.add_warning(f"{path.name}: Tag '{tag}' is not lowercase")
+        if fact.tags != sorted(fact.tags):
+            result.add_warning(f"{path.name}: Tags are not sorted")
+
+        # Check superseded consistency
+        if fact.status.value == "Superseded" and not fact.superseded_by:
+            result.add_error(f"{path.name}: Superseded fact missing superseded_by")
+
+        # Check staleness
+        if fact.review_by and fact.review_by < today:
+            result.add_warning(f"{path.name}: Fact '{fact.code}' is stale (review_by: {fact.review_by})")
+
+    # Check ref integrity (soft warnings)
+    for fact in all_facts:
+        for ref in fact.refs:
+            if ref not in all_codes:
+                result.add_warning(f"{fact.code}: Reference target '{ref}' does not exist")
+
+    return result
+
+
+def fix_lattice(facts_dir: Path) -> tuple[ValidationResult, int]:
+    """Auto-correct fixable issues. Returns (result, files_fixed)."""
+    result = ValidationResult()
+    files_fixed = 0
+
+    if not facts_dir.exists():
+        result.add_error(f"Facts directory does not exist: {facts_dir}")
+        return result, 0
+
+    for path in sorted(facts_dir.glob("*.yaml")):
+        try:
+            with open(path) as f:
+                data = yaml.load(f)
+        except Exception:
+            continue
+
+        if data is None:
+            continue
+
+        changed = False
+
+        # Fix tag normalization
+        if "tags" in data and isinstance(data["tags"], list):
+            original_tags = list(data["tags"])
+            normalized = sorted(set(t.lower().strip() for t in data["tags"]))
+            if normalized != original_tags:
+                data["tags"] = normalized
+                changed = True
+
+        if changed:
+            data["updated_at"] = datetime.now().isoformat()
+            writer = YAML()
+            writer.default_flow_style = False
+            with open(path, "w") as f:
+                writer.dump(data, f)
+            files_fixed += 1
+            result.add_warning(f"{path.name}: Auto-fixed tags")
+
+    return result, files_fixed
