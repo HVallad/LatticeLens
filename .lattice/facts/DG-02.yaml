@@ -1,0 +1,23 @@
+code: DG-02
+layer: GUARDRAILS
+type: Data Governance Rule
+fact: 'Tags are always normalized on write: lowercased, sorted alphabetically, and
+  deduplicated. Tag values must be alphanumeric with hyphens or underscores only —
+  special characters are rejected. This is enforced by a Pydantic field_validator
+  and ensures consistent querying.'
+tags:
+- data-integrity
+- governance
+- normalization
+- tags
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- ADR-04
+- SP-01
+superseded_by:
+owner: architecture-team
+review_by:
+created_at: '2026-03-05T12:45:03.077528'
+updated_at: '2026-03-05T12:45:03.077564'

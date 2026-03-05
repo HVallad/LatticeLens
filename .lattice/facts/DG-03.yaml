@@ -1,0 +1,23 @@
+code: DG-03
+layer: GUARDRAILS
+type: Data Governance Rule
+fact: Every fact requires a minimum of 2 tags and a minimum fact text length of 
+  10 characters. These minimums ensure facts are categorizable and contain 
+  meaningful content. Enforced by Pydantic field constraints (min_length on tags
+  list and fact string).
+tags:
+- data-integrity
+- governance
+- minimum-requirements
+- validation
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- ADR-04
+- MC-01
+superseded_by:
+owner: architecture-team
+review_by:
+created_at: '2026-03-05T12:45:03.686141'
+updated_at: '2026-03-05T12:45:03.686173'

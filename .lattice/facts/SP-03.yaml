@@ -1,0 +1,24 @@
+code: SP-03
+layer: HOW
+type: System Prompt Rule
+fact: Role template matching determines which agent roles are affected by a fact
+  change. A role is affected if any impacted fact's layer appears in the role's 
+  query.layers AND (no types filter is set OR the fact's type appears in 
+  query.types). Extra rules in query.extra provide additional layer+type matches
+  beyond the primary query.
+tags:
+- impact-analysis
+- phase-2
+- query-logic
+- role-matching
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- SP-02
+- DES-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T12:45:06.031819'
+updated_at: '2026-03-05T12:45:06.031850'
