@@ -1,0 +1,27 @@
+code: AUP-08
+layer: GUARDRAILS
+type: Acceptable Use Policy Rule
+fact: All new facts must be created with status Draft and progress through the 
+  full lifecycle (Draft → Under Review → Active) before entering agent 
+  context. The 59 founding facts created during Phase 1–2 development are 
+  grandfathered as Active. Going forward, the lattice fact add command should 
+  default to status Draft. Promotion to Active requires explicit review via a 
+  lifecycle transition command. This enforces the governance model documented in
+  DG-06 and ensures the dogfood lattice demonstrates proper workflow.
+tags:
+- enforcement
+- governance
+- lifecycle
+- workflow
+status: Draft
+confidence: Provisional
+version: 1
+refs:
+- DG-06
+- DG-04
+- AUP-07
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:13:58.193764'
+updated_at: '2026-03-05T13:13:58.193797'

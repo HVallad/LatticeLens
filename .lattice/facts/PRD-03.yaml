@@ -1,0 +1,29 @@
+code: PRD-03
+layer: WHY
+type: Product Requirement
+fact: 'Phase 3 must include explicit lifecycle transition commands: lattice fact promote
+  CODE (Draft → Under Review → Active) and lattice fact deprecate CODE (already
+  exists). The promote command should require a --reason flag documenting why the
+  fact is ready for the next state. Additionally, lattice fact add must default to
+  status Draft rather than Active. Context assembly must respect lifecycle states
+  per DG-06 and AUP-07: Draft facts are never assembled, Under Review facts are included
+  only with confidence Provisional, and only Active/Confirmed facts are prioritized.'
+tags:
+- cli
+- context-assembly
+- lifecycle
+- phase-3
+status: Draft
+confidence: Provisional
+version: 1
+refs:
+- DG-06
+- AUP-08
+- AUP-07
+- DES-08
+- PRD-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T13:13:58.831406'
+updated_at: '2026-03-05T13:13:58.831436'
