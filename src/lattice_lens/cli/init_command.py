@@ -14,6 +14,7 @@ from lattice_lens.config import (
     FACTS_DIR,
     HISTORY_DIR,
     LATTICE_DIR,
+    LATTICE_VERSION,
     ROLES_DIR,
 )
 
@@ -22,6 +23,7 @@ yaml_writer = YAML()
 yaml_writer.default_flow_style = False
 
 DEFAULT_CONFIG = {
+    "version": LATTICE_VERSION,
     "backend": "yaml",
     "auto_promote": {
         "enabled": False,
@@ -32,38 +34,68 @@ DEFAULT_CONFIG = {
 DEFAULT_ROLES = {
     "planning": {
         "name": "Planning Agent",
-        "description": "Strategic planning and roadmap decisions",
-        "layers": ["WHY"],
-        "tags": ["architecture", "scaling", "performance-requirement"],
-        "max_facts": 20,
+        "description": "Product Strategist — scopes work, defines acceptance criteria",
+        "query": {
+            "layers": ["WHY"],
+            "types": ["Architecture Decision Record", "Product Requirement"],
+            "tags": ["architecture", "scaling", "performance-requirement"],
+            "max_facts": 20,
+            "extra": [
+                {"layer": "GUARDRAILS", "types": ["Acceptable Use Policy Rule"]},
+            ],
+        },
     },
     "architecture": {
         "name": "Architecture Agent",
         "description": "System design and technical decisions",
-        "layers": ["WHY", "GUARDRAILS"],
-        "tags": ["architecture", "microservices", "decoupling", "api"],
-        "max_facts": 30,
+        "query": {
+            "layers": ["WHY", "GUARDRAILS"],
+            "types": [
+                "Architecture Decision Record",
+                "Design Proposal Decision",
+                "Risk Assessment Finding",
+            ],
+            "tags": ["architecture", "microservices", "decoupling", "api"],
+            "max_facts": 30,
+            "extra": [],
+        },
     },
     "implementation": {
         "name": "Implementation Agent",
         "description": "Code-level implementation guidance",
-        "layers": ["HOW", "GUARDRAILS"],
-        "tags": ["api", "system-prompt", "rate-limiting"],
-        "max_facts": 25,
+        "query": {
+            "layers": ["HOW", "GUARDRAILS"],
+            "types": ["API Specification", "System Prompt Rule", "Data Governance Rule"],
+            "tags": ["api", "system-prompt", "rate-limiting"],
+            "max_facts": 25,
+            "extra": [],
+        },
     },
     "qa": {
         "name": "QA Agent",
         "description": "Quality assurance and testing",
-        "layers": ["GUARDRAILS", "HOW"],
-        "tags": ["security", "compliance", "monitoring"],
-        "max_facts": 20,
+        "query": {
+            "layers": ["GUARDRAILS", "HOW"],
+            "types": [
+                "Risk Assessment Finding",
+                "Acceptable Use Policy Rule",
+                "Monitoring Rule",
+            ],
+            "tags": ["security", "compliance", "monitoring"],
+            "max_facts": 20,
+            "extra": [],
+        },
     },
     "deploy": {
         "name": "Deploy Agent",
         "description": "Deployment and operations",
-        "layers": ["HOW"],
-        "tags": ["deploy-time", "rollback", "monitoring", "ops-team"],
-        "max_facts": 15,
+        "query": {
+            "layers": ["HOW"],
+            "types": ["Runbook Procedure", "Monitoring Rule"],
+            "tags": ["deploy-time", "rollback", "monitoring", "ops-team"],
+            "max_facts": 15,
+            "extra": [],
+        },
     },
 }
 
