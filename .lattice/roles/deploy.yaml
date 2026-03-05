@@ -1,0 +1,15 @@
+name: Deploy Agent
+description: Deployment and operations
+query:
+  layers:
+  - HOW
+  types:
+  - Runbook Procedure
+  - Monitoring Rule
+  tags:
+  - deploy-time
+  - rollback
+  - monitoring
+  - ops-team
+  max_facts: 15
+  extra: []

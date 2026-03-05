@@ -1,0 +1,13 @@
+code: ADR-01
+layer: WHY
+type: Architecture Decision Record
+fact: >-
+  Adopted Typer over Click for CLI framework. Typer's type-hint-driven API
+  eliminates boilerplate decorators, and its built-in Rich integration gives
+  us formatted tables, trees, and panels without extra wiring.
+tags: [cli, framework, typer, developer-experience]
+status: Active
+confidence: Confirmed
+owner: architecture-team
+refs: [DES-01, HOW-SP-01]
+review_by: 2026-09-01

@@ -1,0 +1,13 @@
+code: MC-01
+layer: GUARDRAILS
+type: Model Card Entry
+fact: >-
+  Pydantic v2 validates all fact fields at creation and on every edit. Minimum
+  fact text length is 10 characters, minimum 2 tags, code must match regex
+  ^[A-Z]+-\d+$, and layer-prefix consistency is enforced. Invalid data is
+  rejected before it reaches storage.
+tags: [validation, pydantic, data-integrity, quality]
+status: Active
+confidence: Confirmed
+owner: architecture-team
+refs: [ADR-04, SP-01]

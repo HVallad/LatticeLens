@@ -1,0 +1,12 @@
+code: AUP-01
+layer: GUARDRAILS
+type: Acceptable Use Policy Rule
+fact: >-
+  Facts are never hard-deleted. Deprecation sets status to Deprecated and
+  records the reason, but the YAML file is never removed from the filesystem.
+  This preserves full audit trail and allows git history to remain intact.
+tags: [no-hard-deletes, audit-trail, data-integrity, policy]
+status: Active
+confidence: Confirmed
+owner: architecture-team
+refs: [DG-01, ADR-03]

@@ -1,0 +1,22 @@
+code: API-01
+layer: HOW
+type: API Specification
+fact: 'The LatticeStore protocol defines the storage abstraction: get, list_facts,
+  create, update, deprecate, exists, all_codes, stats. All CLI commands and future
+  MCP tools program against this protocol. New backends must implement all methods.'
+tags:
+- api
+- extensibility
+- protocol
+- storage-abstraction
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- DES-02
+- ADR-03
+superseded_by:
+owner: architecture-team
+review_by:
+created_at: '2026-03-05T12:29:42.352041'
+updated_at: '2026-03-05T12:29:42.352077'

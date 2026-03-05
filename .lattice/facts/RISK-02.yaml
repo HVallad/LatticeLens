@@ -1,0 +1,23 @@
+code: RISK-02
+layer: GUARDRAILS
+type: Risk Assessment Finding
+fact: In-memory index rebuild on every store operation could become slow with 
+  thousands of facts. Currently acceptable for expected scale (hundreds of facts
+  per project). If scale becomes an issue, consider persistent index or lazy 
+  invalidation strategy.
+tags:
+- index
+- performance
+- risk
+- scaling
+status: Active
+confidence: Provisional
+version: 1
+refs:
+- DES-02
+- ADR-03
+superseded_by:
+owner: architecture-team
+review_by:
+created_at: '2026-03-05T12:29:47.866851'
+updated_at: '2026-03-05T12:29:47.866880'

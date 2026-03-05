@@ -1,0 +1,12 @@
+code: SP-01
+layer: HOW
+type: System Prompt Rule
+fact: >-
+  Code prefix must match its layer. WHY layer accepts ADR, PRD, ETH, DES.
+  GUARDRAILS accepts MC, AUP, RISK, DG, COMP. HOW accepts SP, API, RUN, ML,
+  MON. This is enforced by Pydantic model validation and cannot be bypassed.
+tags: [validation, naming-convention, layer-consistency, enforcement]
+status: Active
+confidence: Confirmed
+owner: architecture-team
+refs: [DES-01, ADR-04, MC-01]

@@ -1,0 +1,12 @@
+code: DG-01
+layer: GUARDRAILS
+type: Data Governance Rule
+fact: >-
+  Every mutation (create, update, deprecate) appends a record to
+  history/changelog.jsonl with timestamp, action, code, and reason. This
+  changelog is append-only and must never be truncated or rewritten.
+tags: [audit-trail, changelog, data-integrity, governance]
+status: Active
+confidence: Confirmed
+owner: architecture-team
+refs: [AUP-01, ADR-03, RUN-01]
