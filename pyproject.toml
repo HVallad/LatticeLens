@@ -17,6 +17,9 @@ dev = [
     "pytest>=8.0.0",
     "ruff>=0.3.0",
 ]
+extract = [
+    "anthropic>=0.25.0",
+]
 
 [project.scripts]
 lattice = "lattice_lens.cli.main:app"
@@ -30,6 +33,9 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "integration: marks tests that require external API access (deselect with '-m \"not integration\"')",
+]
 
 [tool.ruff]
 target-version = "py311"

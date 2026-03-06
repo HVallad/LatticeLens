@@ -1,0 +1,24 @@
+code: RUN-06
+layer: HOW
+type: Runbook Procedure
+fact: Extraction troubleshooting guide. API key resolution order is --api-key flag
+  first, then LATTICE_ANTHROPIC_API_KEY environment variable via pydantic-settings.
+  The .docx format requires pandoc to be installed on the system PATH — a missing
+  pandoc raises RuntimeError with an install link. Supported document formats are
+  .md, .txt, .yaml, .yml, .json (read directly), and .docx (converted via pandoc).
+  If the LLM returns malformed JSON or facts that fail Pydantic validation, those
+  facts are skipped with a stderr warning and the remaining valid facts are still
+  returned.
+tags:
+- developer
+- extraction
+- incident-response
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- ADR-12
+- ADR-14
+- SP-07
+owner: architecture-team
+review_by: '2026-06-01'

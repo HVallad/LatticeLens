@@ -1,0 +1,24 @@
+code: ADR-15
+layer: WHY
+type: Architecture Decision Record
+fact: Import and export use JSON and YAML as interchange formats, serialized via
+  Fact.model_dump(mode="json") for consistency with Pydantic v2. Export retrieves
+  all facts regardless of status using list_facts(status=None). Import supports
+  three merge strategies — skip (default, ignores existing codes), overwrite
+  (updates existing facts respecting immutability rules), and fail (aborts on first
+  collision). The fail strategy is non-transactional — facts written before the
+  collision are not rolled back.
+tags:
+- extensibility
+- import-export
+- portability
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- ADR-03
+- ADR-04
+- AUP-02
+- AUP-05
+owner: architecture-team
+review_by: '2026-06-01'

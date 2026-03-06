@@ -1,0 +1,24 @@
+code: SP-07
+layer: HOW
+type: System Prompt Rule
+fact: The extraction workflow follows a safe-by-default pipeline. The lattice
+  extract command reads a document, sends it to the Anthropic API with a structured
+  extraction prompt, and receives candidate facts as JSON. All extracted facts are
+  forced to status=Draft regardless of LLM output. The --dry-run flag (preview
+  without writing) is encouraged as the first step. Without --dry-run, the CLI
+  displays a Rich table of extracted facts and requires explicit confirmation via
+  typer.confirm before writing. Code collisions with existing facts are detected
+  and skipped at write time.
+tags:
+- developer
+- extraction
+- runtime
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- ADR-14
+- DG-06
+- RISK-08
+owner: architecture-team
+review_by: '2026-06-01'
