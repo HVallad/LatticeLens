@@ -1,7 +1,7 @@
 #!/bin/bash
 # Stop hook: fires once when Claude finishes responding.
-# Checks if source files were modified and forces a governance compliance audit.
-# Blocks (exit 2) if source changes exist, requiring Claude to explicitly audit.
+# Audits source file changes against lattice governance rules.
+# Always reports findings to the user. Blocks (exit 2) if source changes need audit.
 
 INPUT=$(cat)
 
@@ -20,25 +20,34 @@ CODE_CHANGES=$(git diff --name-only -- src/ 2>/dev/null | wc -l)
 NEW_CODE=$(git ls-files --others --exclude-standard -- src/ 2>/dev/null | wc -l)
 TOTAL_CODE=$((CODE_CHANGES + NEW_CODE))
 
+# Count modified fact files
+FACT_CHANGES=$(git diff --name-only -- .lattice/facts/ 2>/dev/null | wc -l)
+NEW_FACTS=$(git ls-files --others --exclude-standard -- .lattice/facts/ 2>/dev/null | wc -l)
+TOTAL_FACTS=$((FACT_CHANGES + NEW_FACTS))
+
 if [ "$TOTAL_CODE" -gt 0 ]; then
-  echo "# COMPLIANCE AUDIT REQUIRED"
+  echo "# GOVERNANCE COMPLIANCE AUDIT"
   echo ""
-  echo "You modified $TOTAL_CODE source file(s) in this response:"
+  echo "$TOTAL_CODE source file(s) were modified:"
   echo ""
   git diff --name-only -- src/ 2>/dev/null
   git ls-files --others --exclude-standard -- src/ 2>/dev/null
   echo ""
-  echo "You MUST audit these changes against the lattice governance rules before finishing."
-  echo "For each changed file, state which governance rules apply and confirm no violations."
-  echo "If new architectural decisions, risks, or procedures were introduced, create Draft facts."
+  echo "## Instructions"
   echo ""
-  echo "After completing the audit, state: 'Governance audit complete — no violations found.'"
-  echo "or describe the violations and remediation steps taken."
-
-  # Note uncommitted fact changes too
-  FACT_CHANGES=$(git diff --name-only -- .lattice/facts/ 2>/dev/null | wc -l)
-  NEW_FACTS=$(git ls-files --others --exclude-standard -- .lattice/facts/ 2>/dev/null | wc -l)
-  TOTAL_FACTS=$((FACT_CHANGES + NEW_FACTS))
+  echo "You MUST audit each changed file against the lattice governance rules and report"
+  echo "your findings to the user. For each file:"
+  echo ""
+  echo "1. Identify which governance rules (AUP, DG, RISK, etc.) are relevant"
+  echo "2. Confirm compliance OR identify violations"
+  echo ""
+  echo "If a violation is found, you MUST either:"
+  echo "  - Fix the code to comply with the governance rule, OR"
+  echo "  - Create/update a Draft fact to document a new decision, risk, or procedure"
+  echo ""
+  echo "After the audit, report your findings to the user in a brief summary like:"
+  echo "  'Governance audit: 4 files reviewed — all compliant with DG-10, RISK-03.'"
+  echo "  or: 'Governance audit: violation found in X — fixed by updating Y.'"
 
   if [ "$TOTAL_FACTS" -gt 0 ]; then
     echo ""
@@ -48,4 +57,9 @@ if [ "$TOTAL_CODE" -gt 0 ]; then
   exit 2
 fi
 
+# No source changes — still report to the user for transparency
+echo "# GOVERNANCE AUDIT: CLEAN"
+echo ""
+echo "No source files were modified. No compliance audit needed."
+echo "Briefly inform the user: 'No source changes — governance audit not required.'"
 exit 0
