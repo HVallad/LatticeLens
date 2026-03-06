@@ -7,7 +7,7 @@ query:
   types:
   - Architecture Decision Record
   - Design Proposal Decision
-  - Risk Assessment Finding
+  - Risk Register Entry
   tags:
   - architecture
   - microservices

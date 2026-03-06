@@ -17,7 +17,8 @@ INDEX_FILE = "index.yaml"
 # Schema version — minor version tracks phases, patch for fixes within a phase.
 # "0.1.0" = Phase 1 (flat role templates)
 # "0.2.0" = Phase 2 (nested query role templates, graph + git commands)
-LATTICE_VERSION = "0.2.0"
+# "0.3.0" = Phase 5 (type registry, canonical types in role templates)
+LATTICE_VERSION = "0.3.0"
 
 LAYER_PREFIXES: dict[str, list[str]] = {
     "WHY": ["ADR", "PRD", "ETH", "DES"],

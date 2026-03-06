@@ -1,0 +1,17 @@
+WHY:
+  ADR: Architecture Decision Record
+  PRD: Product Requirement
+  ETH: Ethical Finding
+  DES: Design Proposal Decision
+GUARDRAILS:
+  MC: Model Card Entry
+  AUP: Acceptable Use Policy Rule
+  RISK: Risk Register Entry
+  DG: Data Governance Rule
+  COMP: Compliance Rule
+HOW:
+  SP: System Prompt Rule
+  API: API Specification
+  RUN: Runbook Procedure
+  ML: MLOps Rule
+  MON: Monitoring Rule

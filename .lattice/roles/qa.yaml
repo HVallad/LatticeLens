@@ -5,7 +5,7 @@ query:
   - GUARDRAILS
   - HOW
   types:
-  - Risk Assessment Finding
+  - Risk Register Entry
   - Acceptable Use Policy Rule
   - Monitoring Rule
   tags:

@@ -53,7 +53,7 @@ DEFAULT_ROLES = {
             "types": [
                 "Architecture Decision Record",
                 "Design Proposal Decision",
-                "Risk Assessment Finding",
+                "Risk Register Entry",
             ],
             "tags": ["architecture", "microservices", "decoupling", "api"],
             "max_facts": 30,
@@ -77,7 +77,7 @@ DEFAULT_ROLES = {
         "query": {
             "layers": ["GUARDRAILS", "HOW"],
             "types": [
-                "Risk Assessment Finding",
+                "Risk Register Entry",
                 "Acceptable Use Policy Rule",
                 "Monitoring Rule",
             ],
