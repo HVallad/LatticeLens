@@ -12,9 +12,9 @@
         ]
       }
     ],
-    "TaskCompleted": [
+    "PostToolUse": [
       {
-        "matcher": "",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
