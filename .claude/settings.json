@@ -11,6 +11,18 @@
           }
         ]
       }
+    ],
+    "TaskCompleted": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/audit-governance.sh",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   }
 }

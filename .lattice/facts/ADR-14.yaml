@@ -1,0 +1,21 @@
+code: ADR-14
+layer: WHY
+type: Architecture Decision Record
+fact: The Anthropic SDK (anthropic>=0.25.0) is declared as an optional dependency
+  under the [extract] extra in pyproject.toml. The extract_service module uses a
+  lazy import (from anthropic import Anthropic inside the function body) so the CLI
+  and all non-extraction commands work without it installed. This preserves ADR-03's
+  principle of no external dependencies at the core layer while enabling LLM-powered
+  extraction for users who opt in.
+tags:
+- extensibility
+- extraction
+- optional-dependency
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- ADR-03
+- ADR-12
+owner: architecture-team
+review_by: '2026-06-01'
