@@ -12,9 +12,9 @@ tags:
 - governance
 - tag-vocabulary
 - validation
-status: Draft
+status: Active
 confidence: Confirmed
-version: 1
+version: 3
 refs:
 - DES-09
 - DG-02
@@ -23,4 +23,4 @@ superseded_by:
 owner: architecture-team
 review_by:
 created_at: '2026-03-05T20:25:23.594981'
-updated_at: '2026-03-05T20:25:23.594982'
+updated_at: '2026-03-05T22:52:27.025092'

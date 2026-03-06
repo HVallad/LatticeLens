@@ -1,6 +1,6 @@
 code: SP-04
 layer: HOW
-type: Standard Procedure
+type: System Prompt Rule
 fact: lattice graph impact CODE performs breadth-first reverse-reference 
   traversal from the given fact code. It collects directly affected facts (depth
   1) and transitively affected facts (depth 2+) up to --depth N (default 3). A 
@@ -13,7 +13,7 @@ tags:
 - reverse-refs
 status: Active
 confidence: Confirmed
-version: 1
+version: 2
 refs:
 - DES-04
 - ADR-10
@@ -22,4 +22,4 @@ superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
 created_at: '2026-03-05T13:00:37.215384'
-updated_at: '2026-03-05T13:00:37.215413'
+updated_at: '2026-03-05T21:50:17.924410'

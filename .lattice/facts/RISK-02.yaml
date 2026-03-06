@@ -1,6 +1,6 @@
 code: RISK-02
 layer: GUARDRAILS
-type: Risk Assessment Finding
+type: Risk Register Entry
 fact: In-memory index rebuild on every store operation could become slow with 
   thousands of facts. Currently acceptable for expected scale (hundreds of facts
   per project). Phase 3 context assembly adds token counting overhead. If scale 
@@ -12,7 +12,7 @@ tags:
 - scaling
 status: Active
 confidence: Confirmed
-version: 2
+version: 3
 refs:
 - DES-02
 - ADR-03
@@ -20,4 +20,4 @@ superseded_by:
 owner: architecture-team
 review_by:
 created_at: '2026-03-05T12:29:47.866851'
-updated_at: '2026-03-05T12:29:47.866880'
+updated_at: '2026-03-05T21:50:17.909058'

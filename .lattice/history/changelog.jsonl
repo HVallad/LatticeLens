@@ -78,3 +78,42 @@
 {"timestamp": "2026-03-05T20:27:26.937829", "action": "create", "code": "DES-10", "reason": "Initial creation"}
 {"timestamp": "2026-03-05T20:27:26.941063", "action": "create", "code": "DG-10", "reason": "Initial creation"}
 {"timestamp": "2026-03-05T20:27:26.943475", "action": "create", "code": "SP-09", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T21:50:17.883707", "action": "update", "code": "API-02", "reason": "Normalize type to canonical: API Contract -> API Specification"}
+{"timestamp": "2026-03-05T21:50:17.898852", "action": "update", "code": "MC-02", "reason": "Normalize type to canonical: Monitoring Check -> Model Card Entry"}
+{"timestamp": "2026-03-05T21:50:17.906385", "action": "update", "code": "RISK-01", "reason": "Normalize type to canonical: Risk Assessment Finding -> Risk Register Entry"}
+{"timestamp": "2026-03-05T21:50:17.910310", "action": "update", "code": "RISK-02", "reason": "Normalize type to canonical: Risk Assessment Finding -> Risk Register Entry"}
+{"timestamp": "2026-03-05T21:50:17.914748", "action": "update", "code": "RUN-04", "reason": "Normalize type to canonical: Runbook Entry -> Runbook Procedure"}
+{"timestamp": "2026-03-05T21:50:17.921573", "action": "update", "code": "RUN-05", "reason": "Normalize type to canonical: Runbook Entry -> Runbook Procedure"}
+{"timestamp": "2026-03-05T21:50:17.925580", "action": "update", "code": "SP-04", "reason": "Normalize type to canonical: Standard Procedure -> System Prompt Rule"}
+{"timestamp": "2026-03-05T21:50:17.929368", "action": "update", "code": "SP-05", "reason": "Normalize type to canonical: Standard Procedure -> System Prompt Rule"}
+{"timestamp": "2026-03-05T21:50:17.933384", "action": "update", "code": "SP-06", "reason": "Normalize type to canonical: Standard Procedure -> System Prompt Rule"}
+{"timestamp": "2026-03-05T22:52:13.808240", "action": "update", "code": "ADR-14", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:14.282698", "action": "update", "code": "ADR-15", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:14.731000", "action": "update", "code": "DES-09", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:15.180436", "action": "update", "code": "DES-10", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:15.624191", "action": "update", "code": "DG-08", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:16.072394", "action": "update", "code": "DG-09", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:16.496482", "action": "update", "code": "DG-10", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:16.895968", "action": "update", "code": "RISK-06", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:17.340074", "action": "update", "code": "RISK-07", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:17.767859", "action": "update", "code": "RISK-08", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:18.213248", "action": "update", "code": "RISK-09", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:18.656296", "action": "update", "code": "RUN-06", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:19.055353", "action": "update", "code": "SP-07", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:19.486014", "action": "update", "code": "SP-08", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:19.917715", "action": "update", "code": "SP-09", "reason": "Promoted to Under Review: Feature implemented and verified; promoting for review"}
+{"timestamp": "2026-03-05T22:52:24.762563", "action": "update", "code": "ADR-14", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T22:52:25.231126", "action": "update", "code": "ADR-15", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T22:52:25.680379", "action": "update", "code": "DES-09", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T22:52:26.119449", "action": "update", "code": "DES-10", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T22:52:26.575260", "action": "update", "code": "DG-08", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T22:52:27.026848", "action": "update", "code": "DG-09", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T22:52:27.479033", "action": "update", "code": "DG-10", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T22:52:27.899112", "action": "update", "code": "RISK-06", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T22:52:28.321755", "action": "update", "code": "RISK-07", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T22:52:28.774580", "action": "update", "code": "RISK-08", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T22:52:29.233299", "action": "update", "code": "RISK-09", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T22:52:29.690909", "action": "update", "code": "RUN-06", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T22:52:30.133469", "action": "update", "code": "SP-07", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T22:52:30.582936", "action": "update", "code": "SP-08", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T22:52:31.068795", "action": "update", "code": "SP-09", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}

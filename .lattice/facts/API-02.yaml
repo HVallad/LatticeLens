@@ -1,6 +1,6 @@
 code: API-02
 layer: HOW
-type: API Contract
+type: API Specification
 fact: The graph service exposes three public functions — impact_analysis(), 
   find_orphans(), and find_contradiction_candidates() — plus a 
   load_role_templates() helper. All accept a FactIndex as their primary 
@@ -15,7 +15,7 @@ tags:
 - stateless
 status: Active
 confidence: Confirmed
-version: 1
+version: 2
 refs:
 - SP-04
 - SP-05
@@ -25,4 +25,4 @@ superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
 created_at: '2026-03-05T13:00:29.652604'
-updated_at: '2026-03-05T13:00:29.652633'
+updated_at: '2026-03-05T21:50:17.881186'

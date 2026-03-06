@@ -1,6 +1,6 @@
 code: RUN-04
 layer: HOW
-type: Runbook Entry
+type: Runbook Procedure
 fact: lattice upgrade reads the current version from .lattice/config.yaml 
   (defaults to 0.1.0 if absent) and applies any pending migrations from the 
   ordered MIGRATIONS list. Each migration has a target version, description, and
@@ -13,7 +13,7 @@ tags:
 - versioning
 status: Active
 confidence: Confirmed
-version: 1
+version: 2
 refs:
 - ADR-12
 - RUN-01
@@ -21,4 +21,4 @@ superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
 created_at: '2026-03-05T13:00:35.998039'
-updated_at: '2026-03-05T13:00:35.998068'
+updated_at: '2026-03-05T21:50:17.913130'

@@ -1,24 +1,27 @@
 code: RISK-08
 layer: GUARDRAILS
 type: Risk Register Entry
-fact: LLM extraction may produce facts with over-assigned confidence (marking
-  inferred knowledge as Confirmed), inconsistent type strings (e.g. "ADR" vs
-  "Architecture Decision Record" per RISK-03), or owner values that don't match
-  established conventions (per RISK-04). Mitigation — all extracted facts are
+fact: LLM extraction may produce facts with over-assigned confidence (marking 
+  inferred knowledge as Confirmed), inconsistent type strings (e.g. "ADR" vs 
+  "Architecture Decision Record" per RISK-03), or owner values that don't match 
+  established conventions (per RISK-04). Mitigation — all extracted facts are 
   forced to status Draft regardless of LLM output, requiring human review before
-  promotion. The extraction prompt provides examples of correct type and owner
+  promotion. The extraction prompt provides examples of correct type and owner 
   values but cannot enforce them. Residual risk is MEDIUM.
 tags:
 - accepted-risk
 - extraction
 - medium-severity
-status: Draft
+status: Active
 confidence: Confirmed
-version: 1
+version: 3
 refs:
 - ADR-14
 - RISK-03
 - RISK-04
 - DG-06
+superseded_by:
 owner: architecture-team
 review_by: '2026-06-01'
+created_at: '2026-03-05T22:52:17.766056'
+updated_at: '2026-03-05T22:52:28.772858'

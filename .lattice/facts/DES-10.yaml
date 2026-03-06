@@ -14,9 +14,9 @@ tags:
 - design-time
 - developer
 - type-registry
-status: Draft
+status: Active
 confidence: Confirmed
-version: 1
+version: 3
 refs:
 - RISK-03
 - ADR-05
@@ -25,4 +25,4 @@ superseded_by:
 owner: architecture-team
 review_by:
 created_at: '2026-03-05T20:27:26.933808'
-updated_at: '2026-03-05T20:27:26.933949'
+updated_at: '2026-03-05T22:52:26.117373'

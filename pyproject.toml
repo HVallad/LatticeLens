@@ -20,6 +20,9 @@ dev = [
 extract = [
     "anthropic>=0.25.0",
 ]
+mcp = [
+    "mcp[cli]>=1.2.0",
+]
 
 [project.scripts]
 lattice = "lattice_lens.cli.main:app"

@@ -113,6 +113,33 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
             if ref not in all_codes:
                 result.add_warning(f"{fact.code}: Reference target '{ref}' does not exist")
 
+    # Check type canonicality (RISK-03 mitigation)
+    from lattice_lens.services.type_service import canonical_type_for_prefix
+
+    for fact in all_facts:
+        prefix = fact.code.split("-")[0]
+        canonical = canonical_type_for_prefix(prefix)
+        if canonical and fact.type != canonical:
+            result.add_warning(
+                f"{fact.code}: Type '{fact.type}' differs from canonical "
+                f"'{canonical}' for prefix {prefix}"
+            )
+
+    # Check for frequent free tags (DG-07)
+    from lattice_lens.services.tag_service import categorize_tag
+
+    tag_counts: dict[str, int] = {}
+    for fact in all_facts:
+        for tag in fact.tags:
+            tag_counts[tag] = tag_counts.get(tag, 0) + 1
+
+    for tag, count in tag_counts.items():
+        if count >= 3 and categorize_tag(tag) == "free":
+            result.add_warning(
+                f"Free tag '{tag}' appears in {count} facts. "
+                "Consider adding to controlled vocabulary (DG-07)."
+            )
+
     return result
 
 

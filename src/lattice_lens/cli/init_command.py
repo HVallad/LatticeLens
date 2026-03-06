@@ -133,8 +133,14 @@ def init(
     with open(target / ".gitignore", "w") as f:
         f.write(GITIGNORE_CONTENT)
 
+    # Seed type registry
+    from lattice_lens.services.type_service import write_type_registry
+
+    write_type_registry(target)
+
     console.print(f"[green]Initialized[/green] lattice at [bold]{target}[/bold]")
     console.print("  facts/    — store fact YAML files here")
     console.print("  roles/    — role query templates")
     console.print("  history/  — changelog (auto-managed)")
+    console.print("  types.yaml — canonical type registry")
     console.print("\nNext: run [bold]lattice seed[/bold] to load example facts.")

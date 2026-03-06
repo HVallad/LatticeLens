@@ -13,7 +13,10 @@ from lattice_lens.cli.git_commands import diff, log
 from lattice_lens.cli.graph_commands import graph_app
 from lattice_lens.cli.init_command import init
 from lattice_lens.cli.seed_command import seed
+from lattice_lens.cli.serve_command import serve
 from lattice_lens.cli.status_command import status
+from lattice_lens.cli.tags_command import tags
+from lattice_lens.cli.types_command import types
 from lattice_lens.cli.upgrade_command import upgrade
 from lattice_lens.cli.validate_command import reindex, validate
 
@@ -38,6 +41,9 @@ app.command()(evaluate)
 app.command()(extract)
 app.command("export")(export_cmd)
 app.command("import")(import_cmd)
+app.command()(serve)
+app.command()(tags)
+app.command()(types)
 
 
 if __name__ == "__main__":
