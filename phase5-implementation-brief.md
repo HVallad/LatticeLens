@@ -512,7 +512,98 @@ lattice serve --host 0.0.0.0 --port 3100 --writable
 
 ---
 
-## 10. What Phase 5 Does NOT Include
+## 10. Side Tasks (Non-MCP Improvements)
+
+These are standalone improvements to ship alongside or shortly after the MCP server. They don't depend on MCP but improve governance quality.
+
+### 10.1 Tag Registry (`lattice tags`)
+
+**Facts**: DES-09, DG-09, SP-08
+
+A centralized tag registry at `.lattice/tags.yaml` that lists all tags in use across the lattice with usage counts and vocabulary category assignments (domain, concern, lifecycle, stakeholder, risk, or free).
+
+**New files**:
+```
+src/lattice_lens/cli/tags_command.py    # NEW: lattice tags
+src/lattice_lens/services/tag_service.py # NEW: tag aggregation + registry generation
+tests/test_tag_service.py               # NEW
+```
+
+**CLI**:
+```bash
+lattice tags                  # Rich table: tag, count, category
+lattice tags --json           # JSON output
+lattice tags --rebuild        # Regenerate .lattice/tags.yaml from current facts
+```
+
+**Validation integration**: `lattice validate` warns when a free tag appears in 3+ facts, suggesting review for inclusion in the controlled vocabulary (per DG-07).
+
+**Key rules**:
+- Tags are case-insensitive (already enforced by DG-02 normalization)
+- No duplicates in the registry
+- Registry is generated, not hand-edited
+- File is committed to git for team visibility
+
+### 10.2 Type Registry (`lattice types`)
+
+**Facts**: DES-10, DG-10, SP-09 — **Mitigates**: RISK-03
+
+A canonical type mapping at `.lattice/types.yaml` that assigns exactly one type string per code prefix. Addresses the RISK-03 finding that free-text type fields cause silent mismatches in role template queries.
+
+**Current inconsistencies found by audit**:
+| Prefix | Divergent Types | Canonical |
+|--------|----------------|-----------|
+| API | API Contract, API Specification | API Specification |
+| MC | Model Card Entry, Monitoring Check | Model Card Entry |
+| RISK | Risk Assessment Finding, Risk Register Entry | Risk Register Entry |
+| RUN | Runbook Entry, Runbook Procedure | Runbook Procedure |
+| SP | Standard Procedure, System Prompt Rule | System Prompt Rule |
+
+**New files**:
+```
+src/lattice_lens/cli/types_command.py    # NEW: lattice types
+src/lattice_lens/services/type_service.py # NEW: type registry + validation
+tests/test_type_service.py               # NEW
+```
+
+**CLI**:
+```bash
+lattice types                 # Rich table: prefix, layer, canonical type
+lattice types --json          # JSON output
+lattice types --audit         # Show facts with non-canonical types
+```
+
+**Behaviors**:
+- `lattice init` seeds `.lattice/types.yaml` with canonical mappings for all 14 prefixes
+- `lattice fact add` auto-populates the type field from the registry when the user doesn't supply one
+- `lattice validate` warns when a fact's type doesn't match its prefix's canonical type
+- `lattice extract --prompt` includes the canonical type mapping so the LLM uses correct types
+
+**Canonical type map** (seeded by `lattice init`):
+```yaml
+# .lattice/types.yaml
+WHY:
+  ADR: Architecture Decision Record
+  PRD: Product Requirement
+  ETH: Ethical Finding
+  DES: Design Proposal Decision
+GUARDRAILS:
+  MC: Model Card Entry
+  AUP: Acceptable Use Policy Rule
+  RISK: Risk Register Entry
+  DG: Data Governance Rule
+  COMP: Compliance Rule
+HOW:
+  SP: System Prompt Rule
+  API: API Specification
+  RUN: Runbook Procedure
+  ML: MLOps Rule
+  MON: Monitoring Rule
+```
+
+---
+
+## 11. What Phase 5 Does NOT Include
 
 - **Authentication** — Phase 5 MCP server is unauthenticated. Auth comes with Phase 7 (Enterprise).
 - **WebSocket push notifications** — polling via repeated tool calls. Push comes with Enterprise.

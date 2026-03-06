@@ -1,0 +1,26 @@
+code: DES-09
+layer: WHY
+type: Design Proposal Decision
+fact: A centralized tag registry at .lattice/tags.yaml lists all tags in use 
+  across the lattice with usage counts and vocabulary category assignments. The 
+  registry is generated and refreshable via a lattice tags command — not 
+  hand-edited. Tags are case-insensitive (enforced by existing DG-02 
+  normalization) and deduplicated. The registry serves as the source of truth 
+  for the controlled vocabulary defined in DG-07, replacing the current 
+  documentation-only approach with a queryable, committable artifact.
+tags:
+- controlled-vocabulary
+- design-time
+- developer
+- tag-vocabulary
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- DG-02
+- DG-07
+superseded_by:
+owner: architecture-team
+review_by:
+created_at: '2026-03-05T20:25:23.591955'
+updated_at: '2026-03-05T20:25:23.592067'

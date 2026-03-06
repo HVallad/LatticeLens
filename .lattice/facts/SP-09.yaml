@@ -1,0 +1,26 @@
+code: SP-09
+layer: HOW
+type: System Prompt Rule
+fact: 'The lattice types command lists the canonical type for each code prefix, organized
+  by layer. Output formats: Rich table (default) and JSON (--json). The lattice fact
+  add command auto-populates the type field from the registry based on the code prefix
+  when the user does not supply a type. The lattice validate command warns on type
+  mismatches between a fact code prefix and its canonical type. The registry is stored
+  at .lattice/types.yaml and seeded by lattice init.'
+tags:
+- cli
+- controlled-vocabulary
+- developer
+- type-registry
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- DES-10
+- DG-10
+- RISK-03
+superseded_by:
+owner: architecture-team
+review_by:
+created_at: '2026-03-05T20:27:26.941337'
+updated_at: '2026-03-05T20:27:26.941338'
