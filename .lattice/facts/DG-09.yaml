@@ -1,0 +1,26 @@
+code: DG-09
+layer: GUARDRAILS
+type: Data Governance Rule
+fact: The tag registry at .lattice/tags.yaml is a generated artifact listing 
+  every tag in use with its count and vocabulary category (domain, concern, 
+  lifecycle, stakeholder, risk, or free). The lattice tags command rebuilds it 
+  from current facts. The lattice validate command warns when a free tag appears
+  in 3 or more facts, suggesting it be reviewed for inclusion in the controlled 
+  vocabulary. The registry file should be committed to git for team visibility.
+tags:
+- controlled-vocabulary
+- governance
+- tag-vocabulary
+- validation
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- DES-09
+- DG-02
+- DG-07
+superseded_by:
+owner: architecture-team
+review_by:
+created_at: '2026-03-05T20:25:23.594981'
+updated_at: '2026-03-05T20:25:23.594982'

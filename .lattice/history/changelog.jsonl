@@ -70,3 +70,11 @@
 {"timestamp": "2026-03-05T18:11:02.559796", "action": "update", "code": "AUP-06", "reason": "Fix: removed incorrect claim about FactIndex.build() detecting duplicates; clarified two actual enforcement levels"}
 {"timestamp": "2026-03-05T18:11:06.978458", "action": "update", "code": "RISK-06", "reason": "Fix: marked thresholds as future/not-yet-implemented \u2014 values do not exist in current codebase"}
 {"timestamp": "2026-03-05T18:11:10.841965", "action": "update", "code": "DG-06", "reason": "Fix: clarified Review Expired is a runtime condition, not a FactStatus enum value"}
+{"timestamp": "2026-03-05T20:24:37.682534", "action": "update", "code": "DG-05", "reason": "Audit finding: removed snapshot claim to match actual implementation. Git history provides fact-level snapshots."}
+{"timestamp": "2026-03-05T20:24:50.884097", "action": "update", "code": "RISK-06", "reason": "Audit finding: demoted to Draft \u2014 storage tier thresholds not yet implemented."}
+{"timestamp": "2026-03-05T20:25:23.594754", "action": "create", "code": "DES-09", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T20:25:23.596651", "action": "create", "code": "DG-09", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T20:25:23.598092", "action": "create", "code": "SP-08", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T20:27:26.937829", "action": "create", "code": "DES-10", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T20:27:26.941063", "action": "create", "code": "DG-10", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T20:27:26.943475", "action": "create", "code": "SP-09", "reason": "Initial creation"}

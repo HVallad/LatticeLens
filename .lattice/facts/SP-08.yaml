@@ -1,0 +1,25 @@
+code: SP-08
+layer: HOW
+type: System Prompt Rule
+fact: 'The lattice tags command lists all tags currently in use across the lattice,
+  sorted alphabetically, with usage counts and vocabulary category. Output formats:
+  Rich table (default) and JSON (--json). The lattice tags --rebuild flag regenerates
+  .lattice/tags.yaml from current facts. The command reads from the index and does
+  not require an API key or external service.'
+tags:
+- cli
+- controlled-vocabulary
+- developer
+- tag-vocabulary
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- DES-09
+- DG-09
+- DG-02
+superseded_by:
+owner: architecture-team
+review_by:
+created_at: '2026-03-05T20:25:23.596832'
+updated_at: '2026-03-05T20:25:23.596833'

@@ -1,0 +1,28 @@
+code: DG-10
+layer: GUARDRAILS
+type: Data Governance Rule
+fact: 'The type registry at .lattice/types.yaml maps each code prefix to its canonical
+  type string. The canonical types are: ADR -> Architecture Decision Record, PRD ->
+  Product Requirement, ETH -> Ethical Finding, DES -> Design Proposal Decision, MC
+  -> Model Card Entry, AUP -> Acceptable Use Policy Rule, RISK -> Risk Register Entry,
+  DG -> Data Governance Rule, COMP -> Compliance Rule, SP -> System Prompt Rule, API
+  -> API Specification, RUN -> Runbook Procedure, ML -> MLOps Rule, MON -> Monitoring
+  Rule. The lattice validate command reports type mismatches as warnings. Facts with
+  non-canonical types are still stored but flagged for correction.'
+tags:
+- controlled-vocabulary
+- governance
+- type-registry
+- validation
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- DES-10
+- RISK-03
+- MC-01
+superseded_by:
+owner: architecture-team
+review_by:
+created_at: '2026-03-05T20:27:26.938135'
+updated_at: '2026-03-05T20:27:26.938137'

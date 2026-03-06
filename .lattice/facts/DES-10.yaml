@@ -1,0 +1,28 @@
+code: DES-10
+layer: WHY
+type: Design Proposal Decision
+fact: A type registry at .lattice/types.yaml defines the canonical type string 
+  for each code prefix. Every prefix in LAYER_PREFIXES maps to exactly one 
+  canonical type name (e.g., ADR -> Architecture Decision Record, RISK -> Risk 
+  Register Entry). The registry is the single source of truth for type naming. 
+  The lattice validate command warns when a fact uses a type string that does 
+  not match its prefix canonical type. Future enforcement may reject 
+  non-canonical types at write time. This addresses the RISK-03 finding that 
+  free-text type fields cause silent mismatches in role template queries.
+tags:
+- controlled-vocabulary
+- design-time
+- developer
+- type-registry
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- RISK-03
+- ADR-05
+- DG-02
+superseded_by:
+owner: architecture-team
+review_by:
+created_at: '2026-03-05T20:27:26.933808'
+updated_at: '2026-03-05T20:27:26.933949'
