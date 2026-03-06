@@ -117,3 +117,5 @@
 {"timestamp": "2026-03-05T22:52:30.133469", "action": "update", "code": "SP-07", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
 {"timestamp": "2026-03-05T22:52:30.582936", "action": "update", "code": "SP-08", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
 {"timestamp": "2026-03-05T22:52:31.068795", "action": "update", "code": "SP-09", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
+{"timestamp": "2026-03-05T23:01:01.151964", "action": "create", "code": "DES-11", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T23:01:08.892789", "action": "update", "code": "PRD-01", "reason": "Extend roadmap with Phase 6 (reconciliation + SQLite)"}
