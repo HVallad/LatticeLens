@@ -1,4 +1,17 @@
-# LatticeLens
+<p align="center">
+  <img src="assets/logo.png" alt="LatticeLens" width="300">
+</p>
+
+<h1 align="center">LatticeLens</h1>
+<p align="center"><strong>Knowledge Governance for AI</strong></p>
+
+<p align="center">
+  <a href="#quick-start">Quick Start</a> &middot;
+  <a href="#claude-code-integration">Claude Code Integration</a> &middot;
+  <a href="#roadmap">Roadmap</a>
+</p>
+
+---
 
 A knowledge governance layer for AI agent systems. LatticeLens gives teams a structured, version-controlled way to capture the decisions, constraints, and procedures that AI agents must follow — and makes that knowledge queryable from the command line, CI pipelines, and (soon) directly from agent prompts via MCP.
 
@@ -380,9 +393,9 @@ Impact analysis (`lattice graph impact`), orphan detection, contradiction candid
 
 Lifecycle commands (`lattice fact promote`), role-scoped token-budgeted context assembly (`lattice context planning --budget 4000`), priority loading (Confirmed first, Provisional if budget remains), REFS pointers for excluded facts.
 
-### Phase 4 — LLM Extraction + Import/Export
+### Phase 4 — LLM Extraction + Import/Export ✓
 
-Point `lattice extract` at a design doc or PRD and get atomic facts auto-generated. Export/import lattices for backup, sharing, or migration between projects.
+Point `lattice extract` at a design doc or PRD and get atomic facts auto-generated. Export/import lattices for backup, sharing, or migration between projects. Post-task governance audit hook validates compliance after every implementation.
 
 ### Phase 5 — MCP Server
 
