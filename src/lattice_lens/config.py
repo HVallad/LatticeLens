@@ -18,7 +18,8 @@ INDEX_FILE = "index.yaml"
 # "0.1.0" = Phase 1 (flat role templates)
 # "0.2.0" = Phase 2 (nested query role templates, graph + git commands)
 # "0.3.0" = Phase 5 (type registry, canonical types in role templates)
-LATTICE_VERSION = "0.3.0"
+# "0.4.0" = Phase 5 (enriched type registry with descriptions)
+LATTICE_VERSION = "0.4.0"
 
 LAYER_PREFIXES: dict[str, list[str]] = {
     "WHY": ["ADR", "PRD", "ETH", "DES"],

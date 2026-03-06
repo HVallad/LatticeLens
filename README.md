@@ -33,13 +33,44 @@ AI agents are increasingly making consequential decisions — choosing architect
 
 LatticeLens solves this by providing a **single, git-native knowledge base** where teams record atomic facts organized into three layers:
 
-| Layer | What it captures | Example prefixes |
-|-------|-----------------|------------------|
-| **WHY** | Decisions, requirements, ethics, design rationale | ADR, PRD, ETH, DES |
-| **GUARDRAILS** | Constraints, policies, risks, compliance rules | MC, AUP, RISK, DG, COMP |
-| **HOW** | Procedures, API specs, runbooks, monitoring rules | SP, API, RUN, ML, MON |
+| Layer | What it captures |
+|-------|-----------------|
+| **WHY** | Decisions, requirements, ethics, design rationale |
+| **GUARDRAILS** | Constraints, policies, risks, compliance rules |
+| **HOW** | Procedures, API specs, runbooks, monitoring rules |
 
-Each fact is an individual YAML file, validated by Pydantic, tracked by git, and queryable by tag, layer, status, and text search.
+Each fact is an individual YAML file with a code prefix that determines its type. The 14 canonical types are:
+
+#### WHY — Why we build what we build
+
+| Prefix | Type | Purpose |
+|--------|------|---------|
+| ADR | Architecture Decision Record | Captures architectural choices with context, alternatives considered, and rationale for the selected approach |
+| PRD | Product Requirement | Defines what the system must do — functional requirements, acceptance criteria, and success metrics |
+| ETH | Ethical Finding | Documents ethical considerations, bias assessments, and fairness evaluations for AI system behavior |
+| DES | Design Proposal Decision | Records design-level decisions (API shape, data models, UX flows) that don't rise to full ADR scope |
+
+#### GUARDRAILS — What the system must not violate
+
+| Prefix | Type | Purpose |
+|--------|------|---------|
+| MC | Model Card Entry | Documents AI model characteristics — capabilities, limitations, intended use, and known failure modes |
+| AUP | Acceptable Use Policy Rule | Defines hard constraints on system behavior — what the system must always or never do |
+| RISK | Risk Register Entry | Tracks identified risks with severity, likelihood, mitigation strategies, and residual risk levels |
+| DG | Data Governance Rule | Specifies data handling requirements — retention, access controls, PII treatment, and audit obligations |
+| COMP | Compliance Rule | Captures regulatory and standards compliance requirements (SOC 2, GDPR, ISO, industry-specific) |
+
+#### HOW — How the system operates
+
+| Prefix | Type | Purpose |
+|--------|------|---------|
+| SP | System Prompt Rule | Defines rules and instructions that shape AI agent behavior at runtime via system prompts |
+| API | API Specification | Documents API contracts — endpoints, schemas, authentication, rate limits, and versioning policies |
+| RUN | Runbook Procedure | Step-by-step operational procedures for deployment, rollback, incident response, and maintenance |
+| ML | MLOps Rule | Specifies ML pipeline requirements — training schedules, evaluation thresholds, model versioning, and drift detection |
+| MON | Monitoring Rule | Defines what to monitor, alert thresholds, escalation paths, and observability requirements |
+
+Each fact is validated by Pydantic, tracked by git, and queryable by tag, layer, status, and text search.
 
 ## Quick Start
 

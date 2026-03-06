@@ -1,17 +1,59 @@
 WHY:
-  ADR: Architecture Decision Record
-  PRD: Product Requirement
-  ETH: Ethical Finding
-  DES: Design Proposal Decision
+  ADR:
+    name: Architecture Decision Record
+    description: Captures architectural choices with context, alternatives 
+      considered, and rationale for the selected approach
+  PRD:
+    name: Product Requirement
+    description: Defines what the system must do — functional requirements, 
+      acceptance criteria, and success metrics
+  ETH:
+    name: Ethical Finding
+    description: Documents ethical considerations, bias assessments, and 
+      fairness evaluations for AI system behavior
+  DES:
+    name: Design Proposal Decision
+    description: Records design-level decisions (API shape, data models, UX 
+      flows) that don't rise to full ADR scope
 GUARDRAILS:
-  MC: Model Card Entry
-  AUP: Acceptable Use Policy Rule
-  RISK: Risk Register Entry
-  DG: Data Governance Rule
-  COMP: Compliance Rule
+  MC:
+    name: Model Card Entry
+    description: Documents AI model characteristics — capabilities, limitations,
+      intended use, and known failure modes
+  AUP:
+    name: Acceptable Use Policy Rule
+    description: Defines hard constraints on system behavior — what the system 
+      must always or never do
+  RISK:
+    name: Risk Register Entry
+    description: Tracks identified risks with severity, likelihood, mitigation 
+      strategies, and residual risk levels
+  DG:
+    name: Data Governance Rule
+    description: Specifies data handling requirements — retention, access 
+      controls, PII treatment, and audit obligations
+  COMP:
+    name: Compliance Rule
+    description: Captures regulatory and standards compliance requirements (SOC 
+      2, GDPR, ISO, industry-specific)
 HOW:
-  SP: System Prompt Rule
-  API: API Specification
-  RUN: Runbook Procedure
-  ML: MLOps Rule
-  MON: Monitoring Rule
+  SP:
+    name: System Prompt Rule
+    description: Defines rules and instructions that shape AI agent behavior at 
+      runtime via system prompts
+  API:
+    name: API Specification
+    description: Documents API contracts — endpoints, schemas, authentication, 
+      rate limits, and versioning policies
+  RUN:
+    name: Runbook Procedure
+    description: Step-by-step operational procedures for deployment, rollback, 
+      incident response, and maintenance
+  ML:
+    name: MLOps Rule
+    description: Specifies ML pipeline requirements — training schedules, 
+      evaluation thresholds, model versioning, and drift detection
+  MON:
+    name: Monitoring Rule
+    description: Defines what to monitor, alert thresholds, escalation paths, 
+      and observability requirements

@@ -8,6 +8,10 @@ from lattice_lens.services.type_service import (
     CANONICAL_TYPES,
     audit_types,
     canonical_type_for_prefix,
+    description_for_prefix,
+    get_type_description,
+    get_type_name,
+    is_enriched_registry,
     read_type_registry,
     write_type_registry,
 )
@@ -21,13 +25,27 @@ class TestCanonicalTypes:
                 canonical = canonical_type_for_prefix(prefix)
                 assert canonical is not None, f"Missing canonical type for {prefix} ({layer})"
 
+    def test_all_prefixes_have_descriptions(self):
+        """Every prefix in LAYER_PREFIXES should have a description."""
+        for layer, prefixes in LAYER_PREFIXES.items():
+            for prefix in prefixes:
+                desc = description_for_prefix(prefix)
+                assert desc is not None, f"Missing description for {prefix} ({layer})"
+                assert len(desc) >= 20, f"Description too short for {prefix}"
+
     def test_lookup(self):
         assert canonical_type_for_prefix("ADR") == "Architecture Decision Record"
         assert canonical_type_for_prefix("RISK") == "Risk Register Entry"
         assert canonical_type_for_prefix("SP") == "System Prompt Rule"
 
+    def test_description_lookup(self):
+        desc = description_for_prefix("ADR")
+        assert desc is not None
+        assert "architectural" in desc.lower()
+
     def test_unknown_prefix(self):
         assert canonical_type_for_prefix("UNKNOWN") is None
+        assert description_for_prefix("UNKNOWN") is None
 
 
 class TestAuditTypes:
@@ -77,13 +95,28 @@ class TestRegistryRoundtrip:
         assert "WHY" in loaded
         assert "GUARDRAILS" in loaded
         assert "HOW" in loaded
-        assert loaded["WHY"]["ADR"] == "Architecture Decision Record"
+        # Enriched format: each prefix maps to {name, description}
+        assert get_type_name(loaded, "WHY", "ADR") == "Architecture Decision Record"
+        assert get_type_description(loaded, "WHY", "ADR") is not None
+
+    def test_enriched_format(self, tmp_lattice):
+        write_type_registry(tmp_lattice)
+        loaded = read_type_registry(tmp_lattice)
+        assert is_enriched_registry(loaded)
 
     def test_read_nonexistent(self, tmp_lattice):
         assert read_type_registry(tmp_lattice) is None
 
     def test_write_custom_map(self, tmp_lattice):
-        custom = {"WHY": {"ADR": "Custom Type"}}
+        custom = {"WHY": {"ADR": {"name": "Custom Type", "description": "Custom desc"}}}
         write_type_registry(tmp_lattice, custom)
         loaded = read_type_registry(tmp_lattice)
-        assert loaded["WHY"]["ADR"] == "Custom Type"
+        assert get_type_name(loaded, "WHY", "ADR") == "Custom Type"
+        assert get_type_description(loaded, "WHY", "ADR") == "Custom desc"
+
+    def test_legacy_flat_format_helpers(self):
+        """get_type_name/get_type_description handle legacy flat format gracefully."""
+        flat = {"WHY": {"ADR": "Architecture Decision Record"}}
+        assert get_type_name(flat, "WHY", "ADR") == "Architecture Decision Record"
+        assert get_type_description(flat, "WHY", "ADR") is None
+        assert not is_enriched_registry(flat)

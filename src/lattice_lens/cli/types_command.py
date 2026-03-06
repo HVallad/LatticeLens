@@ -9,7 +9,13 @@ from rich.console import Console
 from rich.table import Table
 
 from lattice_lens.cli.helpers import require_lattice
-from lattice_lens.services.type_service import CANONICAL_TYPES, audit_types, read_type_registry
+from lattice_lens.services.type_service import (
+    CANONICAL_TYPES,
+    audit_types,
+    get_type_description,
+    get_type_name,
+    read_type_registry,
+)
 
 console = Console()
 err_console = Console(stderr=True)
@@ -37,10 +43,13 @@ def types(
     table.add_column("Prefix", style="bold")
     table.add_column("Layer")
     table.add_column("Canonical Type")
+    table.add_column("Description", style="dim")
 
     for layer, prefixes in registry.items():
-        for prefix, type_name in prefixes.items():
-            table.add_row(prefix, layer, type_name)
+        for prefix in prefixes:
+            type_name = get_type_name(registry, layer, prefix)
+            description = get_type_description(registry, layer, prefix) or ""
+            table.add_row(prefix, layer, type_name, description)
 
     console.print(table)
 

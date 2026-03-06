@@ -116,10 +116,32 @@ def _migrate_to_0_3_0(store) -> int:
     return changed
 
 
+def _migrate_to_0_4_0(store) -> int:
+    """Upgrade types.yaml to enriched format with descriptions."""
+    from lattice_lens.services.type_service import is_enriched_registry, read_type_registry, write_type_registry
+
+    registry = read_type_registry(store.root)
+
+    if registry is None:
+        # types.yaml missing entirely — write enriched from scratch
+        write_type_registry(store.root)
+        console.print("  [green]Created[/green] types.yaml (enriched with descriptions)")
+        return 1
+
+    if is_enriched_registry(registry):
+        return 0  # Already enriched
+
+    # Flat format detected — regenerate with descriptions
+    write_type_registry(store.root)
+    console.print("  [green]Upgraded[/green] types.yaml (added type descriptions)")
+    return 1
+
+
 # Ordered list of migrations. Add new entries at the bottom for future phases.
 MIGRATIONS: list[tuple[str, str, callable]] = [
     ("0.2.0", "Nested query format for role templates", _migrate_to_0_2_0),
     ("0.3.0", "Type registry and canonical type names in role templates", _migrate_to_0_3_0),
+    ("0.4.0", "Enriched type registry with descriptions", _migrate_to_0_4_0),
 ]
 
 
