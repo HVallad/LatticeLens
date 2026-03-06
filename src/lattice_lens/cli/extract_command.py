@@ -17,7 +17,14 @@ err_console = Console(stderr=True)
 
 
 def extract(
-    file: Path = typer.Argument(..., help="Path to document (.md, .txt, .docx)"),
+    file: Optional[Path] = typer.Argument(
+        None, help="Path to document (.md, .txt, .docx)"
+    ),
+    prompt: bool = typer.Option(
+        False,
+        "--prompt",
+        help="Print the extraction prompt to stdout and exit (for agent integration)",
+    ),
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Preview extracted facts without writing"
     ),
@@ -31,6 +38,31 @@ def extract(
     ),
 ):
     """Extract atomic facts from a document using an LLM."""
+    if prompt:
+        from lattice_lens.services.extract_service import EXTRACTION_SYSTEM_PROMPT
+
+        store = require_lattice()
+        existing_codes = store.all_codes()
+
+        print(EXTRACTION_SYSTEM_PROMPT)
+        if existing_codes:
+            print(
+                f"\nExisting codes in the lattice (avoid collisions and reference "
+                f"these where appropriate): {', '.join(sorted(existing_codes))}"
+            )
+        print(
+            "\nWrite each extracted fact as a YAML file and add it via: "
+            "lattice fact add --from <path>"
+        )
+        return
+
+    if file is None:
+        err_console.print(
+            "[red]Error:[/red] A file argument is required "
+            "(unless using --prompt)."
+        )
+        raise typer.Exit(1)
+
     # Resolve API key
     resolved_key = api_key or Settings().anthropic_api_key
     if not resolved_key:
