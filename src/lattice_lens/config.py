@@ -19,7 +19,8 @@ INDEX_FILE = "index.yaml"
 # "0.2.0" = Phase 2 (nested query role templates, graph + git commands)
 # "0.3.0" = Phase 5 (type registry, canonical types in role templates)
 # "0.4.0" = Phase 5 (enriched type registry with descriptions)
-LATTICE_VERSION = "0.4.0"
+# "0.5.0" = Phase 6 (reconciliation engine, SQLite backend)
+LATTICE_VERSION = "0.5.0"
 
 LAYER_PREFIXES: dict[str, list[str]] = {
     "WHY": ["ADR", "PRD", "ETH", "DES"],
@@ -49,3 +50,27 @@ def find_lattice_root(start: Path | None = None) -> Path | None:
         if parent == parent.parent:
             break
     return None
+
+
+def load_config(lattice_root: Path) -> dict:
+    """Read config.yaml from lattice root. Returns empty dict on failure."""
+    from ruamel.yaml import YAML
+
+    config_path = lattice_root / CONFIG_FILE
+    if not config_path.exists():
+        return {}
+    yaml = YAML()
+    with open(config_path) as f:
+        data = yaml.load(f)
+    return dict(data) if data else {}
+
+
+def save_config(lattice_root: Path, config: dict) -> None:
+    """Write config.yaml to lattice root."""
+    from ruamel.yaml import YAML
+
+    yaml = YAML()
+    yaml.default_flow_style = False
+    config_path = lattice_root / CONFIG_FILE
+    with open(config_path, "w") as f:
+        yaml.dump(config, f)

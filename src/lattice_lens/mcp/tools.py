@@ -118,6 +118,24 @@ def tool_lattice_status(store: LatticeStore) -> dict:
     return store.stats()
 
 
+def tool_reconcile(
+    store: LatticeStore,
+    codebase_root: Path,
+    include: list[str] | None = None,
+    exclude: list[str] | None = None,
+) -> dict:
+    """Run bidirectional reconciliation and return summary."""
+    from lattice_lens.services.reconcile_service import reconcile
+
+    report = reconcile(
+        store,
+        codebase_root,
+        include_patterns=include,
+        exclude_patterns=exclude,
+    )
+    return report.summary()
+
+
 # ── Write Tools ──
 
 

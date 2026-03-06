@@ -47,6 +47,18 @@ def status():
     else:
         console.print("[green]No stale facts.[/green]")
 
+    # Advisory thresholds (RISK-06 / SP-11)
+    fact_count = stats["total"]
+    if stats["backend"] == "yaml":
+        if fact_count >= 2000:
+            console.print(
+                "[yellow]\u26a0 2,000+ facts. Consider: lattice backend switch sqlite[/yellow]"
+            )
+        elif fact_count >= 1500:
+            console.print(
+                "[dim]\u2139 Approaching scale threshold (1,500 facts). SQLite available.[/dim]"
+            )
+
     # Last changelog entry
     changelog = store.history_dir / "changelog.jsonl"
     if changelog.exists():

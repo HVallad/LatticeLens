@@ -7,7 +7,7 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-from lattice_lens.config import ROLES_DIR
+from lattice_lens.config import ROLES_DIR, load_config
 from lattice_lens.mcp.tools import (
     tool_context_assemble,
     tool_fact_create,
@@ -19,6 +19,7 @@ from lattice_lens.mcp.tools import (
     tool_graph_impact,
     tool_graph_orphans,
     tool_lattice_status,
+    tool_reconcile,
 )
 from lattice_lens.store.yaml_store import YamlFileStore
 
@@ -34,7 +35,17 @@ def create_server(lattice_root: Path, writable: bool = False) -> FastMCP:
         Configured FastMCP server instance.
     """
     mcp = FastMCP("lattice-lens")
-    store = YamlFileStore(lattice_root)
+
+    # Select backend based on config
+    config = load_config(lattice_root)
+    backend = config.get("backend", "yaml")
+    if backend == "sqlite":
+        from lattice_lens.store.sqlite_store import SqliteStore
+
+        store = SqliteStore(lattice_root)
+    else:
+        store = YamlFileStore(lattice_root)
+
     roles_dir = lattice_root / ROLES_DIR
 
     def _refresh():
@@ -134,6 +145,26 @@ def create_server(lattice_root: Path, writable: bool = False) -> FastMCP:
         """Get summary statistics: fact counts by layer/status, staleness, backend type."""
         _refresh()
         return _json(tool_lattice_status(store))
+
+    @mcp.tool()
+    async def reconcile(
+        path: str | None = None,
+        include: list[str] | None = None,
+        exclude: list[str] | None = None,
+    ) -> str:
+        """Run bidirectional reconciliation of governance facts against the codebase.
+
+        Returns a summary with counts of confirmed, stale, violated, untracked,
+        and orphaned findings plus coverage percentage.
+
+        Args:
+            path: Directory to scan (default: project root).
+            include: Glob patterns to include (default: **/*.py).
+            exclude: Glob patterns to exclude.
+        """
+        _refresh()
+        codebase_root = Path(path) if path else lattice_root.parent
+        return _json(tool_reconcile(store, codebase_root, include, exclude))
 
     # ── Write Tools (writable mode only) ──
 

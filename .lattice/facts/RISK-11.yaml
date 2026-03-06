@@ -1,0 +1,29 @@
+code: RISK-11
+layer: GUARDRAILS
+type: Risk Register Entry
+fact: 'The SQLite database file (lattice.db) is a binary blob that cannot be meaningfully
+  diffed in git, unlike individual YAML fact files which provide per-fact change visibility
+  in pull requests. This trades git-native auditability for query performance. Mitigation:
+  the changelog table inside SQLite mirrors the append-only JSONL changelog (DG-05),
+  the lattice backend switch yaml command can export back to diffable YAML at any
+  time, and git history on the YAML files is preserved even after switching. Residual
+  risk is LOW.'
+tags:
+- accepted-risk
+- git-native
+- low-severity
+- sqlite
+- storage
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- ADR-16
+- DES-06
+- DG-05
+- DG-01
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T23:55:36.946253'
+updated_at: '2026-03-05T23:55:36.946253'

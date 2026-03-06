@@ -1,0 +1,27 @@
+code: RISK-10
+layer: GUARDRAILS
+type: Risk Register Entry
+fact: 'Rule-based reconciliation without LLM assistance may produce false positives
+  and false negatives. Conceptual or policy facts (e.g. ethical findings, risk register
+  entries) often lack direct code evidence and will be flagged as orphaned even when
+  valid. Conversely, semantic code behaviors may not match simple regex patterns and
+  go undetected. Mitigation: findings include a confidence score (0.0-1.0), the --llm
+  flag is reserved for deeper semantic analysis in future, and the orphaned category
+  is presented as advisory rather than error. Residual risk is MEDIUM.'
+tags:
+- accepted-risk
+- medium-severity
+- reconciliation
+- rule-based
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- DES-11
+- DES-12
+- ADR-17
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T23:55:36.946253'
+updated_at: '2026-03-05T23:55:36.946253'

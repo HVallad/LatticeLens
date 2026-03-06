@@ -1,0 +1,28 @@
+code: SP-10
+layer: HOW
+type: System Prompt Rule
+fact: 'The lattice reconcile command scans a codebase and produces a bidirectional
+  reconciliation report. Flags: --path (directory to scan, default project root),
+  --include (glob patterns, default **/*.py), --exclude (glob patterns, default node_modules/.venv/__pycache__),
+  --llm (enable LLM-assisted analysis, deferred), --json (machine-readable output),
+  --verbose (per-fact matching details). Default output is a Rich table showing counts
+  by finding category plus detailed listings for stale, violated, and untracked findings.
+  The MCP server exposes a read-only reconcile tool returning the summary dict.'
+tags:
+- cli
+- developer
+- reconciliation
+- runtime
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- DES-11
+- DES-12
+- ADR-17
+- API-03
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T23:55:55.524327'
+updated_at: '2026-03-05T23:55:55.524327'
