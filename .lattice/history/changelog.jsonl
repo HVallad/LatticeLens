@@ -119,3 +119,17 @@
 {"timestamp": "2026-03-05T22:52:31.068795", "action": "update", "code": "SP-09", "reason": "Promoted to Active: Reviewed: documents implemented Phase 4/5 features or active risks with mitigations"}
 {"timestamp": "2026-03-05T23:01:01.151964", "action": "create", "code": "DES-11", "reason": "Initial creation"}
 {"timestamp": "2026-03-05T23:01:08.892789", "action": "update", "code": "PRD-01", "reason": "Extend roadmap with Phase 6 (reconciliation + SQLite)"}
+{"timestamp": "2026-03-05T23:54:50.242828", "action": "update", "code": "DES-07", "reason": "Add violated as fifth finding category per Phase 6 implementation brief"}
+{"timestamp": "2026-03-05T23:55:13.014152", "action": "create", "code": "ADR-16", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T23:55:13.015776", "action": "create", "code": "ADR-17", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T23:55:36.949579", "action": "create", "code": "DES-12", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T23:55:36.951167", "action": "create", "code": "RISK-10", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T23:55:36.953184", "action": "create", "code": "RISK-11", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T23:55:55.527401", "action": "create", "code": "RUN-07", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T23:55:55.547849", "action": "create", "code": "SP-10", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T23:55:55.549401", "action": "create", "code": "SP-11", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T23:56:08.518658", "action": "create", "code": "API-03", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T23:56:08.520484", "action": "create", "code": "DG-11", "reason": "Initial creation"}
+{"timestamp": "2026-03-05T23:56:17.232592", "action": "update", "code": "DES-11", "reason": "Promoted to Under Review: Phase 6 implementation beginning, design approved"}
+{"timestamp": "2026-03-05T23:56:21.008518", "action": "update", "code": "DES-11", "reason": "Promoted to Active: Phase 6 implementation approved and underway"}
+{"timestamp": "2026-03-06T00:14:52.683281", "action": "create", "code": "PRD-04", "reason": "Initial creation"}

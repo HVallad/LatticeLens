@@ -1,0 +1,26 @@
+code: ADR-17
+layer: WHY
+type: Architecture Decision Record
+fact: 'The reconciliation engine uses rule-based pattern matching as its primary strategy:
+  regex scanning for explicit fact code references in comments and strings, plus architectural
+  pattern detection for common imports, configs, and security patterns. LLM-assisted
+  analysis is deferred behind an optional --llm flag. This decision prioritizes deterministic,
+  reproducible results with zero external dependencies for the core reconciliation
+  path. LLM enhancement can be added later without changing the report structure.'
+tags:
+- architecture
+- pattern-matching
+- reconciliation
+- rule-based
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- DES-07
+- DES-11
+- DES-12
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T23:55:13.011144'
+updated_at: '2026-03-05T23:55:13.011144'

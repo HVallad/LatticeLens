@@ -1,0 +1,27 @@
+code: DES-12
+layer: WHY
+type: Design Proposal Decision
+fact: 'The reconciliation report uses two dataclasses: Finding (category, code, description,
+  file, line, confidence, evidence) and ReconciliationReport (lists of findings by
+  category plus computed summary). Findings fall into five categories — confirmed
+  (code supports fact), stale (code diverged from fact), violated (code contradicts
+  fact), untracked (code pattern with no fact), and orphaned (active fact with no
+  code evidence). Coverage percentage is calculated as confirmed / total_facts_checked
+  * 100. The report structure supports both Rich table display and JSON serialization.'
+tags:
+- data-model
+- dataclass
+- design
+- reconciliation
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- DES-07
+- DES-11
+- ADR-17
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T23:55:36.946253'
+updated_at: '2026-03-05T23:55:36.946253'

@@ -61,7 +61,7 @@ class TestListTools:
         tools = _run(server.list_tools())
         tool_names = [t.name for t in tools]
 
-        assert len(tool_names) == 7
+        assert len(tool_names) == 8
         assert "fact_get" in tool_names
         assert "fact_query" in tool_names
         assert "fact_list" in tool_names
@@ -69,6 +69,7 @@ class TestListTools:
         assert "graph_impact" in tool_names
         assert "graph_orphans" in tool_names
         assert "lattice_status" in tool_names
+        assert "reconcile" in tool_names
         # Write tools should NOT be present
         assert "fact_create" not in tool_names
         assert "fact_update" not in tool_names
@@ -82,7 +83,7 @@ class TestListTools:
         tools = _run(server.list_tools())
         tool_names = [t.name for t in tools]
 
-        assert len(tool_names) == 10
+        assert len(tool_names) == 11
         assert "fact_create" in tool_names
         assert "fact_update" in tool_names
         assert "fact_deprecate" in tool_names

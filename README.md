@@ -8,7 +8,7 @@
 <p align="center">
   <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-blue">
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green">
-  <img alt="Tests: 266 passed" src="https://img.shields.io/badge/tests-266%20passed-brightgreen">
+  <img alt="Tests: 324 passed" src="https://img.shields.io/badge/tests-324%20passed-brightgreen">
 </p>
 
 <p align="center">
@@ -120,106 +120,127 @@ Loads 12 example facts covering all three layers plus placeholder drafts for ref
 
 ## Commands
 
-### Explore facts
+LatticeLens provides 20 top-level commands organized into four categories: core operations, fact management, knowledge graph analysis, and backend management.
+
+### Core Commands
+
+| Command | Description |
+|---------|-------------|
+| `lattice init` | Create `.lattice/` directory with default structure |
+| `lattice status` | Show backend type, fact counts by layer/status, and staleness |
+| `lattice validate` | Check lattice integrity: YAML parsing, refs, tags, staleness |
+| `lattice reindex` | Rebuild `index.yaml` from scanning all fact files |
+| `lattice seed` | Load 12 example facts + placeholder drafts |
+| `lattice upgrade` | Migrate lattice to the latest schema version (safe, idempotent) |
+| `lattice evaluate` | Output governance briefing (used by Claude Code hook) |
 
 ```bash
-# List all active facts
-lattice fact ls
-
-# Filter by layer
-lattice fact ls --layer GUARDRAILS
-
-# Filter by tag
-lattice fact ls --tag security
-
-# View a single fact
-lattice fact get RISK-07
-
-# JSON output (pipe to jq, feed to agents, etc.)
-lattice fact get ADR-01 --json
+lattice init                     # Initialize a new lattice
+lattice status                   # Summary: backend, counts, staleness
+lattice validate                 # Check integrity
+lattice validate --fix           # Auto-fix tags (normalize, sort, deduplicate)
+lattice reindex                  # Rebuild index from fact files
+lattice seed                     # Load example facts
+lattice upgrade                  # Upgrade schema version
+lattice evaluate                 # Governance briefing (text)
+lattice evaluate --json          # Governance briefing (JSON)
+lattice evaluate --verbose       # Diagnostics on stderr
 ```
 
-### Create a fact
+### Fact Management — `lattice fact`
+
+| Subcommand | Description |
+|------------|-------------|
+| `lattice fact add` | Add a new fact (interactive or from file) |
+| `lattice fact get CODE` | Display a single fact by code |
+| `lattice fact ls` | List facts matching filters |
+| `lattice fact edit CODE` | Open a fact in `$EDITOR`, validate on save |
+| `lattice fact promote CODE` | Promote: Draft → Under Review → Active |
+| `lattice fact deprecate CODE` | Soft-delete a fact (set status to Deprecated) |
 
 ```bash
-# Interactive mode — prompts for each field
-lattice fact add
+# List and filter
+lattice fact ls                           # All active facts
+lattice fact ls --layer GUARDRAILS        # Filter by layer
+lattice fact ls --tag security            # Filter by tag
+lattice fact ls --status Draft            # Filter by status
+lattice fact ls --type "Risk Register Entry"  # Filter by type
 
-# From a YAML file
-lattice fact add --from my-fact.yaml
-```
+# View
+lattice fact get RISK-07                  # Rich display
+lattice fact get ADR-01 --json            # JSON output
 
-### Edit and lifecycle
+# Create
+lattice fact add                          # Interactive mode
+lattice fact add --from my-fact.yaml      # From file
 
-```bash
-# Open in $EDITOR, validates on save, bumps version
-lattice fact edit ADR-03
-
-# Promote through lifecycle: Draft -> Under Review -> Active
-lattice fact promote ADR-03 --reason "Reviewed and approved by team"
-
-# Soft delete (no hard deletes — facts are Deprecated, never removed)
+# Edit and lifecycle
+lattice fact edit ADR-03                  # Open in $EDITOR, validates on save
+lattice fact promote ADR-03 --reason "Reviewed and approved"
 lattice fact deprecate ADR-03 --reason "Superseded by ADR-04"
 ```
 
 New facts default to `Draft` status and must be promoted through the lifecycle before they appear in agent context.
 
-### Validate integrity
+### Knowledge Graph — `lattice graph`
+
+| Subcommand | Description |
+|------------|-------------|
+| `lattice graph impact CODE` | Show facts and roles affected by changing a fact |
+| `lattice graph orphans` | Find facts with no references in or out |
+| `lattice graph contradictions` | Find active fact pairs that may contradict |
 
 ```bash
-# Check for broken refs, schema errors, stale facts, type mismatches
-lattice validate
-
-# Auto-fix tags (normalize, sort, deduplicate)
-lattice validate --fix
-```
-
-### Knowledge graph
-
-```bash
-# What breaks if I change ADR-03? Shows direct, transitive, and affected roles
-lattice graph impact ADR-03
-
-# Limit traversal depth (default: 3)
-lattice graph impact ADR-03 --depth 1
-
-# Find facts with no references in or out
-lattice graph orphans
-
-# Find active fact pairs sharing tags across different layers/owners
-lattice graph contradictions
+lattice graph impact ADR-03               # Direct, transitive, and role impacts
+lattice graph impact ADR-03 --depth 1     # Limit traversal depth (default: 3)
+lattice graph orphans                     # Disconnected facts
+lattice graph contradictions              # Potential contradictions
 ```
 
 All graph commands support `--json` for machine-readable output.
 
-### Context assembly
+### Reconciliation — `lattice reconcile`
+
+Verify governance facts against the codebase in both directions: facts-to-code and code-to-facts.
+
+| Option | Description |
+|--------|-------------|
+| `--path PATH` | Directory to scan (default: project root) |
+| `--include TEXT` | Glob patterns to include (default: `**/*.py`) |
+| `--exclude TEXT` | Glob patterns to exclude |
+| `--llm` | Enable LLM-assisted analysis (not yet implemented) |
+| `--json` | Output report as JSON |
+| `--verbose` | Show per-fact matching details |
 
 ```bash
-# Assemble governed facts for the planning agent role
-lattice context planning
+lattice reconcile                         # Scan project, Rich table output
+lattice reconcile --json                  # Machine-readable JSON report
+lattice reconcile --verbose               # Per-fact matching details
+lattice reconcile --path src/ --include "**/*.py"  # Custom scan scope
+```
 
-# Respect a token budget — loads highest-priority facts first
-lattice context planning --budget 4000
+Findings are categorized as **confirmed** (fact matches code), **stale** (fact outdated), **violated** (code contradicts fact), **untracked** (code pattern with no fact), or **orphaned** (fact with no code evidence).
 
-# JSON output — pipe directly into an agent prompt
-lattice context planning --json
+### Context Assembly — `lattice context`
 
-# Different roles get different facts
+Assemble token-budgeted, role-scoped fact sets for agent prompts.
+
+```bash
+lattice context planning                  # Facts for the planning role
+lattice context planning --budget 4000    # Token-limited
+lattice context planning --json           # JSON output for agent injection
 lattice context architecture --budget 8000 --json
 ```
 
-Context assembly follows priority loading: Confirmed facts first, then Provisional if budget remains. Draft, Deprecated, and Superseded facts are never included. Facts that exist but weren't loaded are listed as REFS pointers so the agent knows what it's missing.
+Priority loading: Confirmed facts first, then Provisional if budget remains. Draft, Deprecated, and Superseded facts are never included. Excluded facts are listed as REFS pointers.
 
-### LLM extraction
+### LLM Extraction — `lattice extract`
+
+Extract atomic facts from documents using an LLM (requires `anthropic` SDK).
 
 ```bash
-# Extract facts from a design document (requires anthropic SDK)
-lattice extract docs/architecture.md
-
-# Preview without writing
-lattice extract docs/prd.md --dry-run
-
-# Custom extraction prompt
+lattice extract docs/architecture.md      # Extract and create Draft facts
+lattice extract docs/prd.md --dry-run     # Preview without writing
 lattice extract docs/notes.md --prompt "Focus on security decisions"
 ```
 
@@ -228,48 +249,60 @@ Extracted facts are always created as `Draft` status, requiring human review bef
 ### Import / Export
 
 ```bash
-# Export all facts to JSON
+# Export
 lattice export --format json > backup.json
-
-# Export to YAML
 lattice export --format yaml > backup.yaml
 
 # Import with merge strategies
-lattice import backup.json                     # skip (default) — ignore existing codes
-lattice import backup.json --strategy overwrite  # update existing facts
-lattice import backup.json --strategy fail       # abort on any collision
+lattice import backup.json                       # skip (default)
+lattice import backup.json --strategy overwrite  # update existing
+lattice import backup.json --strategy fail       # abort on collision
 ```
 
-### Tag and type registries
+### Tag and Type Registries
 
 ```bash
-# View all tags with usage counts and vocabulary categories
-lattice tags
-
-# Rebuild the tag registry from current facts
-lattice tags --rebuild
-
-# View canonical types per code prefix
-lattice types
-
-# Audit facts for non-canonical type strings
-lattice types --audit
+lattice tags                    # View all tags with usage counts
+lattice tags --rebuild          # Rebuild tag registry from current facts
+lattice types                   # View canonical types per code prefix
+lattice types --audit           # Audit facts for non-canonical type strings
 ```
 
-### MCP server
+### Backend Management — `lattice backend`
+
+| Subcommand | Description |
+|------------|-------------|
+| `lattice backend status` | Show current backend type, fact count, advisory thresholds |
+| `lattice backend switch TARGET` | Migrate between `yaml` and `sqlite` backends |
 
 ```bash
-# Start MCP server over stdio (for Claude Desktop, Claude Code, Cursor)
-lattice serve
-
-# Start with write tools enabled
-lattice serve --writable
-
-# Start over SSE for team/network access
-lattice serve --host 0.0.0.0 --port 3100
+lattice backend status                    # Current backend info
+lattice backend switch sqlite             # Migrate YAML → SQLite
+lattice backend switch yaml               # Migrate SQLite → YAML
 ```
 
-The MCP server exposes 7 read-only tools (fact_get, fact_query, fact_list, context_assemble, graph_impact, graph_orphans, lattice_status) and optionally 3 write tools (fact_create, fact_update, fact_deprecate) in writable mode.
+The system advises at 1,500+ facts and warns at 2,000+ facts to switch to SQLite, but never auto-migrates. Backend switching preserves all data.
+
+### Git Integration
+
+```bash
+lattice diff                    # Fact-level diff summary
+lattice diff --staged           # Show only staged changes
+lattice log                     # Git history for all facts
+lattice log ADR-03 --limit 10  # History for a specific fact
+```
+
+### MCP Server — `lattice serve`
+
+Start a Model Context Protocol server for AI agent integration.
+
+```bash
+lattice serve                             # stdio transport (default)
+lattice serve --writable                  # Enable write tools
+lattice serve --host 0.0.0.0 --port 3100 # SSE transport for network access
+```
+
+The MCP server exposes 8 read-only tools (`fact_get`, `fact_query`, `fact_list`, `context_assemble`, `graph_impact`, `graph_orphans`, `lattice_status`, `reconcile`) and optionally 3 write tools (`fact_create`, `fact_update`, `fact_deprecate`) in writable mode.
 
 #### MCP client configuration
 
@@ -283,38 +316,6 @@ The MCP server exposes 7 read-only tools (fact_get, fact_query, fact_list, conte
     }
   }
 }
-```
-
-### Git integration
-
-```bash
-# Fact-level diff summary (which codes changed, which fields)
-lattice diff
-
-# Show only staged changes
-lattice diff --staged
-
-# Git history for all facts
-lattice log
-
-# History for a specific fact
-lattice log ADR-03 --limit 10
-```
-
-### Other commands
-
-```bash
-# Governance briefing (what the Claude Code hook outputs)
-lattice evaluate
-
-# Rebuild the in-memory index file
-lattice reindex
-
-# Show backend, counts by layer/status, staleness
-lattice status
-
-# Migrate lattice to latest schema version (safe, idempotent)
-lattice upgrade
 ```
 
 ## Fact YAML Format
@@ -493,7 +494,7 @@ cp -r .claude/skills/lattice ~/.claude/skills/lattice
 # Install with all dev dependencies
 pip install -e ".[dev]"
 
-# Run tests (266 tests)
+# Run tests (324 tests)
 pytest
 
 # Run tests with coverage
@@ -509,10 +510,10 @@ ruff check src/ tests/
 src/lattice_lens/
 ├── cli/              # Typer CLI commands
 ├── mcp/              # MCP server (FastMCP)
-├── services/         # Business logic (context, graph, tags, types, etc.)
-├── store/            # Storage abstraction (protocol + YAML backend)
+├── services/         # Business logic (context, graph, tags, types, reconciliation)
+├── store/            # Storage abstraction (protocol + YAML/SQLite backends)
 ├── models.py         # Pydantic Fact model
-└── config.py         # Settings + lattice root discovery
+└── config.py         # Settings, lattice root discovery, backend config
 ```
 
 ## Roadmap
@@ -537,11 +538,11 @@ Point `lattice extract` at a design doc or PRD and get atomic facts auto-generat
 
 Expose the lattice over Model Context Protocol (`lattice serve`) so Claude Desktop, Claude Code, Cursor, and custom agents can query governed facts natively. Centralized tag registry with vocabulary categories (`lattice tags`) and canonical type mapping with audit mode (`lattice types`).
 
-### Phase 6 — Bidirectional Reconciliation + SQLite Backend
+### Phase 6 — Bidirectional Reconciliation + SQLite Backend ✓
 
-**Reconciliation**: Verify knowledge against codebases in both directions. Facts-to-Code checks whether documented decisions match implementation. Code-to-Facts surfaces code behaviors with no corresponding fact. Produces a report categorizing each finding as confirmed, stale, violated, untracked, or orphaned.
+**Reconciliation** (`lattice reconcile`): Verify knowledge against codebases in both directions. Facts-to-Code checks whether documented decisions match implementation. Code-to-Facts surfaces code behaviors with no corresponding fact. Produces a report categorizing each finding as confirmed, stale, violated, untracked, or orphaned.
 
-**SQLite Backend**: Tier 2 of the progressive storage architecture for lattices with 500+ facts. Indexed queries, WAL-mode concurrent reads, zero CLI changes via the LatticeStore protocol abstraction. Backend switching is always explicit — the system advises but never auto-migrates.
+**SQLite Backend** (`lattice backend switch sqlite`): Tier 2 of the progressive storage architecture for lattices with 500+ facts. Indexed queries, WAL-mode concurrent reads, zero CLI changes via the LatticeStore protocol abstraction. Backend switching is always explicit — the system advises but never auto-migrates.
 
 ## License
 

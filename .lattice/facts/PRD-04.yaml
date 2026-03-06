@@ -1,0 +1,26 @@
+code: PRD-04
+layer: WHY
+type: Product Requirement
+fact: The project README must include a complete command reference listing every
+  CLI command and subcommand with a brief description of what it does. This 
+  ensures discoverability for new users and serves as the canonical 
+  quick-reference for the tool. The reference should cover top-level commands 
+  (init, validate, status, reconcile, etc.), subcommand groups (fact, graph, 
+  backend), and their individual subcommands. The README should be updated 
+  whenever commands are added or changed.
+tags:
+- developer
+- developer-experience
+- documentation
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- PRD-01
+- SP-10
+- SP-11
+superseded_by:
+owner: product-team
+review_by: '2026-09-01'
+created_at: '2026-03-06T00:14:52.680535'
+updated_at: '2026-03-06T00:14:52.680535'

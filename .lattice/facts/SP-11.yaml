@@ -1,0 +1,26 @@
+code: SP-11
+layer: HOW
+type: System Prompt Rule
+fact: 'The lattice backend command group provides two subcommands. lattice backend
+  status shows the current backend type (yaml or sqlite) and fact count, plus advisory
+  thresholds: an info message at 1,500+ facts suggesting SQLite is available, and
+  a warning at 2,000+ facts recommending the switch. lattice backend switch [sqlite|yaml]
+  performs explicit migration between backends with data preservation. The CLI reads
+  the backend field from config.yaml and instantiates the appropriate store implementation.'
+tags:
+- cli
+- developer
+- sqlite
+- storage
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- ADR-16
+- RISK-06
+- DES-06
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T23:55:55.524327'
+updated_at: '2026-03-05T23:55:55.524327'
