@@ -73,9 +73,75 @@ def _migrate_to_0_2_0(store) -> int:
     return migrated
 
 
+def _migrate_to_0_3_0(store) -> int:
+    """Seed type registry and fix non-canonical type strings in role templates."""
+    changed = 0
+
+    # Seed types.yaml if missing
+    types_path = store.root / "types.yaml"
+    if not types_path.exists():
+        from lattice_lens.services.type_service import write_type_registry
+
+        write_type_registry(store.root)
+        console.print("  [green]Created[/green] types.yaml (canonical type registry)")
+        changed += 1
+
+    # Fix non-canonical type strings in role templates
+    roles_dir = store.root / ROLES_DIR
+    if roles_dir.exists():
+        replacements = {
+            "Risk Assessment Finding": "Risk Register Entry",
+            "Runbook Entry": "Runbook Procedure",
+            "API Contract": "API Specification",
+            "Standard Procedure": "System Prompt Rule",
+            "Monitoring Check": "Monitoring Rule",
+        }
+        for path in sorted(roles_dir.glob("*.yaml")):
+            with open(path) as f:
+                data = yaml_rw.load(f)
+            if data is None or "query" not in data:
+                continue
+            types_list = data["query"].get("types", [])
+            updated = False
+            for i, t in enumerate(types_list):
+                if t in replacements:
+                    types_list[i] = replacements[t]
+                    updated = True
+            if updated:
+                with open(path, "w") as f:
+                    yaml_rw.dump(data, f)
+                console.print(f"  [green]Fixed types in[/green] {path.name}")
+                changed += 1
+
+    return changed
+
+
+def _migrate_to_0_4_0(store) -> int:
+    """Upgrade types.yaml to enriched format with descriptions."""
+    from lattice_lens.services.type_service import is_enriched_registry, read_type_registry, write_type_registry
+
+    registry = read_type_registry(store.root)
+
+    if registry is None:
+        # types.yaml missing entirely — write enriched from scratch
+        write_type_registry(store.root)
+        console.print("  [green]Created[/green] types.yaml (enriched with descriptions)")
+        return 1
+
+    if is_enriched_registry(registry):
+        return 0  # Already enriched
+
+    # Flat format detected — regenerate with descriptions
+    write_type_registry(store.root)
+    console.print("  [green]Upgraded[/green] types.yaml (added type descriptions)")
+    return 1
+
+
 # Ordered list of migrations. Add new entries at the bottom for future phases.
 MIGRATIONS: list[tuple[str, str, callable]] = [
     ("0.2.0", "Nested query format for role templates", _migrate_to_0_2_0),
+    ("0.3.0", "Type registry and canonical type names in role templates", _migrate_to_0_3_0),
+    ("0.4.0", "Enriched type registry with descriptions", _migrate_to_0_4_0),
 ]
 
 

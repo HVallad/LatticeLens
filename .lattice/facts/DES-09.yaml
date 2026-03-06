@@ -13,9 +13,9 @@ tags:
 - design-time
 - developer
 - tag-vocabulary
-status: Draft
+status: Active
 confidence: Confirmed
-version: 1
+version: 3
 refs:
 - DG-02
 - DG-07
@@ -23,4 +23,4 @@ superseded_by:
 owner: architecture-team
 review_by:
 created_at: '2026-03-05T20:25:23.591955'
-updated_at: '2026-03-05T20:25:23.592067'
+updated_at: '2026-03-05T22:52:25.678703'

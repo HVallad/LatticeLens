@@ -6,14 +6,21 @@
 <p align="center"><strong>Knowledge Governance for AI</strong></p>
 
 <p align="center">
+  <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-blue">
+  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green">
+  <img alt="Tests: 266 passed" src="https://img.shields.io/badge/tests-266%20passed-brightgreen">
+</p>
+
+<p align="center">
   <a href="#quick-start">Quick Start</a> &middot;
+  <a href="#commands">Commands</a> &middot;
   <a href="#claude-code-integration">Claude Code Integration</a> &middot;
   <a href="#roadmap">Roadmap</a>
 </p>
 
 ---
 
-A knowledge governance layer for AI agent systems. LatticeLens gives teams a structured, version-controlled way to capture the decisions, constraints, and procedures that AI agents must follow — and makes that knowledge queryable from the command line, CI pipelines, and (soon) directly from agent prompts via MCP.
+A knowledge governance layer for AI agent systems. LatticeLens gives teams a structured, version-controlled way to capture the decisions, constraints, and procedures that AI agents must follow — and makes that knowledge queryable from the command line, CI pipelines, and directly from agent prompts via MCP.
 
 ## The Problem
 
@@ -26,13 +33,44 @@ AI agents are increasingly making consequential decisions — choosing architect
 
 LatticeLens solves this by providing a **single, git-native knowledge base** where teams record atomic facts organized into three layers:
 
-| Layer | What it captures | Example prefixes |
-|-------|-----------------|------------------|
-| **WHY** | Decisions, requirements, ethics, design rationale | ADR, PRD, ETH, DES |
-| **GUARDRAILS** | Constraints, policies, risks, compliance rules | MC, AUP, RISK, DG, COMP |
-| **HOW** | Procedures, API specs, runbooks, monitoring rules | SP, API, RUN, ML, MON |
+| Layer | What it captures |
+|-------|-----------------|
+| **WHY** | Decisions, requirements, ethics, design rationale |
+| **GUARDRAILS** | Constraints, policies, risks, compliance rules |
+| **HOW** | Procedures, API specs, runbooks, monitoring rules |
 
-Each fact is an individual YAML file, validated by Pydantic, tracked by git, and queryable by tag, layer, status, and text search.
+Each fact is an individual YAML file with a code prefix that determines its type. The 14 canonical types are:
+
+#### WHY — Why we build what we build
+
+| Prefix | Type | Purpose |
+|--------|------|---------|
+| ADR | Architecture Decision Record | Captures architectural choices with context, alternatives considered, and rationale for the selected approach |
+| PRD | Product Requirement | Defines what the system must do — functional requirements, acceptance criteria, and success metrics |
+| ETH | Ethical Finding | Documents ethical considerations, bias assessments, and fairness evaluations for AI system behavior |
+| DES | Design Proposal Decision | Records design-level decisions (API shape, data models, UX flows) that don't rise to full ADR scope |
+
+#### GUARDRAILS — What the system must not violate
+
+| Prefix | Type | Purpose |
+|--------|------|---------|
+| MC | Model Card Entry | Documents AI model characteristics — capabilities, limitations, intended use, and known failure modes |
+| AUP | Acceptable Use Policy Rule | Defines hard constraints on system behavior — what the system must always or never do |
+| RISK | Risk Register Entry | Tracks identified risks with severity, likelihood, mitigation strategies, and residual risk levels |
+| DG | Data Governance Rule | Specifies data handling requirements — retention, access controls, PII treatment, and audit obligations |
+| COMP | Compliance Rule | Captures regulatory and standards compliance requirements (SOC 2, GDPR, ISO, industry-specific) |
+
+#### HOW — How the system operates
+
+| Prefix | Type | Purpose |
+|--------|------|---------|
+| SP | System Prompt Rule | Defines rules and instructions that shape AI agent behavior at runtime via system prompts |
+| API | API Specification | Documents API contracts — endpoints, schemas, authentication, rate limits, and versioning policies |
+| RUN | Runbook Procedure | Step-by-step operational procedures for deployment, rollback, incident response, and maintenance |
+| ML | MLOps Rule | Specifies ML pipeline requirements — training schedules, evaluation thresholds, model versioning, and drift detection |
+| MON | Monitoring Rule | Defines what to monitor, alert thresholds, escalation paths, and observability requirements |
+
+Each fact is validated by Pydantic, tracked by git, and queryable by tag, layer, status, and text search.
 
 ## Quick Start
 
@@ -43,7 +81,14 @@ Each fact is an individual YAML file, validated by Pydantic, tracked by git, and
 ### Install
 
 ```bash
+# From source
 pip install -e .
+
+# With MCP server support
+pip install -e ".[mcp]"
+
+# With LLM extraction support
+pip install -e ".[extract]"
 ```
 
 ### Initialize a lattice
@@ -60,6 +105,8 @@ This creates a `.lattice/` directory in your project with:
 ├── facts/          # Individual fact YAML files
 ├── roles/          # Role query templates (planning, architecture, etc.)
 ├── history/        # Append-only changelog (JSONL)
+├── tags.yaml       # Generated tag registry with usage counts
+├── types.yaml      # Canonical type registry per code prefix
 └── .gitignore      # Excludes generated index
 ```
 
@@ -71,7 +118,9 @@ lattice seed
 
 Loads 12 example facts covering all three layers plus placeholder drafts for referenced targets.
 
-### Explore
+## Commands
+
+### Explore facts
 
 ```bash
 # List all active facts
@@ -118,7 +167,7 @@ New facts default to `Draft` status and must be promoted through the lifecycle b
 ### Validate integrity
 
 ```bash
-# Check for broken refs, schema errors, stale facts
+# Check for broken refs, schema errors, stale facts, type mismatches
 lattice validate
 
 # Auto-fix tags (normalize, sort, deduplicate)
@@ -161,6 +210,81 @@ lattice context architecture --budget 8000 --json
 
 Context assembly follows priority loading: Confirmed facts first, then Provisional if budget remains. Draft, Deprecated, and Superseded facts are never included. Facts that exist but weren't loaded are listed as REFS pointers so the agent knows what it's missing.
 
+### LLM extraction
+
+```bash
+# Extract facts from a design document (requires anthropic SDK)
+lattice extract docs/architecture.md
+
+# Preview without writing
+lattice extract docs/prd.md --dry-run
+
+# Custom extraction prompt
+lattice extract docs/notes.md --prompt "Focus on security decisions"
+```
+
+Extracted facts are always created as `Draft` status, requiring human review before promotion.
+
+### Import / Export
+
+```bash
+# Export all facts to JSON
+lattice export --format json > backup.json
+
+# Export to YAML
+lattice export --format yaml > backup.yaml
+
+# Import with merge strategies
+lattice import backup.json                     # skip (default) — ignore existing codes
+lattice import backup.json --strategy overwrite  # update existing facts
+lattice import backup.json --strategy fail       # abort on any collision
+```
+
+### Tag and type registries
+
+```bash
+# View all tags with usage counts and vocabulary categories
+lattice tags
+
+# Rebuild the tag registry from current facts
+lattice tags --rebuild
+
+# View canonical types per code prefix
+lattice types
+
+# Audit facts for non-canonical type strings
+lattice types --audit
+```
+
+### MCP server
+
+```bash
+# Start MCP server over stdio (for Claude Desktop, Claude Code, Cursor)
+lattice serve
+
+# Start with write tools enabled
+lattice serve --writable
+
+# Start over SSE for team/network access
+lattice serve --host 0.0.0.0 --port 3100
+```
+
+The MCP server exposes 7 read-only tools (fact_get, fact_query, fact_list, context_assemble, graph_impact, graph_orphans, lattice_status) and optionally 3 write tools (fact_create, fact_update, fact_deprecate) in writable mode.
+
+#### MCP client configuration
+
+```json
+{
+  "mcpServers": {
+    "lattice": {
+      "command": "lattice",
+      "args": ["serve", "--stdio"],
+      "cwd": "/path/to/your/project"
+    }
+  }
+}
+```
+
 ### Git integration
 
 ```bash
@@ -177,23 +301,20 @@ lattice log
 lattice log ADR-03 --limit 10
 ```
 
-### Upgrading
-
-```bash
-# Migrate lattice to latest schema version (safe, idempotent)
-lattice upgrade
-```
-
-Applies versioned migrations automatically. The lattice schema version is tracked in `.lattice/config.yaml`.
-
 ### Other commands
 
 ```bash
+# Governance briefing (what the Claude Code hook outputs)
+lattice evaluate
+
 # Rebuild the in-memory index file
 lattice reindex
 
 # Show backend, counts by layer/status, staleness
 lattice status
+
+# Migrate lattice to latest schema version (safe, idempotent)
+lattice upgrade
 ```
 
 ## Fact YAML Format
@@ -203,7 +324,7 @@ Each fact is stored as an individual file in `.lattice/facts/{CODE}.yaml`:
 ```yaml
 code: RISK-07
 layer: GUARDRAILS
-type: Risk Assessment Finding
+type: Risk Register Entry
 fact: >-
   Prompt injection via user-uploaded documents rated HIGH severity
   (likelihood: 4/5, impact: 5/5). Mitigation: input sanitization +
@@ -354,7 +475,7 @@ For deeper AI-powered evaluation, you can use an agent-type hook instead of (or 
 }
 ```
 
-This is slower (~5–10s per prompt) but can catch subtler conflicts that simple context injection might miss.
+This is slower (~5-10s per prompt) but can catch subtler conflicts that simple context injection might miss.
 
 ### Skill
 
@@ -369,14 +490,29 @@ cp -r .claude/skills/lattice ~/.claude/skills/lattice
 ## Development
 
 ```bash
-# Install with dev dependencies
+# Install with all dev dependencies
 pip install -e ".[dev]"
 
-# Run tests
+# Run tests (266 tests)
 pytest
+
+# Run tests with coverage
+pytest --cov=lattice_lens
 
 # Lint
 ruff check src/ tests/
+```
+
+### Project Structure
+
+```
+src/lattice_lens/
+├── cli/              # Typer CLI commands
+├── mcp/              # MCP server (FastMCP)
+├── services/         # Business logic (context, graph, tags, types, etc.)
+├── store/            # Storage abstraction (protocol + YAML backend)
+├── models.py         # Pydantic Fact model
+└── config.py         # Settings + lattice root discovery
 ```
 
 ## Roadmap
@@ -397,9 +533,15 @@ Lifecycle commands (`lattice fact promote`), role-scoped token-budgeted context 
 
 Point `lattice extract` at a design doc or PRD and get atomic facts auto-generated. Export/import lattices for backup, sharing, or migration between projects. Post-task governance audit hook validates compliance after every implementation.
 
-### Phase 5 — MCP Server
+### Phase 5 — MCP Server + Tag/Type Registries ✓
 
-Expose the lattice over Model Context Protocol so Claude Desktop, Claude Code, Cursor, and custom agents can query governed facts natively — the end-to-end value proposition.
+Expose the lattice over Model Context Protocol (`lattice serve`) so Claude Desktop, Claude Code, Cursor, and custom agents can query governed facts natively. Centralized tag registry with vocabulary categories (`lattice tags`) and canonical type mapping with audit mode (`lattice types`).
+
+### Phase 6 — Bidirectional Reconciliation + SQLite Backend
+
+**Reconciliation**: Verify knowledge against codebases in both directions. Facts-to-Code checks whether documented decisions match implementation. Code-to-Facts surfaces code behaviors with no corresponding fact. Produces a report categorizing each finding as confirmed, stale, violated, untracked, or orphaned.
+
+**SQLite Backend**: Tier 2 of the progressive storage architecture for lattices with 500+ facts. Indexed queries, WAL-mode concurrent reads, zero CLI changes via the LatticeStore protocol abstraction. Backend switching is always explicit — the system advises but never auto-migrates.
 
 ## License
 

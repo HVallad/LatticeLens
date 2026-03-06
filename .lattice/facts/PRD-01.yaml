@@ -1,10 +1,10 @@
 code: PRD-01
 layer: WHY
 type: Product Requirement
-fact: 'LatticeLens is delivered in five incremental phases: (1) Core CLI + YAML backend,
+fact: 'LatticeLens is delivered in six incremental phases: (1) Core CLI + YAML backend,
   (2) Knowledge Graph + Git Integration, (3) Context Assembly Engine, (4) LLM Extraction
-  + Import/Export, (5) MCP Server. Each phase builds on the previous without breaking
-  existing functionality.'
+  + Import/Export, (5) MCP Server + Tag/Type Registries, (6) Bidirectional Reconciliation
+  + SQLite Backend. Each phase builds on the previous without breaking existing functionality.'
 tags:
 - incremental-delivery
 - phases
@@ -12,12 +12,14 @@ tags:
 - roadmap
 status: Active
 confidence: Confirmed
-version: 1
+version: 2
 refs:
 - DES-01
-- DES-02
+- DES-06
+- DES-07
+- DES-11
 superseded_by:
 owner: product-team
 review_by: '2026-12-01'
 created_at: '2026-03-05T12:29:46.649450'
-updated_at: '2026-03-05T12:29:46.649480'
+updated_at: '2026-03-05T23:01:08.891026'

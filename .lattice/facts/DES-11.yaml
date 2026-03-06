@@ -1,0 +1,32 @@
+code: DES-11
+layer: WHY
+type: Design Proposal Decision
+fact: 'Phase 6 delivers two capabilities that transform LatticeLens from a passive
+  governance store into an active verification engine. (A) Bidirectional Reconciliation
+  verifies knowledge against codebases in both directions: Facts-to-Code checks whether
+  documented decisions match implementation, and Code-to-Facts surfaces code behaviors
+  with no corresponding fact. A reconciliation engine produces a report categorizing
+  each finding as confirmed, stale, violated, untracked, or orphaned. (B) SQLite Backend
+  implements Tier 2 of the progressive storage architecture (DES-06), supporting lattices
+  from hundreds to 100K facts with indexed queries, WAL-mode concurrent reads, and
+  zero CLI changes via the LatticeStore protocol abstraction. Backend switching is
+  always explicit per RISK-06 — the system advises but never auto-migrates.'
+tags:
+- design
+- extensibility
+- reconciliation
+- storage
+status: Draft
+confidence: Confirmed
+version: 1
+refs:
+- DES-06
+- DES-07
+- PRD-01
+- RISK-02
+- RISK-06
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T23:01:01.149127'
+updated_at: '2026-03-05T23:01:01.149216'

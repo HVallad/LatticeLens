@@ -1,21 +1,24 @@
 code: RISK-09
 layer: GUARDRAILS
 type: Risk Register Entry
-fact: The import command with strategy=fail aborts on the first code collision by
-  raising FileExistsError. However, facts processed before the collision have
-  already been written to disk and are not rolled back. This means a partial import
-  can occur. Mitigation — users can re-run with strategy=skip to safely complete
-  the remaining facts, or use lattice export to back up before importing.
-  Residual risk is LOW since the skip strategy is the default.
+fact: The import command with strategy=fail aborts on the first code collision 
+  by raising FileExistsError. However, facts processed before the collision have
+  already been written to disk and are not rolled back. This means a partial 
+  import can occur. Mitigation — users can re-run with strategy=skip to safely
+  complete the remaining facts, or use lattice export to back up before 
+  importing. Residual risk is LOW since the skip strategy is the default.
 tags:
 - accepted-risk
 - import-export
 - low-severity
-status: Draft
+status: Active
 confidence: Confirmed
-version: 1
+version: 3
 refs:
 - ADR-15
 - AUP-06
+superseded_by:
 owner: architecture-team
 review_by: '2026-06-01'
+created_at: '2026-03-05T22:52:18.211575'
+updated_at: '2026-03-05T22:52:29.231502'
