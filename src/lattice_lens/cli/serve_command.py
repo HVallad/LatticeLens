@@ -6,6 +6,7 @@ from __future__ import annotations
 import typer
 from rich.console import Console
 
+from lattice_lens.cli.helpers import is_lens_mode
 from lattice_lens.config import find_lattice_root
 
 err_console = Console(stderr=True)
@@ -18,6 +19,13 @@ def serve(
     writable: bool = typer.Option(False, help="Enable write operations"),
 ):
     """Start the LatticeLens MCP server."""
+    if is_lens_mode():
+        err_console.print(
+            "[red]Error:[/red] 'serve' is not available in lens mode.\n"
+            "Cannot serve a lens as an MCP server."
+        )
+        raise typer.Exit(1)
+
     root = find_lattice_root()
     if root is None:
         err_console.print(

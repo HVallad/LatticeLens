@@ -10,7 +10,12 @@ from pathlib import Path
 
 from lattice_lens.models import Fact, FactLayer
 from lattice_lens.services import context_service, graph_service
-from lattice_lens.services.fact_service import create_fact, deprecate_fact, update_fact
+from lattice_lens.services.fact_service import (
+    create_fact,
+    deprecate_fact,
+    promote_fact,
+    update_fact,
+)
 from lattice_lens.store.protocol import LatticeStore
 
 
@@ -176,3 +181,44 @@ def tool_fact_deprecate(store: LatticeStore, code: str, reason: str) -> dict:
         return deprecated.model_dump(mode="json")
     except Exception as e:
         return {"error": str(e)}
+
+
+def tool_fact_promote(store: LatticeStore, code: str, reason: str) -> dict:
+    """Promote a fact through the lifecycle (Draft -> Under Review -> Active)."""
+    try:
+        promoted = promote_fact(store, code, reason)
+        return promoted.model_dump(mode="json")
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def tool_graph_contradictions(store: LatticeStore, min_shared_tags: int = 2) -> list[dict]:
+    """Find contradiction candidates among active facts across different layers."""
+    candidates = graph_service.find_contradiction_candidates(
+        store.index, min_shared_tags=min_shared_tags
+    )
+    return [
+        {"fact_a": a, "fact_b": b, "shared_tags": tags} for a, b, tags in candidates
+    ]
+
+
+def tool_lattice_validate(store: LatticeStore) -> dict:
+    """Run schema and integrity validation on the lattice."""
+    from lattice_lens.services.validate_service import validate_lattice
+
+    result = validate_lattice(store.facts_dir)
+    return {
+        "ok": result.ok,
+        "errors": result.errors,
+        "warnings": result.warnings,
+    }
+
+
+def tool_fact_exists(store: LatticeStore, code: str) -> dict:
+    """Check if a fact code exists in the lattice."""
+    return {"code": code, "exists": store.exists(code)}
+
+
+def tool_all_codes(store: LatticeStore) -> list[str]:
+    """Return all fact codes in the lattice."""
+    return store.all_codes()

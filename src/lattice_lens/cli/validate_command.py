@@ -6,7 +6,7 @@ import typer
 from rich.console import Console
 from ruamel.yaml import YAML
 
-from lattice_lens.cli.helpers import require_lattice
+from lattice_lens.cli.helpers import is_lens_mode, require_lattice, require_local_lattice
 from lattice_lens.config import INDEX_FILE
 from lattice_lens.services.validate_service import fix_lattice, validate_lattice
 
@@ -20,6 +20,42 @@ def validate(
     fix: bool = typer.Option(False, "--fix", help="Auto-fix correctable issues"),
 ):
     """Check lattice integrity: YAML parsing, refs, tags, staleness."""
+    # In lens mode, delegate to remote validation (--fix is not supported)
+    if is_lens_mode():
+        if fix:
+            err_console.print(
+                "[red]Error:[/red] 'validate --fix' is not available in lens mode.\n"
+                "Fixes must be applied on the remote lattice server."
+            )
+            raise typer.Exit(1)
+
+        # Call remote validation via the LensStore
+        store = require_lattice()
+        from lattice_lens.mcp.tools import tool_lattice_validate
+
+        result_data = tool_lattice_validate(store)
+        if result_data.get("errors"):
+            console.print(f"\n[red]Errors ({len(result_data['errors'])}):[/red]")
+            for e in result_data["errors"]:
+                console.print(f"  [red]\u2717[/red] {e}")
+        if result_data.get("warnings"):
+            console.print(f"\n[yellow]Warnings ({len(result_data['warnings'])}):[/yellow]")
+            for w in result_data["warnings"]:
+                console.print(f"  [yellow]\u2022[/yellow] {w}")
+        if result_data.get("ok") and not result_data.get("warnings"):
+            console.print("[green]All checks passed.[/green]")
+        elif result_data.get("ok"):
+            console.print(
+                f"\n[green]No errors.[/green] {len(result_data.get('warnings', []))} warning(s)."
+            )
+        else:
+            console.print(
+                f"\n[red]{len(result_data.get('errors', []))} error(s)[/red], "
+                f"{len(result_data.get('warnings', []))} warning(s)."
+            )
+            raise typer.Exit(1)
+        return
+
     store = require_lattice()
     facts_dir = store.facts_dir
 
@@ -55,7 +91,7 @@ def validate(
 
 def reindex():
     """Rebuild index.yaml from scanning all fact files."""
-    store = require_lattice()
+    store = require_local_lattice()
 
     # Force rebuild
     store.invalidate_index()

@@ -17,7 +17,6 @@ from lattice_lens.services.graph_service import (
     impact_analysis,
     load_role_templates,
 )
-from lattice_lens.store.index import FactIndex
 
 console = Console()
 err_console = Console(stderr=True)
@@ -26,8 +25,8 @@ graph_app = typer.Typer(no_args_is_help=True)
 
 
 def _build_index(store) -> FactIndex:
-    """Build a FactIndex from the store's facts directory."""
-    return FactIndex.build(store.root / "facts")
+    """Get the FactIndex from the store (works for all backends including lens)."""
+    return store.index
 
 
 @graph_app.command("impact")

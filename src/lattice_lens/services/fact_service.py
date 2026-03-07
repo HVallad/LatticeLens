@@ -7,7 +7,7 @@ from datetime import datetime
 
 from lattice_lens.config import LAYER_PREFIXES
 from lattice_lens.models import Fact, FactConfidence, FactStatus
-from lattice_lens.store.yaml_store import YamlFileStore
+from lattice_lens.store.protocol import LatticeStore
 
 
 # Reverse map: prefix -> layer
@@ -17,7 +17,7 @@ for layer, prefixes in LAYER_PREFIXES.items():
         PREFIX_TO_LAYER[prefix] = layer
 
 
-def next_code(store: YamlFileStore, prefix: str) -> str:
+def next_code(store: LatticeStore, prefix: str) -> str:
     """Auto-assign the next available code for a given prefix (e.g., ADR -> ADR-04)."""
     existing = store.all_codes()
     max_num = 0
@@ -34,7 +34,7 @@ def infer_layer(prefix: str) -> str | None:
     return PREFIX_TO_LAYER.get(prefix)
 
 
-def check_refs(store: YamlFileStore, refs: list[str]) -> list[str]:
+def check_refs(store: LatticeStore, refs: list[str]) -> list[str]:
     """Return list of warning messages for refs pointing to non-existent codes."""
     warnings = []
     for ref in refs:
@@ -43,7 +43,7 @@ def check_refs(store: YamlFileStore, refs: list[str]) -> list[str]:
     return warnings
 
 
-def create_fact(store: YamlFileStore, fact: Fact) -> tuple[Fact, list[str]]:
+def create_fact(store: LatticeStore, fact: Fact) -> tuple[Fact, list[str]]:
     """Create a fact, returning (fact, warnings). Raises on hard errors."""
     warnings = check_refs(store, fact.refs)
     created = store.create(fact)
@@ -51,7 +51,7 @@ def create_fact(store: YamlFileStore, fact: Fact) -> tuple[Fact, list[str]]:
 
 
 def update_fact(
-    store: YamlFileStore, code: str, changes: dict, reason: str
+    store: LatticeStore, code: str, changes: dict, reason: str
 ) -> tuple[Fact, list[str]]:
     """Update a fact, returning (fact, warnings). Raises on hard errors."""
     # Don't allow code changes
@@ -67,7 +67,7 @@ def update_fact(
     return updated, warnings
 
 
-def deprecate_fact(store: YamlFileStore, code: str, reason: str) -> Fact:
+def deprecate_fact(store: LatticeStore, code: str, reason: str) -> Fact:
     """Deprecate a fact. No hard deletes allowed."""
     return store.deprecate(code, reason)
 
@@ -86,7 +86,7 @@ PROMOTION_TRANSITIONS: dict[FactStatus, FactStatus] = {
 }
 
 
-def promote_fact(store: YamlFileStore, code: str, reason: str) -> Fact:
+def promote_fact(store: LatticeStore, code: str, reason: str) -> Fact:
     """Promote a fact one step through the lifecycle.
 
     Draft -> Under Review -> Active.

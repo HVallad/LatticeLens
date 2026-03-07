@@ -10,7 +10,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from lattice_lens.cli.helpers import require_lattice
+from lattice_lens.cli.helpers import require_local_lattice
 
 console = Console()
 err_console = Console(stderr=True)
@@ -41,7 +41,7 @@ def diff(
     staged: bool = typer.Option(False, "--staged", help="Show only staged changes"),
 ):
     """Show fact-level summary of git changes in .lattice/facts/."""
-    store = require_lattice()
+    store = require_local_lattice()
 
     if not _check_git():
         _git_error_message()
@@ -140,7 +140,7 @@ def log(
     limit: int = typer.Option(20, "--limit", "-n", help="Max entries to show"),
 ):
     """Show git history for lattice facts."""
-    store = require_lattice()
+    store = require_local_lattice()
 
     if not _check_git():
         _git_error_message()
