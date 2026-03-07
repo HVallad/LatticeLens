@@ -1,11 +1,12 @@
 #!/bin/bash
 # Stop hook: fires once when Claude finishes responding.
-# Audits source file changes against lattice governance rules.
-# Always reports findings to the user. Blocks (exit 2) on NEW source changes.
+# Runs lattice reconcile --llm-prompt to produce a structured compliance audit
+# with pre-analyzed findings, full fact context, and assessment instructions.
+# Blocks (exit 2) on NEW source changes to force Claude to report.
 #
 # Anti-loop: a stamp file records the fingerprint of already-audited changes.
 # If the current changes match the stamp, we skip blocking to avoid an
-# infinite re-prompt cycle (Stop fires → Claude responds → Stop fires again).
+# infinite re-prompt cycle (Stop fires -> Claude responds -> Stop fires again).
 
 INPUT=$(cat)
 
@@ -53,13 +54,17 @@ if [ "$TOTAL_CODE" -gt 0 ]; then
   git diff --name-only -- src/ 2>/dev/null
   git ls-files --others --exclude-standard -- src/ 2>/dev/null
   echo ""
+
+  # Run lattice reconcile --llm-prompt for structured analysis
+  echo "## Reconciliation Analysis"
+  echo ""
+  lattice reconcile --llm-prompt --path "$PROJECT_DIR/src" 2>/dev/null
+  echo ""
+
   echo "## Instructions"
   echo ""
-  echo "You MUST audit each changed file against the lattice governance rules and report"
-  echo "your findings to the user. For each file:"
-  echo ""
-  echo "1. Identify which governance rules (AUP, DG, RISK, etc.) are relevant"
-  echo "2. Confirm compliance OR identify violations"
+  echo "Review the reconciliation findings above against the modified files."
+  echo "For each finding, confirm compliance or identify violations."
   echo ""
   echo "## Remediation"
   echo ""
@@ -74,12 +79,12 @@ if [ "$TOTAL_CODE" -gt 0 ]; then
   echo "or obsolete procedure), you MUST NOT create, update, or deprecate facts on"
   echo "your own. Instead, present the developer with your recommendation and options:"
   echo ""
-  echo "  1. **Create a new fact** — suggest the code, layer, type, and summary."
+  echo "  1. **Create a new fact** -- suggest the code, layer, type, and summary."
   echo "     Example: 'I recommend creating DG-12 (Data Governance) to cover X.'"
-  echo "  2. **Update an existing fact** — identify which fact and what should change."
+  echo "  2. **Update an existing fact** -- identify which fact and what should change."
   echo "     Example: 'RISK-03 should be updated to include mitigation for Y.'"
-  echo "  3. **Deprecate an existing fact** — explain why it is no longer relevant."
-  echo "     Example: 'ADR-05 is superseded by the new approach — recommend deprecation.'"
+  echo "  3. **Deprecate an existing fact** -- explain why it is no longer relevant."
+  echo "     Example: 'ADR-05 is superseded by the new approach -- recommend deprecation.'"
   echo ""
   echo "Always wait for the developer to approve, modify, or reject your recommendation"
   echo "before making any changes to lattice facts."
@@ -87,9 +92,9 @@ if [ "$TOTAL_CODE" -gt 0 ]; then
   echo "## Reporting"
   echo ""
   echo "After the audit, report your findings to the user in a brief summary like:"
-  echo "  'Governance audit: 4 files reviewed — all compliant with DG-10, RISK-03.'"
-  echo "  'Governance audit: violation in X — fixed code to comply with RISK-03.'"
-  echo "  'Governance audit: gap found — recommending new fact DG-12 (awaiting approval).'"
+  echo "  'Governance audit: 4 files reviewed -- all compliant with DG-10, RISK-03.'"
+  echo "  'Governance audit: violation in X -- fixed code to comply with RISK-03.'"
+  echo "  'Governance audit: gap found -- recommending new fact DG-12 (awaiting approval).'"
 
   if [ "$TOTAL_FACTS" -gt 0 ]; then
     echo ""
@@ -100,20 +105,20 @@ if [ "$TOTAL_CODE" -gt 0 ]; then
   echo "$FINGERPRINT" > "$STAMP_FILE"
 
   if [ "$ALREADY_AUDITED" = true ]; then
-    # Same changes already audited — don't block, just inform
+    # Same changes already audited -- don't block, just inform
     echo ""
     echo "(These changes were already audited in a prior turn. Reporting only.)"
     exit 0
   else
-    # New source changes — block to force Claude to report the audit
+    # New source changes -- block to force Claude to report the audit
     exit 2
   fi
 fi
 
-# No source changes — clean up any stale stamp and report
+# No source changes -- clean up any stale stamp and report
 rm -f "$STAMP_FILE" 2>/dev/null
 echo "# GOVERNANCE AUDIT: CLEAN"
 echo ""
 echo "No source files were modified. No compliance audit needed."
-echo "Briefly inform the user: 'No source changes — governance audit not required.'"
+echo "Briefly inform the user: 'No source changes -- governance audit not required.'"
 exit 0
