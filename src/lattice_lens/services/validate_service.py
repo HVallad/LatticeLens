@@ -140,6 +140,28 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
                 "Consider adding to controlled vocabulary (DG-07)."
             )
 
+    # Check project scoping consistency
+    from lattice_lens.services.project_service import (
+        is_scoping_enabled,
+        read_project_registry,
+        validate_fact_projects,
+        validate_project_registry,
+    )
+
+    lattice_root = facts_dir.parent
+    if is_scoping_enabled(lattice_root):
+        registry = read_project_registry(lattice_root)
+        if registry is not None:
+            # Validate the registry itself
+            for err in validate_project_registry(registry):
+                result.add_error(f"projects.yaml: {err}")
+
+            # Validate each fact's projects field
+            for fact in all_facts:
+                if fact.projects:
+                    for err in validate_fact_projects(fact.projects, registry):
+                        result.add_warning(f"{fact.code}: {err}")
+
     return result
 
 

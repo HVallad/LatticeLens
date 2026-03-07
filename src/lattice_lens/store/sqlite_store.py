@@ -9,6 +9,7 @@ from pathlib import Path
 
 from lattice_lens.config import HISTORY_DIR
 from lattice_lens.models import Fact, FactConfidence, FactLayer, FactStatus
+from lattice_lens.services.project_service import fact_matches_project, read_project_registry
 from lattice_lens.store.index import FactIndex
 
 DB_FILE = "lattice.db"
@@ -52,8 +53,15 @@ CREATE TABLE IF NOT EXISTS changelog (
 
 CREATE INDEX IF NOT EXISTS idx_facts_layer ON facts(layer);
 CREATE INDEX IF NOT EXISTS idx_facts_status ON facts(status);
+CREATE TABLE IF NOT EXISTS fact_projects (
+    code    TEXT NOT NULL REFERENCES facts(code) ON DELETE CASCADE,
+    project TEXT NOT NULL,
+    PRIMARY KEY (code, project)
+);
+
 CREATE INDEX IF NOT EXISTS idx_fact_tags_tag ON fact_tags(tag);
 CREATE INDEX IF NOT EXISTS idx_fact_refs_target ON fact_refs(target_code);
+CREATE INDEX IF NOT EXISTS idx_fact_projects_project ON fact_projects(project);
 """
 
 
@@ -147,6 +155,14 @@ class SqliteStore:
             query = text_search.lower()
             facts = [f for f in facts if query in f.fact.lower()]
 
+        project = filters.get("project")
+        if project:
+            registry = read_project_registry(self.root)
+            facts = [
+                f for f in facts
+                if fact_matches_project(f.projects, project, registry)
+            ]
+
         return facts
 
     def create(self, fact: Fact) -> Fact:
@@ -184,6 +200,11 @@ class SqliteStore:
                 self.conn.execute(
                     "INSERT INTO fact_refs (source_code, target_code) VALUES (?, ?)",
                     (fact.code, ref),
+                )
+            for project in fact.projects:
+                self.conn.execute(
+                    "INSERT INTO fact_projects (code, project) VALUES (?, ?)",
+                    (fact.code, project),
                 )
             self._append_changelog("create", fact.code, "Initial creation")
 
@@ -240,6 +261,13 @@ class SqliteStore:
                 self.conn.execute(
                     "INSERT INTO fact_refs (source_code, target_code) VALUES (?, ?)",
                     (code, ref),
+                )
+            # Replace projects
+            self.conn.execute("DELETE FROM fact_projects WHERE code = ?", (code,))
+            for project in updated.projects:
+                self.conn.execute(
+                    "INSERT INTO fact_projects (code, project) VALUES (?, ?)",
+                    (code, project),
                 )
             self._append_changelog("update", code, reason)
 
@@ -307,6 +335,13 @@ class SqliteStore:
         ).fetchall()
         refs = [r["target_code"] for r in ref_rows]
 
+        # Fetch projects
+        project_rows = self.conn.execute(
+            "SELECT project FROM fact_projects WHERE code = ? ORDER BY project",
+            (code,),
+        ).fetchall()
+        projects = [r["project"] for r in project_rows]
+
         return Fact(
             code=code,
             layer=FactLayer(row["layer"]),
@@ -322,6 +357,7 @@ class SqliteStore:
             updated_at=datetime.fromisoformat(row["updated_at"]),
             tags=tags,
             refs=refs,
+            projects=projects,
         )
 
     def _append_changelog(self, action: str, code: str, reason: str):

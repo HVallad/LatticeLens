@@ -13,6 +13,7 @@ ROLES_DIR = "roles"
 HISTORY_DIR = "history"
 CONFIG_FILE = "config.yaml"
 INDEX_FILE = "index.yaml"
+PROJECTS_FILE = "projects.yaml"
 
 # Schema version — minor version tracks phases, patch for fixes within a phase.
 # "0.1.0" = Phase 1 (flat role templates)
@@ -20,7 +21,7 @@ INDEX_FILE = "index.yaml"
 # "0.3.0" = Phase 5 (type registry, canonical types in role templates)
 # "0.4.0" = Phase 5 (enriched type registry with descriptions)
 # "0.5.0" = Phase 6 (reconciliation engine, SQLite backend)
-LATTICE_VERSION = "0.5.0"
+LATTICE_VERSION = "0.6.0"
 
 LAYER_PREFIXES: dict[str, list[str]] = {
     "WHY": ["ADR", "PRD", "ETH", "DES"],

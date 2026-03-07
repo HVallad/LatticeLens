@@ -12,10 +12,17 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from lattice_lens.config import ROLES_DIR, find_lattice_root
+import os
+
+from lattice_lens.config import ROLES_DIR, find_lattice_root, load_config
 from lattice_lens.models import Fact, FactConfidence
 from lattice_lens.services.context_service import estimate_tokens
 from lattice_lens.services.graph_service import load_role_templates
+from lattice_lens.services.project_service import (
+    fact_matches_project,
+    is_scoping_enabled,
+    read_project_registry,
+)
 from lattice_lens.store.yaml_store import YamlFileStore
 
 
@@ -68,6 +75,7 @@ class EvaluationResult:
     available_roles: list[str] = field(default_factory=list)
     total_tokens: int = 0
     lattice_root: str = ""
+    active_project: str = ""
 
     @property
     def has_governance(self) -> bool:
@@ -99,6 +107,8 @@ class EvaluationResult:
 
         lines: list[str] = []
         lines.append("# LatticeLens Governance Briefing")
+        if self.active_project:
+            lines.append(f"**Active project: {self.active_project}**")
         lines.append("")
 
         # ---- Section 1: Mandatory governance rules ----
@@ -189,6 +199,7 @@ class EvaluationResult:
             "guardrails_count": len(self.guardrails),
             "total_tokens": self.total_tokens,
             "lattice_root": self.lattice_root,
+            "active_project": self.active_project,
             "guardrails": [
                 {
                     "code": f.code,
@@ -241,8 +252,27 @@ def evaluate_governance(
 
     store = YamlFileStore(lattice_root)
 
+    # ---- Detect active project ----
+    # Priority: env var > config.yaml > None (no scoping)
+    active_project = os.environ.get("LATTICE_PROJECT", "")
+    if not active_project:
+        config = load_config(lattice_root)
+        active_project = config.get("default_project", "")
+
+    registry: dict | None = None
+    if active_project and is_scoping_enabled(lattice_root):
+        registry = read_project_registry(lattice_root)
+        result.active_project = active_project
+
     # ---- Guardrails ----
     guardrails = store.list_facts(layer="GUARDRAILS", status=["Active"])
+
+    # Filter by project if scoping is active
+    if active_project and registry is not None:
+        guardrails = [
+            f for f in guardrails
+            if fact_matches_project(f.projects, active_project, registry)
+        ]
 
     def _sort_key(f: Fact) -> tuple:
         rank = 0 if f.confidence == FactConfidence.CONFIRMED else 1
@@ -263,6 +293,12 @@ def evaluate_governance(
     # ---- Knowledge summary (WHY + HOW) ----
     for layer in ("WHY", "HOW"):
         facts = store.list_facts(layer=layer, status=["Active"])
+        # Filter by project if scoping is active
+        if active_project and registry is not None:
+            facts = [
+                f for f in facts
+                if fact_matches_project(f.projects, active_project, registry)
+            ]
         if not facts:
             continue
         type_counts: dict[str, int] = {}

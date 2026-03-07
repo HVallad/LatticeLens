@@ -47,6 +47,32 @@ class Fact(BaseModel):
     review_by: date | None = None
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
+    projects: list[str] = Field(default_factory=list)
+
+    @field_validator("projects")
+    @classmethod
+    def normalize_projects(cls, v: list[str]) -> list[str]:
+        normalized = []
+        for entry in v:
+            entry = entry.strip()
+            if not entry:
+                continue
+            if entry.startswith("group:"):
+                # Validate group name portion
+                name = entry[len("group:"):]
+                if not name or not name.replace("-", "").replace("_", "").isalnum():
+                    raise ValueError(
+                        f"Invalid group reference: {entry}"
+                    )
+            else:
+                # Literal project name: lowercase, alphanumeric + hyphens/underscores
+                if not entry.replace("-", "").replace("_", "").isalnum():
+                    raise ValueError(
+                        f"Project name must be alphanumeric with hyphens/underscores: {entry}"
+                    )
+                entry = entry.lower()
+            normalized.append(entry)
+        return sorted(set(normalized))
 
     @field_validator("tags")
     @classmethod
