@@ -21,6 +21,8 @@ class FactIndex:
         self._by_layer: dict[str, set[str]] = {}  # layer -> {codes}
         self._refs_forward: dict[str, set[str]] = {}  # code -> {referenced codes}
         self._refs_reverse: dict[str, set[str]] = {}  # code -> {codes that reference this}
+        self._by_project: dict[str, set[str]] = {}  # project -> {codes}
+        self._global_codes: set[str] = set()  # codes with empty projects (global)
 
     @classmethod
     def build(cls, facts_dir: Path) -> FactIndex:
@@ -49,6 +51,12 @@ class FactIndex:
         self._refs_forward[fact.code] = set(fact.refs)
         for ref in fact.refs:
             self._refs_reverse.setdefault(ref, set()).add(fact.code)
+        # Project index
+        if fact.projects:
+            for project in fact.projects:
+                self._by_project.setdefault(project, set()).add(fact.code)
+        else:
+            self._global_codes.add(fact.code)
 
     def all_facts(self) -> list[Fact]:
         return list(self._facts.values())
@@ -67,3 +75,9 @@ class FactIndex:
 
     def refs_to(self, code: str) -> set[str]:
         return self._refs_reverse.get(code, set())
+
+    def codes_by_project(self, project: str) -> set[str]:
+        return self._by_project.get(project, set())
+
+    def global_codes(self) -> set[str]:
+        return set(self._global_codes)

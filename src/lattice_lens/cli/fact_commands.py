@@ -134,6 +134,12 @@ def _add_interactive(store):
     review_by_str = typer.prompt("Review by (YYYY-MM-DD, optional)", default="")
     review_by = date.fromisoformat(review_by_str) if review_by_str else None
 
+    # Projects
+    projects_input = typer.prompt(
+        "Projects (comma-separated, or group:name; empty for global)", default=""
+    )
+    projects = [p.strip() for p in projects_input.split(",") if p.strip()]
+
     try:
         fact = Fact(
             code=code,
@@ -146,6 +152,7 @@ def _add_interactive(store):
             refs=refs,
             owner=owner,
             review_by=review_by,
+            projects=projects,
         )
     except (ValidationError, ValueError) as e:
         err_console.print(f"[red]Validation error:[/red]\n{e}")
@@ -179,6 +186,8 @@ def fact_get(
     if is_stale(fact):
         stale_warning = "\n[bold red]⚠ STALE — past review_by date[/bold red]"
 
+    projects_display = ", ".join(fact.projects) if fact.projects else "(global)"
+
     content = (
         f"[bold]Layer:[/bold] {fact.layer.value}\n"
         f"[bold]Type:[/bold] {fact.type}\n"
@@ -188,6 +197,7 @@ def fact_get(
         f"[bold]Owner:[/bold] {fact.owner}\n"
         f"[bold]Tags:[/bold] {', '.join(fact.tags)}\n"
         f"[bold]Refs:[/bold] {', '.join(fact.refs) if fact.refs else '(none)'}\n"
+        f"[bold]Projects:[/bold] {projects_display}\n"
         f"[bold]Review by:[/bold] {fact.review_by or '(not set)'}\n"
         f"[bold]Created:[/bold] {fact.created_at}\n"
         f"[bold]Updated:[/bold] {fact.updated_at}\n"
@@ -204,6 +214,7 @@ def fact_ls(
     tag: Optional[str] = typer.Option(None, "--tag", help="Filter by tag"),
     status: Optional[str] = typer.Option(None, "--status", help="Filter by status"),
     fact_type: Optional[str] = typer.Option(None, "--type", help="Filter by type"),
+    project: Optional[str] = typer.Option(None, "--project", help="Filter by project scope"),
     as_json: bool = typer.Option(False, "--json", help="Output as JSON"),
 ):
     """List facts matching filters."""
@@ -220,6 +231,8 @@ def fact_ls(
         filters["status"] = ["Active", "Draft", "Under Review"]
     if fact_type:
         filters["type"] = fact_type
+    if project:
+        filters["project"] = project
 
     facts = store.list_facts(**filters)
 

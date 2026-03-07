@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from lattice_lens.models import Fact, FactConfidence, FactStatus
 from lattice_lens.services.fact_service import is_stale
 from lattice_lens.services.graph_service import _get_query, _role_matches_fact
+from lattice_lens.services.project_service import fact_matches_project
 from lattice_lens.store.index import FactIndex
 
 
@@ -127,6 +128,7 @@ def assemble_context(
     role_name: str,
     role_template: dict,
     budget: int | None = None,
+    project: str | None = None,
 ) -> ContextResult:
     """Assemble facts for a role, respecting lifecycle and token budget.
 
@@ -145,6 +147,8 @@ def assemble_context(
     matched: list[Fact] = []
     for fact in index.all_facts():
         if fact.status in _EXCLUDED_STATUSES:
+            continue
+        if project and not fact_matches_project(fact.projects, project):
             continue
         if _role_matches_fact(role_template, fact.layer.value, fact.type):
             matched.append(fact)

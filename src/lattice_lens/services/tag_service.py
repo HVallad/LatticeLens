@@ -20,7 +20,8 @@ VOCABULARY: dict[str, list[str]] = {
         "architecture", "storage", "serialization", "api",
         "cli", "formatting", "discovery", "configuration",
         "context-assembly", "design", "extraction", "git-native",
-        "impact-analysis", "import-export", "index", "pydantic",
+        "impact-analysis", "import-export", "index", "project-scoping", "pydantic",
+        "reconciliation", "sqlite",
     ],
     "concern": [
         "security", "privacy", "bias", "compliance",

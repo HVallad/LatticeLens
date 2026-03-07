@@ -10,6 +10,7 @@ from ruamel.yaml import YAML
 
 from lattice_lens.config import FACTS_DIR, HISTORY_DIR
 from lattice_lens.models import Fact, FactStatus
+from lattice_lens.services.project_service import fact_matches_project, read_project_registry
 from lattice_lens.store.index import FactIndex
 
 yaml = YAML()
@@ -79,6 +80,14 @@ class YamlFileStore:
         if text_search:
             query = text_search.lower()
             facts = [f for f in facts if query in f.fact.lower()]
+
+        project = filters.get("project")
+        if project:
+            registry = read_project_registry(self.root)
+            facts = [
+                f for f in facts
+                if fact_matches_project(f.projects, project, registry)
+            ]
 
         return facts
 

@@ -188,7 +188,7 @@ class TestUpgradeCommand:
         # Verify version stamped in config
         with open(lattice_dir / "config.yaml") as f:
             config = yaml_rw.load(f)
-        assert config["version"] == "0.5.0"
+        assert config["version"] == "0.6.0"
 
     def test_upgrade_noop_new_format(self, cli_dir: Path):
         """lattice upgrade on v0.2.0 lattice is a no-op."""

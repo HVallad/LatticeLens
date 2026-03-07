@@ -24,6 +24,9 @@ def context(
     budget: Optional[int] = typer.Option(
         None, "--budget", help="Token budget (omit for unlimited)"
     ),
+    project: Optional[str] = typer.Option(
+        None, "--project", help="Filter facts by project scope"
+    ),
     as_json: bool = typer.Option(False, "--json", help="Output assembled context as JSON"),
 ):
     """Assemble governed, token-budgeted facts for an agent role."""
@@ -47,7 +50,7 @@ def context(
         raise typer.Exit(1)
 
     template = templates[role]
-    result = assemble_context(store.index, role, template, budget=budget)
+    result = assemble_context(store.index, role, template, budget=budget, project=project)
 
     if as_json:
         print(json.dumps(result.to_dict(), indent=2))
