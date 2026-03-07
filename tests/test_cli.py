@@ -60,7 +60,8 @@ class TestInitCommand:
     def test_init_already_exists(self, initialized_dir: Path):
         result = runner.invoke(app, ["init"])
         assert result.exit_code != 0
-        assert "already exists" in result.output
+        combined = result.output.replace("\n", " ")
+        assert "already exists" in combined
 
 
 class TestSeedCommand:
