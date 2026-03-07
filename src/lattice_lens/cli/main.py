@@ -5,6 +5,7 @@ from __future__ import annotations
 import typer
 
 from lattice_lens.cli.backend_command import backend_app
+from lattice_lens.cli.check_command import check
 from lattice_lens.cli.context_commands import context
 from lattice_lens.cli.evaluate_command import evaluate
 from lattice_lens.cli.exchange_commands import export_cmd, import_cmd
@@ -32,6 +33,7 @@ app.add_typer(fact_app, name="fact", help="Manage facts (add, get, ls, edit, pro
 app.add_typer(graph_app, name="graph", help="Knowledge graph analysis.")
 app.add_typer(backend_app, name="backend", help="Backend management (status, switch).")
 app.command()(init)
+app.command()(check)
 app.command()(validate)
 app.command()(reindex)
 app.command()(seed)
