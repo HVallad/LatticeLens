@@ -1,31 +1,31 @@
-code: ADR-16
-layer: WHY
-type: Architecture Decision Record
-fact: SQLite (Python stdlib sqlite3) is chosen as the Tier 2 storage backend for
-  lattices that outgrow YAML flat files. SQLite requires zero additional 
-  dependencies, uses WAL mode for concurrent read access, and supports indexed 
-  queries scaling from 500 to 100K facts. The LatticeStore protocol abstraction 
-  means all CLI commands, MCP tools, and services work without modification 
-  regardless of backend. SQLite trades git-native per-fact diffs for query 
-  performance — the export command and changelog table preserve auditability.
-tags:
-- architecture
-- scaling
-- sqlite
-- storage
-- zero-dependency
-status: Active
-confidence: Confirmed
-version: 3
-refs:
-- DES-06
-- DES-11
-- ADR-03
-- RISK-02
-- RISK-06
-superseded_by:
-owner: architecture-team
-review_by: '2026-09-01'
-created_at: '2026-03-05T23:55:13.011144'
-updated_at: '2026-03-07T11:23:14.716063'
-projects: []
+code: ADR-16
+layer: WHY
+type: Architecture Decision Record
+fact: SQLite (Python stdlib sqlite3) is chosen as the Tier 2 storage backend for
+  lattices that outgrow YAML flat files. SQLite requires zero additional 
+  dependencies, uses WAL mode for concurrent read access, and supports indexed 
+  queries scaling from 500 to 100K facts. The LatticeStore protocol abstraction 
+  means all CLI commands, MCP tools, and services work without modification 
+  regardless of backend. SQLite trades git-native per-fact diffs for query 
+  performance â€” the export command and changelog table preserve auditability.
+tags:
+- architecture
+- scaling
+- sqlite
+- storage
+- zero-dependency
+status: Active
+confidence: Confirmed
+version: 3
+refs:
+- DES-06
+- DES-11
+- ADR-03
+- RISK-02
+- RISK-06
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-05T23:55:13.011144'
+updated_at: '2026-03-07T11:23:14.716063'
+projects: []

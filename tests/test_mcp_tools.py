@@ -6,7 +6,7 @@ from pathlib import Path
 
 from ruamel.yaml import YAML
 
-from conftest import make_fact
+from tests.conftest import make_fact
 from lattice_lens.config import ROLES_DIR
 from lattice_lens.mcp.tools import (
     tool_context_assemble,

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from conftest import make_fact
+from tests.conftest import make_fact
 from lattice_lens.models import FactStatus
 from lattice_lens.services.tag_service import (
     build_tag_registry,

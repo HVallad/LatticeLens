@@ -15,7 +15,7 @@ from lattice_lens.services.graph_service import (
 )
 from lattice_lens.store.index import FactIndex
 
-from conftest import make_fact
+from tests.conftest import make_fact
 
 yaml_rw = YAML()
 yaml_rw.default_flow_style = False

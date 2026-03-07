@@ -12,7 +12,7 @@ from lattice_lens.services.project_service import write_project_registry
 from lattice_lens.store.index import FactIndex
 from lattice_lens.store.yaml_store import YamlFileStore
 
-from conftest import make_fact
+from tests.conftest import make_fact
 
 
 class TestFactModelProjects:
