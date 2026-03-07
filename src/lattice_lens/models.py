@@ -59,11 +59,9 @@ class Fact(BaseModel):
                 continue
             if entry.startswith("group:"):
                 # Validate group name portion
-                name = entry[len("group:"):]
+                name = entry[len("group:") :]
                 if not name or not name.replace("-", "").replace("_", "").isalnum():
-                    raise ValueError(
-                        f"Invalid group reference: {entry}"
-                    )
+                    raise ValueError(f"Invalid group reference: {entry}")
             else:
                 # Literal project name: lowercase, alphanumeric + hyphens/underscores
                 if not entry.replace("-", "").replace("_", "").isalnum():

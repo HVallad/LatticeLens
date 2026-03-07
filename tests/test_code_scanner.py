@@ -56,9 +56,7 @@ class TestScanForFactReferences:
     def test_include_pattern_filtering(self, tmp_path: Path):
         _write_file(tmp_path, "src/main.py", "# ADR-01\n")
         _write_file(tmp_path, "src/style.css", "/* ADR-01 */\n")
-        refs = scan_for_fact_references(
-            tmp_path, ["ADR-01"], include=["**/*.py"]
-        )
+        refs = scan_for_fact_references(tmp_path, ["ADR-01"], include=["**/*.py"])
         assert len(refs) == 1
         assert refs[0].file.suffix == ".py"
 

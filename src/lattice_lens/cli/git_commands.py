@@ -134,7 +134,9 @@ def diff(
 
 
 def log(
-    code: Optional[str] = typer.Argument(None, help="Fact code (e.g., ADR-03). Omit for all facts."),
+    code: Optional[str] = typer.Argument(
+        None, help="Fact code (e.g., ADR-03). Omit for all facts."
+    ),
     limit: int = typer.Option(20, "--limit", "-n", help="Max entries to show"),
 ):
     """Show git history for lattice facts."""

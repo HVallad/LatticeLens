@@ -9,13 +9,13 @@ from pathlib import Path
 import pytest
 from ruamel.yaml import YAML
 
-from conftest import make_fact
+from tests.conftest import make_fact
 
 yaml_rw = YAML()
 yaml_rw.default_flow_style = False
 
 try:
-    from mcp.server.fastmcp import FastMCP
+    from mcp.server.fastmcp import FastMCP  # noqa: F401
 
     HAS_MCP = True
 except ImportError:

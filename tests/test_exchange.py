@@ -61,10 +61,12 @@ class TestExport:
     def test_export_includes_all_statuses(self, yaml_store: YamlFileStore):
         yaml_store.create(_make_fact(code="ADR-01", status=FactStatus.ACTIVE))
         yaml_store.create(_make_fact(code="ADR-02", status=FactStatus.DRAFT))
-        yaml_store.create(_make_fact(
-            code="ADR-03",
-            status=FactStatus.DEPRECATED,
-        ))
+        yaml_store.create(
+            _make_fact(
+                code="ADR-03",
+                status=FactStatus.DEPRECATED,
+            )
+        )
 
         result = export_facts(yaml_store, format="json")
         data = json.loads(result)
@@ -91,10 +93,13 @@ class TestImport:
         # Create an existing fact
         yaml_store.create(_make_fact(code="ADR-01"))
 
-        import_data = json.dumps([
-            _make_fact(code="ADR-01").model_dump(mode="json"),
-            _make_fact(code="ADR-02").model_dump(mode="json"),
-        ], default=str)
+        import_data = json.dumps(
+            [
+                _make_fact(code="ADR-01").model_dump(mode="json"),
+                _make_fact(code="ADR-02").model_dump(mode="json"),
+            ],
+            default=str,
+        )
 
         results = import_facts(yaml_store, import_data, format="json", strategy="skip")
         assert results["created"] == 1
@@ -105,14 +110,15 @@ class TestImport:
         yaml_store.create(_make_fact(code="ADR-01", fact="Original fact text content here."))
 
         updated = _make_fact(code="ADR-01", fact="Updated fact text content here.")
-        import_data = json.dumps([
-            updated.model_dump(mode="json"),
-            _make_fact(code="ADR-02").model_dump(mode="json"),
-        ], default=str)
-
-        results = import_facts(
-            yaml_store, import_data, format="json", strategy="overwrite"
+        import_data = json.dumps(
+            [
+                updated.model_dump(mode="json"),
+                _make_fact(code="ADR-02").model_dump(mode="json"),
+            ],
+            default=str,
         )
+
+        results = import_facts(yaml_store, import_data, format="json", strategy="overwrite")
         assert results["created"] == 1
         assert results["overwritten"] == 1
 
@@ -125,25 +131,31 @@ class TestImport:
     def test_import_json_fail(self, yaml_store: YamlFileStore):
         yaml_store.create(_make_fact(code="ADR-01"))
 
-        import_data = json.dumps([
-            _make_fact(code="ADR-01").model_dump(mode="json"),
-        ], default=str)
+        import_data = json.dumps(
+            [
+                _make_fact(code="ADR-01").model_dump(mode="json"),
+            ],
+            default=str,
+        )
 
         with pytest.raises(FileExistsError, match="ADR-01"):
             import_facts(yaml_store, import_data, format="json", strategy="fail")
 
     def test_import_invalid_fact(self, yaml_store: YamlFileStore):
-        import_data = json.dumps([
-            _make_fact(code="ADR-01").model_dump(mode="json"),
-            {
-                "code": "bad-code",  # Invalid format
-                "layer": "WHY",
-                "type": "Test",
-                "fact": "x",  # Too short
-                "tags": [],  # Too few
-                "owner": "test",
-            },
-        ], default=str)
+        import_data = json.dumps(
+            [
+                _make_fact(code="ADR-01").model_dump(mode="json"),
+                {
+                    "code": "bad-code",  # Invalid format
+                    "layer": "WHY",
+                    "type": "Test",
+                    "fact": "x",  # Too short
+                    "tags": [],  # Too few
+                    "owner": "test",
+                },
+            ],
+            default=str,
+        )
 
         results = import_facts(yaml_store, import_data, format="json", strategy="skip")
         assert results["created"] == 1

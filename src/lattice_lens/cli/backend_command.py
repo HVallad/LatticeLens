@@ -36,9 +36,7 @@ def backend_status():
 
 @backend_app.command("switch")
 def backend_switch(
-    target: str = typer.Argument(
-        ..., help="Target backend: 'sqlite' or 'yaml'."
-    ),
+    target: str = typer.Argument(..., help="Target backend: 'sqlite' or 'yaml'."),
 ):
     """Migrate between YAML and SQLite backends."""
     root = find_lattice_root()

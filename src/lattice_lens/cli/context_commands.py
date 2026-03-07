@@ -24,9 +24,7 @@ def context(
     budget: Optional[int] = typer.Option(
         None, "--budget", help="Token budget (omit for unlimited)"
     ),
-    project: Optional[str] = typer.Option(
-        None, "--project", help="Filter facts by project scope"
-    ),
+    project: Optional[str] = typer.Option(None, "--project", help="Filter facts by project scope"),
     as_json: bool = typer.Option(False, "--json", help="Output assembled context as JSON"),
 ):
     """Assemble governed, token-budgeted facts for an agent role."""
@@ -44,8 +42,7 @@ def context(
     if role not in templates:
         available = ", ".join(sorted(templates.keys()))
         err_console.print(
-            f"[red]Error:[/red] Role '{role}' not found. "
-            f"Available roles: {available}"
+            f"[red]Error:[/red] Role '{role}' not found. Available roles: {available}"
         )
         raise typer.Exit(1)
 

@@ -74,8 +74,7 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
         # Check for duplicate codes
         if fact.code in seen_codes:
             result.add_error(
-                f"{path.name}: Duplicate code '{fact.code}' "
-                f"(also in {seen_codes[fact.code]})"
+                f"{path.name}: Duplicate code '{fact.code}' (also in {seen_codes[fact.code]})"
             )
         else:
             seen_codes[fact.code] = path.name
@@ -105,7 +104,9 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
 
         # Check staleness
         if fact.review_by and fact.review_by < today:
-            result.add_warning(f"{path.name}: Fact '{fact.code}' is stale (review_by: {fact.review_by})")
+            result.add_warning(
+                f"{path.name}: Fact '{fact.code}' is stale (review_by: {fact.review_by})"
+            )
 
     # Check ref integrity (soft warnings)
     for fact in all_facts:

@@ -7,7 +7,7 @@ from rich.console import Console
 from ruamel.yaml import YAML
 
 from lattice_lens.cli.helpers import require_lattice
-from lattice_lens.config import FACTS_DIR, INDEX_FILE
+from lattice_lens.config import INDEX_FILE
 from lattice_lens.services.validate_service import fix_lattice, validate_lattice
 
 console = Console()
@@ -47,7 +47,9 @@ def validate(
     elif result.ok:
         console.print(f"\n[green]No errors.[/green] {len(result.warnings)} warning(s).")
     else:
-        console.print(f"\n[red]{len(result.errors)} error(s)[/red], {len(result.warnings)} warning(s).")
+        console.print(
+            f"\n[red]{len(result.errors)} error(s)[/red], {len(result.warnings)} warning(s)."
+        )
         raise typer.Exit(1)
 
 

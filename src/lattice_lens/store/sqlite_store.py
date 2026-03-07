@@ -158,10 +158,7 @@ class SqliteStore:
         project = filters.get("project")
         if project:
             registry = read_project_registry(self.root)
-            facts = [
-                f for f in facts
-                if fact_matches_project(f.projects, project, registry)
-            ]
+            facts = [f for f in facts if fact_matches_project(f.projects, project, registry)]
 
         return facts
 
@@ -280,9 +277,7 @@ class SqliteStore:
 
     def exists(self, code: str) -> bool:
         """SELECT 1 WHERE code = ?"""
-        row = self.conn.execute(
-            "SELECT 1 FROM facts WHERE code = ?", (code,)
-        ).fetchone()
+        row = self.conn.execute("SELECT 1 FROM facts WHERE code = ?", (code,)).fetchone()
         return row is not None
 
     def all_codes(self) -> list[str]:

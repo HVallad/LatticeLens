@@ -46,7 +46,9 @@ class TestPromoteService:
     """Unit tests for promote_fact() business logic."""
 
     def test_promote_draft_to_under_review(self, yaml_store):
-        fact = make_fact(code="ADR-99", status=FactStatus.DRAFT, confidence=FactConfidence.PROVISIONAL)
+        fact = make_fact(
+            code="ADR-99", status=FactStatus.DRAFT, confidence=FactConfidence.PROVISIONAL
+        )
         yaml_store.create(fact)
 
         result = promote_fact(yaml_store, "ADR-99", "Ready for review")
@@ -55,7 +57,9 @@ class TestPromoteService:
         assert result.version == 2
 
     def test_promote_under_review_to_active(self, yaml_store):
-        fact = make_fact(code="ADR-99", status=FactStatus.UNDER_REVIEW, confidence=FactConfidence.PROVISIONAL)
+        fact = make_fact(
+            code="ADR-99", status=FactStatus.UNDER_REVIEW, confidence=FactConfidence.PROVISIONAL
+        )
         yaml_store.create(fact)
 
         result = promote_fact(yaml_store, "ADR-99", "Reviewed and approved")
@@ -106,7 +110,9 @@ class TestPromoteService:
 
     def test_full_lifecycle_draft_to_active(self, yaml_store):
         """Test the full Draft -> Under Review -> Active promotion path."""
-        fact = make_fact(code="ADR-99", status=FactStatus.DRAFT, confidence=FactConfidence.PROVISIONAL)
+        fact = make_fact(
+            code="ADR-99", status=FactStatus.DRAFT, confidence=FactConfidence.PROVISIONAL
+        )
         yaml_store.create(fact)
 
         # Step 1: Draft -> Under Review
@@ -160,31 +166,23 @@ class TestPromoteCLI:
             yaml_rw.dump(fact_data, f)
 
         # Promote Draft -> Under Review
-        result = runner.invoke(
-            app, ["fact", "promote", "ADR-99", "--reason", "Ready for review"]
-        )
+        result = runner.invoke(app, ["fact", "promote", "ADR-99", "--reason", "Ready for review"])
         assert result.exit_code == 0
         assert "Promoted" in result.output
         assert "Under Review" in result.output
 
         # Promote Under Review -> Active
-        result = runner.invoke(
-            app, ["fact", "promote", "ADR-99", "--reason", "Approved"]
-        )
+        result = runner.invoke(app, ["fact", "promote", "ADR-99", "--reason", "Approved"])
         assert result.exit_code == 0
         assert "Active" in result.output
 
     def test_promote_not_found_cli(self, seeded_dir):
-        result = runner.invoke(
-            app, ["fact", "promote", "NOPE-99", "--reason", "test"]
-        )
+        result = runner.invoke(app, ["fact", "promote", "NOPE-99", "--reason", "test"])
         assert result.exit_code != 0
         assert "not found" in result.output
 
     def test_promote_active_fails_cli(self, seeded_dir):
-        result = runner.invoke(
-            app, ["fact", "promote", "ADR-01", "--reason", "test"]
-        )
+        result = runner.invoke(app, ["fact", "promote", "ADR-01", "--reason", "test"])
         assert result.exit_code != 0
         assert "not promotable" in result.output
 

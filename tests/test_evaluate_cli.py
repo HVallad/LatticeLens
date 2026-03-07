@@ -10,7 +10,6 @@ import pytest
 from typer.testing import CliRunner
 
 from lattice_lens.cli.main import app
-from lattice_lens.config import LATTICE_DIR
 
 runner = CliRunner()
 
@@ -134,9 +133,7 @@ class TestEvaluateCommand:
 
     def test_evaluate_with_path_flag(self, seeded_dir: Path):
         """--path flag overrides cwd discovery."""
-        result = runner.invoke(
-            app, ["evaluate", "--path", str(seeded_dir), "--json"]
-        )
+        result = runner.invoke(app, ["evaluate", "--path", str(seeded_dir), "--json"])
         assert result.exit_code == 0
         data = json.loads(result.output)
         assert data["lattice_found"] is True

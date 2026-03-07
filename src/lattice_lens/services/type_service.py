@@ -177,10 +177,12 @@ def audit_types(store: LatticeStore) -> list[dict]:
         prefix = fact.code.split("-")[0]
         canonical = canonical_type_for_prefix(prefix)
         if canonical and fact.type != canonical:
-            mismatches.append({
-                "code": fact.code,
-                "current_type": fact.type,
-                "canonical_type": canonical,
-                "layer": fact.layer.value,
-            })
+            mismatches.append(
+                {
+                    "code": fact.code,
+                    "current_type": fact.type,
+                    "canonical_type": canonical,
+                    "layer": fact.layer.value,
+                }
+            )
     return mismatches

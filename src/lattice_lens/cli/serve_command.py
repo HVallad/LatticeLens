@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import sys
 
 import typer
 from rich.console import Console
@@ -21,15 +20,16 @@ def serve(
     """Start the LatticeLens MCP server."""
     root = find_lattice_root()
     if root is None:
-        err_console.print("[red]Error:[/red] No .lattice directory found. Run 'lattice init' first.")
+        err_console.print(
+            "[red]Error:[/red] No .lattice directory found. Run 'lattice init' first."
+        )
         raise typer.Exit(1)
 
     try:
         from lattice_lens.mcp.server import create_server
     except ImportError:
         err_console.print(
-            "[red]Error:[/red] MCP dependencies not installed. "
-            "Run: pip install lattice-lens[mcp]"
+            "[red]Error:[/red] MCP dependencies not installed. Run: pip install lattice-lens[mcp]"
         )
         raise typer.Exit(1)
 
@@ -40,8 +40,7 @@ def serve(
 
     if use_stdio:
         err_console.print(
-            f"[green]LatticeLens MCP server[/green] (stdio) "
-            f"lattice={root} writable={writable}",
+            f"[green]LatticeLens MCP server[/green] (stdio) lattice={root} writable={writable}",
         )
         server.run(transport="stdio")
     else:

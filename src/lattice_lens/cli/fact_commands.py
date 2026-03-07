@@ -6,7 +6,7 @@ import json
 import os
 import subprocess
 import tempfile
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 from typing import Optional
 
@@ -40,9 +40,7 @@ fact_app = typer.Typer(no_args_is_help=True)
 
 @fact_app.command("add")
 def fact_add(
-    from_file: Optional[Path] = typer.Option(
-        None, "--from", help="Create fact from YAML file"
-    ),
+    from_file: Optional[Path] = typer.Option(None, "--from", help="Create fact from YAML file"),
 ):
     """Add a new fact (interactive or from file)."""
     store = require_lattice()
@@ -320,7 +318,8 @@ def fact_edit(
             old_data = fact.model_dump(mode="json")
             new_data = updated_fact.model_dump(mode="json")
             changes = {
-                k: v for k, v in new_data.items()
+                k: v
+                for k, v in new_data.items()
                 if k not in ("version", "updated_at", "created_at") and v != old_data.get(k)
             }
 
@@ -335,7 +334,7 @@ def fact_edit(
                 if PROMOTION_TRANSITIONS.get(old_status) == new_status:
                     err_console.print(
                         f"[red]Error:[/red] Cannot promote {code} via edit. "
-                        f"Use [bold]lattice fact promote {code} --reason \"...\"[/bold] "
+                        f'Use [bold]lattice fact promote {code} --reason "..."[/bold] '
                         f"to transition {old_status.value} → {new_status.value}."
                     )
                     retry = typer.confirm("Re-edit?", default=True)
@@ -348,9 +347,7 @@ def fact_edit(
             warnings = check_refs(store, result.refs)
             for w in warnings:
                 console.print(f"[yellow]Warning:[/yellow] {w}")
-            console.print(
-                f"[green]Updated[/green] {result.code} (v{result.version})"
-            )
+            console.print(f"[green]Updated[/green] {result.code} (v{result.version})")
             break
     finally:
         Path(tmp_path).unlink(missing_ok=True)
@@ -392,6 +389,4 @@ def fact_deprecate(
         raise typer.Exit(1)
 
     result = store.deprecate(code, reason)
-    console.print(
-        f"[green]Deprecated[/green] {result.code} (v{result.version}): {reason}"
-    )
+    console.print(f"[green]Deprecated[/green] {result.code} (v{result.version}): {reason}")

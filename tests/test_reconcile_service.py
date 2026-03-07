@@ -13,7 +13,6 @@ from lattice_lens.models import FactStatus
 from lattice_lens.services.reconcile_service import (
     Finding,
     ReconciliationReport,
-    RECONCILIATION_SYSTEM_PROMPT,
     reconcile,
     render_reconciliation_prompt,
 )
@@ -122,9 +121,7 @@ class TestReconcileCodeToFacts:
         _write_file(code_root, "main.py", "import typer\n")
 
         report = reconcile(yaml_store, code_root)
-        framework_untracked = [
-            f for f in report.untracked if "framework" in f.description.lower()
-        ]
+        framework_untracked = [f for f in report.untracked if "framework" in f.description.lower()]
         assert len(framework_untracked) == 0
 
 
@@ -149,12 +146,8 @@ class TestReconciliationReport:
     def test_coverage_calculation(self):
         """coverage_pct = confirmed / total_checked * 100."""
         report = ReconciliationReport()
-        report.confirmed = [
-            Finding("confirmed", "A-1", "ok", "f.py", 1, 0.8, "x")
-        ] * 3
-        report.orphaned = [
-            Finding("orphaned", "B-1", "missing", None, None, 0.6, "y")
-        ]
+        report.confirmed = [Finding("confirmed", "A-1", "ok", "f.py", 1, 0.8, "x")] * 3
+        report.orphaned = [Finding("orphaned", "B-1", "missing", None, None, 0.6, "y")]
         # 3 confirmed, 1 orphaned = 3/4 = 75%
         assert report.coverage_pct == 75.0
         assert report.summary()["coverage_pct"] == 75.0
@@ -201,23 +194,27 @@ class TestLlmReconcile:
         code_root.mkdir()
         _write_file(code_root, "main.py", "# uses Typer framework\nimport typer\n")
 
-        llm_response = json.dumps([
-            {
-                "original_category": "orphaned",
-                "revised_category": "confirmed",
-                "code": "ADR-01",
-                "confidence": 0.9,
-                "reasoning": "The code imports typer which implements this ADR.",
-                "file": "main.py",
-                "line": 2,
-            }
-        ])
+        llm_response = json.dumps(
+            [
+                {
+                    "original_category": "orphaned",
+                    "revised_category": "confirmed",
+                    "code": "ADR-01",
+                    "confidence": 0.9,
+                    "reasoning": "The code imports typer which implements this ADR.",
+                    "file": "main.py",
+                    "line": 2,
+                }
+            ]
+        )
 
         mock_client = _mock_api_response(llm_response)
         with patch("anthropic.Anthropic", return_value=mock_client):
             report = reconcile(
-                yaml_store, code_root,
-                use_llm=True, api_key="test-key",
+                yaml_store,
+                code_root,
+                use_llm=True,
+                api_key="test-key",
             )
 
         assert len(report.confirmed) >= 1
@@ -237,8 +234,10 @@ class TestLlmReconcile:
         mock_client = _mock_api_response("not valid json at all")
         with patch("anthropic.Anthropic", return_value=mock_client):
             report = reconcile(
-                yaml_store, code_root,
-                use_llm=True, api_key="test-key",
+                yaml_store,
+                code_root,
+                use_llm=True,
+                api_key="test-key",
             )
 
         # Should fall back to the rule-based result
@@ -254,24 +253,28 @@ class TestLlmReconcile:
         code_root.mkdir()
         _write_file(code_root, "main.py", "# ADR-01\n")
 
-        inner_json = json.dumps([
-            {
-                "original_category": "confirmed",
-                "revised_category": "confirmed",
-                "code": "ADR-01",
-                "confidence": 0.95,
-                "reasoning": "Explicit reference found.",
-                "file": "main.py",
-                "line": 1,
-            }
-        ])
+        inner_json = json.dumps(
+            [
+                {
+                    "original_category": "confirmed",
+                    "revised_category": "confirmed",
+                    "code": "ADR-01",
+                    "confidence": 0.95,
+                    "reasoning": "Explicit reference found.",
+                    "file": "main.py",
+                    "line": 1,
+                }
+            ]
+        )
         fenced = f"```json\n{inner_json}\n```"
 
         mock_client = _mock_api_response(fenced)
         with patch("anthropic.Anthropic", return_value=mock_client):
             report = reconcile(
-                yaml_store, code_root,
-                use_llm=True, api_key="test-key",
+                yaml_store,
+                code_root,
+                use_llm=True,
+                api_key="test-key",
             )
 
         assert len(report.confirmed) == 1
@@ -289,8 +292,10 @@ class TestLlmReconcile:
         mock_client = _mock_api_response('{"error": "unexpected format"}')
         with patch("anthropic.Anthropic", return_value=mock_client):
             report = reconcile(
-                yaml_store, code_root,
-                use_llm=True, api_key="test-key",
+                yaml_store,
+                code_root,
+                use_llm=True,
+                api_key="test-key",
             )
 
         # Should fall back to the rule-based result
@@ -390,7 +395,13 @@ class TestFindingLlmReasoning:
     def test_finding_with_reasoning(self):
         """Finding should accept LLM reasoning."""
         f = Finding(
-            "confirmed", "ADR-01", "ok", "f.py", 1, 0.8, "evidence",
+            "confirmed",
+            "ADR-01",
+            "ok",
+            "f.py",
+            1,
+            0.8,
+            "evidence",
             llm_reasoning="This code clearly implements the ADR.",
         )
         assert f.llm_reasoning == "This code clearly implements the ADR."

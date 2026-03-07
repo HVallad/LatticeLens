@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from lattice_lens.models import Fact, FactStatus
+from lattice_lens.models import FactStatus
 from lattice_lens.store.yaml_store import YamlFileStore
 from tests.conftest import make_fact
 
@@ -30,7 +30,9 @@ class TestYamlStoreCRUD:
     def test_update_increments_version(self, yaml_store: YamlFileStore):
         fact = make_fact(code="ADR-10")
         yaml_store.create(fact)
-        updated = yaml_store.update("ADR-10", {"fact": "Updated fact text that is long enough"}, "test update")
+        updated = yaml_store.update(
+            "ADR-10", {"fact": "Updated fact text that is long enough"}, "test update"
+        )
         assert updated.version == 2
         assert updated.fact == "Updated fact text that is long enough"
         assert updated.updated_at > fact.updated_at

@@ -28,6 +28,7 @@ from lattice_lens.store.yaml_store import YamlFileStore
 # Hook input parsing
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class HookInput:
     """Parsed Claude Code hook stdin payload."""
@@ -62,6 +63,7 @@ def parse_hook_input(stdin_data: str) -> HookInput | None:
 # ---------------------------------------------------------------------------
 # Evaluation result
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class EvaluationResult:
@@ -123,9 +125,7 @@ class EvaluationResult:
             lines.append("")
 
             for fact in self.guardrails:
-                lines.append(
-                    f"### [{fact.code}] {fact.type} ({fact.confidence.value})"
-                )
+                lines.append(f"### [{fact.code}] {fact.type} ({fact.confidence.value})")
                 if fact.refs:
                     lines.append(f"Refs: {', '.join(fact.refs)}")
                 lines.append("")
@@ -136,8 +136,7 @@ class EvaluationResult:
         if has_knowledge or self.available_roles:
             lines.append("## Project Knowledge Available")
             lines.append(
-                "This project has a knowledge lattice you should consult "
-                "before development:"
+                "This project has a knowledge lattice you should consult before development:"
             )
             lines.append("")
 
@@ -149,9 +148,7 @@ class EvaluationResult:
                 type_counts = self.knowledge_summary.get(layer, {})
                 if not type_counts:
                     continue
-                lines.append(
-                    f"**{layer} layer** ({layer_labels.get(layer, layer)}):"
-                )
+                lines.append(f"**{layer} layer** ({layer_labels.get(layer, layer)}):")
                 for fact_type, count in sorted(type_counts.items()):
                     lines.append(f"- {count} {fact_type}{'s' if count != 1 else ''}")
                 lines.append("")
@@ -167,16 +164,10 @@ class EvaluationResult:
                 }
                 for role in sorted(self.available_roles):
                     hint = role_hints.get(role, role)
-                    lines.append(
-                        f"- For {hint}: `lattice context {role} --json`"
-                    )
-                lines.append(
-                    "- Look up a specific fact: `lattice fact get <CODE> --json`"
-                )
+                    lines.append(f"- For {hint}: `lattice context {role} --json`")
+                lines.append("- Look up a specific fact: `lattice fact get <CODE> --json`")
                 lines.append("")
-                lines.append(
-                    "Use the lattice context that best matches your current task."
-                )
+                lines.append("Use the lattice context that best matches your current task.")
                 lines.append("")
 
         # ---- Footer ----
@@ -218,6 +209,7 @@ class EvaluationResult:
 # ---------------------------------------------------------------------------
 # Core evaluation function
 # ---------------------------------------------------------------------------
+
 
 def evaluate_governance(
     start_path: Path | None = None,
@@ -265,8 +257,7 @@ def evaluate_governance(
     # Filter by project if scoping is active
     if active_project and registry is not None:
         guardrails = [
-            f for f in guardrails
-            if fact_matches_project(f.projects, active_project, registry)
+            f for f in guardrails if fact_matches_project(f.projects, active_project, registry)
         ]
 
     def _sort_key(f: Fact) -> tuple:
@@ -278,11 +269,7 @@ def evaluate_governance(
 
     # Token estimate for the governance portion
     for fact in guardrails:
-        text = (
-            f"[{fact.code}] {fact.type}\n"
-            f"Confidence: {fact.confidence.value}\n"
-            f"{fact.fact}"
-        )
+        text = f"[{fact.code}] {fact.type}\nConfidence: {fact.confidence.value}\n{fact.fact}"
         result.total_tokens += estimate_tokens(text)
 
     # ---- Knowledge summary (WHY + HOW) ----
@@ -290,10 +277,7 @@ def evaluate_governance(
         facts = store.list_facts(layer=layer, status=["Active"])
         # Filter by project if scoping is active
         if active_project and registry is not None:
-            facts = [
-                f for f in facts
-                if fact_matches_project(f.projects, active_project, registry)
-            ]
+            facts = [f for f in facts if fact_matches_project(f.projects, active_project, registry)]
         if not facts:
             continue
         type_counts: dict[str, int] = {}

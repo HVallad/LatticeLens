@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -148,10 +147,7 @@ def graph_contradictions(
     if as_json:
         print(
             json.dumps(
-                [
-                    {"fact_a": a, "fact_b": b, "shared_tags": tags}
-                    for a, b, tags in candidates
-                ],
+                [{"fact_a": a, "fact_b": b, "shared_tags": tags} for a, b, tags in candidates],
                 indent=2,
             )
         )

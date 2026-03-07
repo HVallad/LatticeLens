@@ -15,9 +15,9 @@ tags:
 - governance
 - project-scoping
 - scoping
-status: Under Review
-confidence: Provisional
-version: 2
+status: Active
+confidence: Confirmed
+version: 3
 refs:
 - ADR-18
 - DG-13
@@ -27,5 +27,5 @@ superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
 created_at: '2026-03-07T12:00:00'
-updated_at: '2026-03-07T01:05:17.359956'
+updated_at: '2026-03-07T11:23:16.999902'
 projects: []

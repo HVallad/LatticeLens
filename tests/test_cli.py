@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -35,6 +34,7 @@ def seeded_dir(initialized_dir: Path):
     """Run lattice init + seed and return the dir."""
     # Copy seed file to expected location
     import shutil
+
     seed_src = Path(__file__).resolve().parent.parent / "seed"
     seed_dst = initialized_dir / "seed"
     if seed_src.exists():
@@ -60,7 +60,8 @@ class TestInitCommand:
     def test_init_already_exists(self, initialized_dir: Path):
         result = runner.invoke(app, ["init"])
         assert result.exit_code != 0
-        assert "already exists" in result.output
+        combined = result.output.replace("\n", " ")
+        assert "already exists" in combined
 
 
 class TestSeedCommand:

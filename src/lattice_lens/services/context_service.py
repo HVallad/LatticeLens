@@ -77,9 +77,11 @@ class ContextResult:
 
         for fact in self.loaded_facts:
             lines.append(f"## [{fact.code} v{fact.version}] {fact.type}")
-            lines.append(f"Layer: {fact.layer.value} | "
-                         f"Status: {fact.status.value} | "
-                         f"Confidence: {fact.confidence.value}")
+            lines.append(
+                f"Layer: {fact.layer.value} | "
+                f"Status: {fact.status.value} | "
+                f"Confidence: {fact.confidence.value}"
+            )
             lines.append(f"Tags: {', '.join(fact.tags)}")
             if fact.refs:
                 lines.append(f"Refs: {', '.join(fact.refs)}")
@@ -218,9 +220,7 @@ def assemble_context(
     for code in all_pointers:
         ptr_fact = index.get(code)
         if ptr_fact:
-            result.ref_pointers.append(
-                f"{code} ({ptr_fact.layer.value}/{ptr_fact.type})"
-            )
+            result.ref_pointers.append(f"{code} ({ptr_fact.layer.value}/{ptr_fact.type})")
         else:
             result.ref_pointers.append(code)
 

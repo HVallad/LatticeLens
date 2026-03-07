@@ -241,7 +241,7 @@ Extract atomic facts from documents using an LLM (requires `anthropic` SDK).
 ```bash
 lattice extract docs/architecture.md      # Extract and create Draft facts
 lattice extract docs/prd.md --dry-run     # Preview without writing
-lattice extract docs/notes.md --prompt "Focus on security decisions"
+lattice extract --prompt                 # Print extraction prompt for agent use
 ```
 
 Extracted facts are always created as `Draft` status, requiring human review before promotion.
@@ -583,6 +583,309 @@ Expose the lattice over Model Context Protocol (`lattice serve`) so Claude Deskt
 **Reconciliation** (`lattice reconcile`): Verify knowledge against codebases in both directions. Facts-to-Code checks whether documented decisions match implementation. Code-to-Facts surfaces code behaviors with no corresponding fact. Produces a report categorizing each finding as confirmed, stale, violated, untracked, or orphaned.
 
 **SQLite Backend** (`lattice backend switch sqlite`): Tier 2 of the progressive storage architecture for lattices with 500+ facts. Indexed queries, WAL-mode concurrent reads, zero CLI changes via the LatticeStore protocol abstraction. Backend switching is always explicit — the system advises but never auto-migrates.
+
+## Complete CLI Reference
+
+Every command, argument, and option. For examples and narrative documentation, see the [Commands](#commands) section above.
+
+### Core Commands
+
+#### `lattice init`
+
+Create `.lattice/` directory with default structure.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--path` | path | cwd | Directory to initialize in |
+
+#### `lattice status`
+
+Show backend type, fact counts by layer/status, and staleness. No options.
+
+#### `lattice validate`
+
+Check lattice integrity: YAML parsing, refs, tags, staleness.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--fix` | flag | false | Auto-fix correctable issues |
+
+#### `lattice reindex`
+
+Rebuild `index.yaml` from scanning all fact files. No options.
+
+#### `lattice seed`
+
+Load 12 example facts + placeholder drafts into `.lattice/facts/`.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--force` | flag | false | Overwrite existing facts |
+
+#### `lattice upgrade`
+
+Upgrade lattice to the latest schema version. Safe and idempotent. No options.
+
+#### `lattice check`
+
+CI gate: run all integrity checks and exit 0 (pass) or 1 (fail).
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--strict` | flag | false | Treat warnings as errors |
+| `--stale-is-error` | flag | false | Treat stale facts as errors |
+| `--reconcile` | path | — | Run reconciliation against codebase at PATH |
+| `--include` | text (repeatable) | — | Glob patterns for reconciliation |
+| `--exclude` | text (repeatable) | — | Glob exclusions for reconciliation |
+| `--min-coverage` | int | 0 | Minimum coverage % (requires `--reconcile`) |
+| `--format` | text | `text` | Output format: `text`, `json`, `github` |
+
+#### `lattice evaluate`
+
+Output governance briefing for Claude Code hook injection.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--json` | flag | false | Output as JSON |
+| `--path` | path | cwd | Directory to evaluate |
+| `--verbose` | flag | false | Print diagnostics to stderr |
+
+### Fact Management — `lattice fact`
+
+#### `lattice fact add`
+
+Add a new fact (interactive or from file).
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--from` | path | — | Create fact from YAML file |
+
+#### `lattice fact get CODE`
+
+Display a single fact by code.
+
+| Argument | Description |
+|----------|-------------|
+| `CODE` | Fact code (e.g., `ADR-01`) |
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--json` | flag | false | Output as JSON |
+
+#### `lattice fact ls`
+
+List facts matching filters.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--layer` | text | — | Filter by layer (`WHY`, `GUARDRAILS`, `HOW`) |
+| `--tag` | text | — | Filter by tag |
+| `--status` | text | — | Filter by status (`Active`, `Draft`, `Under Review`, etc.) |
+| `--type` | text | — | Filter by type (e.g., `Architecture Decision Record`) |
+| `--project` | text | — | Filter by project scope |
+| `--json` | flag | false | Output as JSON |
+
+#### `lattice fact edit CODE`
+
+Open a fact in `$EDITOR`, validate on save. No options.
+
+#### `lattice fact promote CODE`
+
+Promote a fact: Draft → Under Review → Active.
+
+| Argument | Description |
+|----------|-------------|
+| `CODE` | Fact code to promote |
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--reason` | text (required) | — | Reason for promotion |
+
+#### `lattice fact deprecate CODE`
+
+Deprecate a fact (soft delete).
+
+| Argument | Description |
+|----------|-------------|
+| `CODE` | Fact code to deprecate |
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--reason` | text (required) | — | Reason for deprecation |
+
+### Knowledge Graph — `lattice graph`
+
+#### `lattice graph impact CODE`
+
+Show facts and roles affected by changing a given fact.
+
+| Argument | Description |
+|----------|-------------|
+| `CODE` | Fact code to analyze |
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--depth` | int | 3 | Max traversal depth |
+| `--json` | flag | false | Output as JSON |
+
+#### `lattice graph orphans`
+
+Find facts with no references in or out.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--json` | flag | false | Output as JSON |
+
+#### `lattice graph contradictions`
+
+Find pairs of active facts that may contradict each other.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--min-tags` | int | 2 | Minimum shared tags to flag |
+| `--json` | flag | false | Output as JSON |
+
+### Context & Extraction
+
+#### `lattice context ROLE`
+
+Assemble token-budgeted, role-scoped facts for an agent role.
+
+| Argument | Description |
+|----------|-------------|
+| `ROLE` | Role name (matches `.lattice/roles/{role}.yaml`) |
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--budget` | int | unlimited | Token budget |
+| `--project` | text | — | Filter by project scope |
+| `--json` | flag | false | Output as JSON |
+
+#### `lattice extract [FILE]`
+
+Extract atomic facts from a document using an LLM.
+
+| Argument | Description |
+|----------|-------------|
+| `FILE` | Path to document (`.md`, `.txt`, `.docx`). Optional. |
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--prompt` | flag | false | Print extraction prompt to stdout and exit |
+| `--dry-run` | flag | false | Preview extracted facts without writing |
+| `--model` | text | `claude-sonnet-4-20250514` | Extraction model |
+| `--api-key` | text | `$LATTICE_ANTHROPIC_API_KEY` | Anthropic API key |
+
+### Import / Export
+
+#### `lattice export`
+
+Export all facts as JSON or YAML.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--format` | text | `json` | Output format: `json` or `yaml` |
+| `--output` / `-o` | path | stdout | Output file |
+
+#### `lattice import FILE`
+
+Import facts from a JSON or YAML file.
+
+| Argument | Description |
+|----------|-------------|
+| `FILE` | File to import (`.json` or `.yaml`) |
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--format` | text | auto-detect | File format |
+| `--strategy` | text | `skip` | Merge strategy: `skip`, `overwrite`, `fail` |
+
+### Registries
+
+#### `lattice tags`
+
+Show tag registry: all tags with usage counts and vocabulary categories.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--json` | flag | false | Output as JSON |
+| `--rebuild` | flag | false | Regenerate `tags.yaml` from current facts |
+
+#### `lattice types`
+
+Show type registry: canonical type mapping per code prefix.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--json` | flag | false | Output as JSON |
+| `--audit` | flag | false | Show facts with non-canonical types |
+
+### Reconciliation
+
+#### `lattice reconcile`
+
+Reconcile governance facts against the codebase.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--path` | path | project root | Directory to scan |
+| `--include` | text (repeatable) | `**/*.py` | Glob patterns to include |
+| `--exclude` | text (repeatable) | — | Glob patterns to exclude |
+| `--llm` | flag | false | Enable LLM-assisted analysis |
+| `--llm-prompt` | flag | false | Print reconciliation prompt for agent integration |
+| `--model` | text | `claude-sonnet-4-20250514` | Model for LLM analysis |
+| `--api-key` | text | `$LATTICE_ANTHROPIC_API_KEY` | Anthropic API key |
+| `--json` | flag | false | Output report as JSON |
+| `--verbose` | flag | false | Show per-fact matching details |
+
+### Backend Management — `lattice backend`
+
+#### `lattice backend status`
+
+Show current backend type, fact count, and advisory thresholds. No options.
+
+#### `lattice backend switch TARGET`
+
+Migrate between YAML and SQLite backends.
+
+| Argument | Description |
+|----------|-------------|
+| `TARGET` | Target backend: `yaml` or `sqlite` |
+
+### Git Integration
+
+#### `lattice diff`
+
+Show fact-level summary of git changes in `.lattice/facts/`.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--staged` | flag | false | Show only staged changes |
+
+#### `lattice log [CODE]`
+
+Show git history for lattice facts.
+
+| Argument | Description |
+|----------|-------------|
+| `CODE` | Fact code (optional — omit for all facts) |
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--limit` / `-n` | int | 20 | Max entries to show |
+
+### MCP Server
+
+#### `lattice serve`
+
+Start the LatticeLens MCP server.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--stdio` / `--no-stdio` | flag | true | Use stdio transport (for Claude Desktop/Code) |
+| `--host` | text | `127.0.0.1` | HTTP host (disables stdio) |
+| `--port` | int | 3100 | HTTP port |
+| `--writable` | flag | false | Enable write operations |
 
 ## License
 

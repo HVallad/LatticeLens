@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from lattice_lens.models import Fact, FactConfidence, FactLayer, FactStatus
+from lattice_lens.models import FactLayer, FactStatus
 from tests.conftest import make_fact
 
 

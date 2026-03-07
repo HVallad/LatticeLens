@@ -68,11 +68,9 @@ def resolve_projects(entries: list[str], registry: dict | None) -> set[str]:
     resolved: set[str] = set()
     for entry in entries:
         if entry.startswith(GROUP_PREFIX):
-            group_name = entry[len(GROUP_PREFIX):]
+            group_name = entry[len(GROUP_PREFIX) :]
             if registry is None:
-                raise ValueError(
-                    f"Group reference '{entry}' used but no projects.yaml exists"
-                )
+                raise ValueError(f"Group reference '{entry}' used but no projects.yaml exists")
             groups = registry.get("groups", {})
             if group_name not in groups:
                 raise ValueError(
@@ -151,17 +149,13 @@ def validate_fact_projects(
 
     for entry in fact_projects:
         if entry.startswith(GROUP_PREFIX):
-            group_name = entry[len(GROUP_PREFIX):]
+            group_name = entry[len(GROUP_PREFIX) :]
             if group_name not in groups:
                 errors.append(
-                    f"Unknown group reference '{entry}'. "
-                    f"Available groups: {sorted(groups.keys())}"
+                    f"Unknown group reference '{entry}'. Available groups: {sorted(groups.keys())}"
                 )
         else:
             if entry not in projects:
-                errors.append(
-                    f"Unknown project '{entry}'. "
-                    f"Known projects: {sorted(projects)}"
-                )
+                errors.append(f"Unknown project '{entry}'. Known projects: {sorted(projects)}")
 
     return errors

@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 from ruamel.yaml import YAML
 
-from conftest import make_fact
+from tests.conftest import make_fact
 from lattice_lens.config import ROLES_DIR
 from lattice_lens.mcp.tools import (
     tool_context_assemble,
@@ -21,7 +20,7 @@ from lattice_lens.mcp.tools import (
     tool_graph_orphans,
     tool_lattice_status,
 )
-from lattice_lens.models import FactLayer, FactStatus
+from lattice_lens.models import FactStatus
 
 yaml_rw = YAML()
 yaml_rw.default_flow_style = False

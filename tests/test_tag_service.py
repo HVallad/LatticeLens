@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from conftest import make_fact
+from tests.conftest import make_fact
 from lattice_lens.models import FactStatus
 from lattice_lens.services.tag_service import (
     build_tag_registry,
@@ -59,7 +59,9 @@ class TestBuildRegistry:
     def test_includes_all_statuses(self, yaml_store):
         yaml_store.create(make_fact(code="ADR-01", tags=["active-tag", "shared"]))
         yaml_store.create(
-            make_fact(code="ADR-02", tags=["deprecated-tag", "shared"], status=FactStatus.DEPRECATED)
+            make_fact(
+                code="ADR-02", tags=["deprecated-tag", "shared"], status=FactStatus.DEPRECATED
+            )
         )
 
         registry = build_tag_registry(yaml_store)

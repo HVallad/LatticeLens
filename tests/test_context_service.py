@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
-from pathlib import Path
 
-import pytest
 
 from lattice_lens.models import FactConfidence, FactLayer, FactStatus
 from lattice_lens.services.context_service import (

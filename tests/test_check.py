@@ -66,8 +66,10 @@ class TestRunCheck:
         bad.write_text("{{invalid yaml: [")
         result = run_check(yaml_store)
         assert not result.ok
-        assert any("YAML parse error" in e.message or "Validation error" in e.message
-                    for e in result.errors)
+        assert any(
+            "YAML parse error" in e.message or "Validation error" in e.message
+            for e in result.errors
+        )
 
     def test_stale_is_warning_by_default(self, yaml_store: YamlFileStore):
         fact = make_fact(code="ADR-01", review_by=date.today() - timedelta(days=1))
@@ -216,9 +218,7 @@ class TestCheckCli:
         (src / "app.py").write_text("# ADR-01 reference\n")
 
         monkeypatch.chdir(tmp_path)
-        result = runner.invoke(
-            app, ["check", "--reconcile", str(src)]
-        )
+        result = runner.invoke(app, ["check", "--reconcile", str(src)])
         assert result.exit_code == 0
 
     def test_check_json_with_reconcile(self, tmp_path, monkeypatch):
@@ -230,9 +230,7 @@ class TestCheckCli:
         (src / "app.py").write_text("# ADR-01 reference\n")
 
         monkeypatch.chdir(tmp_path)
-        result = runner.invoke(
-            app, ["check", "--reconcile", str(src), "--format", "json"]
-        )
+        result = runner.invoke(app, ["check", "--reconcile", str(src), "--format", "json"])
         assert result.exit_code == 0
         data = json.loads(result.output)
         assert "coverage_pct" in data

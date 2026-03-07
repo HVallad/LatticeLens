@@ -49,19 +49,13 @@ def reconcile_cmd(
         "--api-key",
         help="Anthropic API key (default: $LATTICE_ANTHROPIC_API_KEY).",
     ),
-    json_output: bool = typer.Option(
-        False, "--json", help="Output report as JSON."
-    ),
-    verbose: bool = typer.Option(
-        False, "--verbose", help="Show per-fact matching details."
-    ),
+    json_output: bool = typer.Option(False, "--json", help="Output report as JSON."),
+    verbose: bool = typer.Option(False, "--verbose", help="Show per-fact matching details."),
 ):
     """Reconcile governance facts against the codebase."""
     # Mutual exclusion check
     if llm and llm_prompt:
-        err_console.print(
-            "[red]Error:[/red] --llm and --llm-prompt are mutually exclusive."
-        )
+        err_console.print("[red]Error:[/red] --llm and --llm-prompt are mutually exclusive.")
         raise typer.Exit(1)
 
     store = require_lattice()
