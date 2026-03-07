@@ -1,22 +1,22 @@
 code: DG-13
 layer: GUARDRAILS
 type: Data Governance Rule
-fact: The project registry at .lattice/projects.yaml enforces two hard validation
-  constraints. First, group names must not collide with project names — a group
-  called "billing" when "billing" is also a project name is a validation error.
-  Second, all group members must reference projects that exist in the projects list.
-  The lattice validate command checks both constraints and also warns when a fact
-  references a project or group not defined in the registry. These checks prevent
-  silent scoping failures where facts appear unscoped due to typos or stale
-  references.
+fact: The project registry at .lattice/projects.yaml enforces two hard 
+  validation constraints. First, group names must not collide with project names
+  — a group called "billing" when "billing" is also a project name is a 
+  validation error. Second, all group members must reference projects that exist
+  in the projects list. The lattice validate command checks both constraints and
+  also warns when a fact references a project or group not defined in the 
+  registry. These checks prevent silent scoping failures where facts appear 
+  unscoped due to typos or stale references.
 tags:
 - governance
 - project-scoping
 - registry
 - validation
-status: Draft
-confidence: Confirmed
-version: 1
+status: Under Review
+confidence: Provisional
+version: 2
 refs:
 - ADR-18
 - DG-12
@@ -25,5 +25,6 @@ refs:
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
-created_at: '2026-03-07T12:00:00.000000'
-updated_at: '2026-03-07T12:00:00.000000'
+created_at: '2026-03-07T12:00:00'
+updated_at: '2026-03-07T01:05:17.789374'
+projects: []

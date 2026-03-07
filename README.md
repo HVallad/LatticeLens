@@ -208,7 +208,7 @@ Verify governance facts against the codebase in both directions: facts-to-code a
 | `--path PATH` | Directory to scan (default: project root) |
 | `--include TEXT` | Glob patterns to include (default: `**/*.py`) |
 | `--exclude TEXT` | Glob patterns to exclude |
-| `--llm` | Enable LLM-assisted analysis (not yet implemented) |
+| `--llm` | Enable LLM-assisted analysis via Anthropic API |
 | `--json` | Output report as JSON |
 | `--verbose` | Show per-fact matching details |
 

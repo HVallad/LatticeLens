@@ -1,21 +1,22 @@
 code: ADR-18
 layer: WHY
 type: Architecture Decision Record
-fact: Project scoping uses a single optional .lattice/projects.yaml registry file
-  that defines both project names and project groups. Groups are referenced in fact
-  projects fields via a "group:" prefix (e.g. group:pci-scope) to avoid namespace
-  collisions with literal project names. The registry file is optional — when absent,
-  scoping is entirely disabled and all facts are visible to all contexts (backward
-  compatible). This design follows the existing registry pattern established by
-  tags.yaml and types.yaml, keeping configuration co-located in the lattice root.
+fact: Project scoping uses a single optional .lattice/projects.yaml registry 
+  file that defines both project names and project groups. Groups are referenced
+  in fact projects fields via a "group:" prefix (e.g. group:pci-scope) to avoid 
+  namespace collisions with literal project names. The registry file is optional
+  — when absent, scoping is entirely disabled and all facts are visible to all
+  contexts (backward compatible). This design follows the existing registry 
+  pattern established by tags.yaml and types.yaml, keeping configuration 
+  co-located in the lattice root.
 tags:
 - architecture
 - backward-compatibility
 - design
 - project-scoping
-status: Draft
-confidence: Confirmed
-version: 1
+status: Under Review
+confidence: Provisional
+version: 2
 refs:
 - DG-12
 - DG-13
@@ -24,5 +25,6 @@ refs:
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
-created_at: '2026-03-07T12:00:00.000000'
-updated_at: '2026-03-07T12:00:00.000000'
+created_at: '2026-03-07T12:00:00'
+updated_at: '2026-03-07T01:05:15.652332'
+projects: []
