@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import typer
 from rich.console import Console
 from ruamel.yaml import YAML
 
@@ -118,7 +117,11 @@ def _migrate_to_0_3_0(store) -> int:
 
 def _migrate_to_0_4_0(store) -> int:
     """Upgrade types.yaml to enriched format with descriptions."""
-    from lattice_lens.services.type_service import is_enriched_registry, read_type_registry, write_type_registry
+    from lattice_lens.services.type_service import (
+        is_enriched_registry,
+        read_type_registry,
+        write_type_registry,
+    )
 
     registry = read_type_registry(store.root)
 

@@ -28,28 +28,30 @@ def _mock_api_response(json_text: str):
     return mock_client
 
 
-VALID_FACTS_JSON = json.dumps([
-    {
-        "code": "ADR-50",
-        "layer": "WHY",
-        "type": "Architecture Decision Record",
-        "fact": "Redis is used as the caching layer for all API responses.",
-        "tags": ["caching", "api"],
-        "confidence": "Confirmed",
-        "refs": [],
-        "owner": "architecture-team",
-    },
-    {
-        "code": "RISK-50",
-        "layer": "GUARDRAILS",
-        "type": "Risk Assessment Finding",
-        "fact": "Without rate limiting the API is vulnerable to denial-of-service attacks.",
-        "tags": ["security", "api"],
-        "confidence": "Confirmed",
-        "refs": ["ADR-50"],
-        "owner": "security-team",
-    },
-])
+VALID_FACTS_JSON = json.dumps(
+    [
+        {
+            "code": "ADR-50",
+            "layer": "WHY",
+            "type": "Architecture Decision Record",
+            "fact": "Redis is used as the caching layer for all API responses.",
+            "tags": ["caching", "api"],
+            "confidence": "Confirmed",
+            "refs": [],
+            "owner": "architecture-team",
+        },
+        {
+            "code": "RISK-50",
+            "layer": "GUARDRAILS",
+            "type": "Risk Assessment Finding",
+            "fact": "Without rate limiting the API is vulnerable to denial-of-service attacks.",
+            "tags": ["security", "api"],
+            "confidence": "Confirmed",
+            "refs": ["ADR-50"],
+            "owner": "security-team",
+        },
+    ]
+)
 
 
 # -- Test _read_document ------------------------------------------------------
@@ -119,36 +121,38 @@ class TestExtractFacts:
         doc = tmp_path / "doc.md"
         doc.write_text("# Test document content here", encoding="utf-8")
 
-        mixed_json = json.dumps([
-            {
-                "code": "ADR-50",
-                "layer": "WHY",
-                "type": "Architecture Decision Record",
-                "fact": "A valid fact with enough text content.",
-                "tags": ["caching", "api"],
-                "confidence": "Confirmed",
-                "refs": [],
-                "owner": "architecture-team",
-            },
-            {
-                "code": "bad",  # Invalid code format
-                "layer": "WHY",
-                "type": "Test",
-                "fact": "x",  # Too short
-                "tags": [],  # Too few
-                "owner": "test",
-            },
-            {
-                "code": "RISK-50",
-                "layer": "GUARDRAILS",
-                "type": "Risk Assessment Finding",
-                "fact": "Another valid fact with sufficient content.",
-                "tags": ["security", "api"],
-                "confidence": "Confirmed",
-                "refs": [],
-                "owner": "security-team",
-            },
-        ])
+        mixed_json = json.dumps(
+            [
+                {
+                    "code": "ADR-50",
+                    "layer": "WHY",
+                    "type": "Architecture Decision Record",
+                    "fact": "A valid fact with enough text content.",
+                    "tags": ["caching", "api"],
+                    "confidence": "Confirmed",
+                    "refs": [],
+                    "owner": "architecture-team",
+                },
+                {
+                    "code": "bad",  # Invalid code format
+                    "layer": "WHY",
+                    "type": "Test",
+                    "fact": "x",  # Too short
+                    "tags": [],  # Too few
+                    "owner": "test",
+                },
+                {
+                    "code": "RISK-50",
+                    "layer": "GUARDRAILS",
+                    "type": "Risk Assessment Finding",
+                    "fact": "Another valid fact with sufficient content.",
+                    "tags": ["security", "api"],
+                    "confidence": "Confirmed",
+                    "refs": [],
+                    "owner": "security-team",
+                },
+            ]
+        )
 
         mock_client = _mock_api_response(mixed_json)
         with patch("anthropic.Anthropic", return_value=mock_client):

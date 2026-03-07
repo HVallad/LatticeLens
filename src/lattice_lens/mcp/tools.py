@@ -91,9 +91,7 @@ def tool_context_assemble(
     }
 
 
-def tool_graph_impact(
-    store: LatticeStore, roles_dir: Path, code: str, depth: int = 3
-) -> dict:
+def tool_graph_impact(store: LatticeStore, roles_dir: Path, code: str, depth: int = 3) -> dict:
     """Show what facts and agent roles are affected if a fact changes."""
     if store.get(code) is None:
         return {"error": f"Fact {code} not found"}

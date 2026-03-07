@@ -9,7 +9,6 @@ import pytest
 from typer.testing import CliRunner
 
 from lattice_lens.cli.main import app
-from lattice_lens.config import FACTS_DIR, LATTICE_DIR, ROLES_DIR
 
 runner = CliRunner()
 
@@ -115,9 +114,7 @@ class TestContextCommand:
 
     def test_context_ref_pointers_present(self, seeded_dir):
         """With budget, ref_pointers should include excluded facts."""
-        result = runner.invoke(
-            app, ["context", "planning", "--budget", "200", "--json"]
-        )
+        result = runner.invoke(app, ["context", "planning", "--budget", "200", "--json"])
         assert result.exit_code == 0
         data = json.loads(result.output)
         # Small budget should leave some facts unloaded

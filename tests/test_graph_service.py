@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 from ruamel.yaml import YAML
 
-from lattice_lens.models import Fact, FactConfidence, FactLayer, FactStatus
+from lattice_lens.models import Fact, FactLayer, FactStatus
 from lattice_lens.services.graph_service import (
     find_contradiction_candidates,
     find_orphans,
@@ -132,9 +131,7 @@ class TestImpactAnalysis:
                 },
             },
         }
-        result = impact_analysis(
-            index, "ADR-03", role_templates=role_templates
-        )
+        result = impact_analysis(index, "ADR-03", role_templates=role_templates)
 
         # ADR-03 is WHY/ADR, MC-01 is GUARDRAILS/Model Card, RISK-07 is GUARDRAILS/Risk
         # planning matches ADR-03 (WHY + ADR type)

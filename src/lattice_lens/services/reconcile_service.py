@@ -8,7 +8,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from lattice_lens.services.code_scanner import (
-    ARCHITECTURAL_PATTERNS,
     scan_for_architectural_patterns,
     scan_for_fact_references,
 )
@@ -73,12 +72,7 @@ class ReconciliationReport:
 
     @property
     def total_facts_checked(self) -> int:
-        return (
-            len(self.confirmed)
-            + len(self.stale)
-            + len(self.violated)
-            + len(self.orphaned)
-        )
+        return len(self.confirmed) + len(self.stale) + len(self.violated) + len(self.orphaned)
 
     @property
     def coverage_pct(self) -> float:
@@ -101,10 +95,22 @@ class ReconciliationReport:
 # Mapping from architectural pattern categories to fact types/tags that cover them
 _PATTERN_COVERAGE: dict[str, dict[str, list[str]]] = {
     "framework": {"types": ["Architecture Decision Record"], "tags": ["architecture", "cli"]},
-    "validation": {"types": ["Architecture Decision Record", "Model Card Entry"], "tags": ["validation", "pydantic"]},
-    "storage": {"types": ["Architecture Decision Record", "Design Proposal Decision"], "tags": ["storage", "sqlite"]},
-    "security": {"types": ["Risk Register Entry", "Acceptable Use Policy Rule"], "tags": ["security"]},
-    "error_handling": {"types": ["Design Proposal Decision", "Runbook Procedure"], "tags": ["error-handling"]},
+    "validation": {
+        "types": ["Architecture Decision Record", "Model Card Entry"],
+        "tags": ["validation", "pydantic"],
+    },
+    "storage": {
+        "types": ["Architecture Decision Record", "Design Proposal Decision"],
+        "tags": ["storage", "sqlite"],
+    },
+    "security": {
+        "types": ["Risk Register Entry", "Acceptable Use Policy Rule"],
+        "tags": ["security"],
+    },
+    "error_handling": {
+        "types": ["Design Proposal Decision", "Runbook Procedure"],
+        "tags": ["error-handling"],
+    },
 }
 
 
@@ -225,11 +231,7 @@ def _build_llm_user_message(
     sections.append("\n## Rule-Based Findings to Analyze\n")
 
     all_findings: list[Finding] = (
-        report.confirmed
-        + report.stale
-        + report.violated
-        + report.untracked
-        + report.orphaned
+        report.confirmed + report.stale + report.violated + report.untracked + report.orphaned
     )
 
     if not all_findings:
@@ -298,16 +300,14 @@ def llm_reconcile(
         llm_findings = json.loads(response_text)
     except json.JSONDecodeError as e:
         print(
-            f"Warning: LLM returned invalid JSON, falling back to rule-based "
-            f"report: {e}",
+            f"Warning: LLM returned invalid JSON, falling back to rule-based report: {e}",
             file=sys.stderr,
         )
         return report
 
     if not isinstance(llm_findings, list):
         print(
-            "Warning: LLM response is not a JSON array, falling back to "
-            "rule-based report.",
+            "Warning: LLM response is not a JSON array, falling back to rule-based report.",
             file=sys.stderr,
         )
         return report
@@ -354,8 +354,11 @@ def llm_reconcile(
 def _find_original(report: ReconciliationReport, code: str) -> Finding | None:
     """Find the original rule-based finding by fact code."""
     for category_list in [
-        report.confirmed, report.stale, report.violated,
-        report.untracked, report.orphaned,
+        report.confirmed,
+        report.stale,
+        report.violated,
+        report.untracked,
+        report.orphaned,
     ]:
         for f in category_list:
             if f.code == code:

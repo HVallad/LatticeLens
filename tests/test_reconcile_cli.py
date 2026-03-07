@@ -66,9 +66,7 @@ class TestReconcileCli:
         _add_fact(lattice_root, make_fact(code="ADR-01"))
 
         monkeypatch.chdir(tmp_path)
-        result = runner.invoke(
-            app, ["reconcile", "--path", str(tmp_path / "src"), "--json"]
-        )
+        result = runner.invoke(app, ["reconcile", "--path", str(tmp_path / "src"), "--json"])
         assert result.exit_code == 0
         data = json.loads(result.output)
         assert "confirmed" in data
@@ -79,9 +77,7 @@ class TestReconcileCli:
         _add_fact(lattice_root, make_fact(code="ADR-01"))
 
         monkeypatch.chdir(tmp_path)
-        result = runner.invoke(
-            app, ["reconcile", "--path", str(tmp_path / "src"), "--verbose"]
-        )
+        result = runner.invoke(app, ["reconcile", "--path", str(tmp_path / "src"), "--verbose"])
         assert result.exit_code == 0
         assert "Confirmed" in result.output or "Orphaned" in result.output
 
@@ -116,9 +112,7 @@ class TestReconcileLlmCli:
         lattice_root, _ = _setup_project(tmp_path)
         _add_fact(lattice_root, make_fact(code="ADR-01"))
         monkeypatch.chdir(tmp_path)
-        result = runner.invoke(
-            app, ["reconcile", "--llm-prompt", "--path", str(tmp_path / "src")]
-        )
+        result = runner.invoke(app, ["reconcile", "--llm-prompt", "--path", str(tmp_path / "src")])
         assert result.exit_code == 0
         assert "reconciliation" in result.output.lower()
         assert "ADR-01" in result.output
@@ -126,17 +120,18 @@ class TestReconcileLlmCli:
     def test_reconcile_llm_prompt_contains_fact_text(self, tmp_path, monkeypatch):
         """--llm-prompt output should include full fact text."""
         lattice_root, _ = _setup_project(tmp_path)
-        _add_fact(lattice_root, make_fact(
-            code="RISK-01",
-            layer="GUARDRAILS",
-            type="Risk Register Entry",
-            fact="Prompt injection via user-uploaded documents is high severity.",
-            tags=["security", "prompt-injection"],
-        ))
-        monkeypatch.chdir(tmp_path)
-        result = runner.invoke(
-            app, ["reconcile", "--llm-prompt", "--path", str(tmp_path / "src")]
+        _add_fact(
+            lattice_root,
+            make_fact(
+                code="RISK-01",
+                layer="GUARDRAILS",
+                type="Risk Register Entry",
+                fact="Prompt injection via user-uploaded documents is high severity.",
+                tags=["security", "prompt-injection"],
+            ),
         )
+        monkeypatch.chdir(tmp_path)
+        result = runner.invoke(app, ["reconcile", "--llm-prompt", "--path", str(tmp_path / "src")])
         assert result.exit_code == 0
         assert "Prompt injection" in result.output
         assert "RISK-01" in result.output
@@ -147,26 +142,31 @@ class TestReconcileLlmCli:
         _add_fact(lattice_root, make_fact(code="ADR-01"))
         monkeypatch.chdir(tmp_path)
 
-        llm_response = json.dumps([
-            {
-                "original_category": "confirmed",
-                "revised_category": "confirmed",
-                "code": "ADR-01",
-                "confidence": 0.95,
-                "reasoning": "Explicit code reference found.",
-                "file": "main.py",
-                "line": 1,
-            }
-        ])
+        llm_response = json.dumps(
+            [
+                {
+                    "original_category": "confirmed",
+                    "revised_category": "confirmed",
+                    "code": "ADR-01",
+                    "confidence": 0.95,
+                    "reasoning": "Explicit code reference found.",
+                    "file": "main.py",
+                    "line": 1,
+                }
+            ]
+        )
 
         mock_client = _mock_api_response(llm_response)
         with patch("anthropic.Anthropic", return_value=mock_client):
             result = runner.invoke(
                 app,
                 [
-                    "reconcile", "--llm",
-                    "--api-key", "test-key",
-                    "--path", str(tmp_path / "src"),
+                    "reconcile",
+                    "--llm",
+                    "--api-key",
+                    "test-key",
+                    "--path",
+                    str(tmp_path / "src"),
                 ],
             )
         assert result.exit_code == 0
@@ -178,26 +178,32 @@ class TestReconcileLlmCli:
         _add_fact(lattice_root, make_fact(code="ADR-01"))
         monkeypatch.chdir(tmp_path)
 
-        llm_response = json.dumps([
-            {
-                "original_category": "confirmed",
-                "revised_category": "confirmed",
-                "code": "ADR-01",
-                "confidence": 0.95,
-                "reasoning": "Explicit reference in comment.",
-                "file": "main.py",
-                "line": 1,
-            }
-        ])
+        llm_response = json.dumps(
+            [
+                {
+                    "original_category": "confirmed",
+                    "revised_category": "confirmed",
+                    "code": "ADR-01",
+                    "confidence": 0.95,
+                    "reasoning": "Explicit reference in comment.",
+                    "file": "main.py",
+                    "line": 1,
+                }
+            ]
+        )
 
         mock_client = _mock_api_response(llm_response)
         with patch("anthropic.Anthropic", return_value=mock_client):
             result = runner.invoke(
                 app,
                 [
-                    "reconcile", "--llm", "--json",
-                    "--api-key", "test-key",
-                    "--path", str(tmp_path / "src"),
+                    "reconcile",
+                    "--llm",
+                    "--json",
+                    "--api-key",
+                    "test-key",
+                    "--path",
+                    str(tmp_path / "src"),
                 ],
             )
         assert result.exit_code == 0

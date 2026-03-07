@@ -10,7 +10,6 @@ import pytest
 from typer.testing import CliRunner
 
 from lattice_lens.cli.main import app
-from lattice_lens.config import LATTICE_DIR
 
 runner = CliRunner()
 

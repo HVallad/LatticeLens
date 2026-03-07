@@ -13,9 +13,9 @@ tags:
 - medium-severity
 - reconciliation
 - rule-based
-status: Under Review
-confidence: Provisional
-version: 2
+status: Active
+confidence: Confirmed
+version: 3
 refs:
 - DES-11
 - DES-12
@@ -24,5 +24,5 @@ superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
 created_at: '2026-03-05T23:55:36.946253'
-updated_at: '2026-03-07T01:05:18.640529'
+updated_at: '2026-03-07T11:23:18.150597'
 projects: []

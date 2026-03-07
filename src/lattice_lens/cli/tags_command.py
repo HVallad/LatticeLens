@@ -16,7 +16,9 @@ console = Console()
 
 def tags(
     as_json: bool = typer.Option(False, "--json", help="Output as JSON"),
-    rebuild: bool = typer.Option(False, "--rebuild", help="Regenerate tags.yaml from current facts"),
+    rebuild: bool = typer.Option(
+        False, "--rebuild", help="Regenerate tags.yaml from current facts"
+    ),
 ):
     """Show tag registry: all tags with usage counts and vocabulary categories."""
     store = require_lattice()

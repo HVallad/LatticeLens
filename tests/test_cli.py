@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -35,6 +34,7 @@ def seeded_dir(initialized_dir: Path):
     """Run lattice init + seed and return the dir."""
     # Copy seed file to expected location
     import shutil
+
     seed_src = Path(__file__).resolve().parent.parent / "seed"
     seed_dst = initialized_dir / "seed"
     if seed_src.exists():

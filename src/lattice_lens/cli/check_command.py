@@ -50,13 +50,9 @@ def _print_json(result: CheckResult, passed: bool) -> None:
     """Machine-readable JSON output."""
     data = {
         "passed": passed,
-        "errors": [
-            {"message": i.message, "file": i.file, "line": i.line}
-            for i in result.errors
-        ],
+        "errors": [{"message": i.message, "file": i.file, "line": i.line} for i in result.errors],
         "warnings": [
-            {"message": i.message, "file": i.file, "line": i.line}
-            for i in result.warnings
+            {"message": i.message, "file": i.file, "line": i.line} for i in result.warnings
         ],
         "coverage_pct": result.coverage_pct,
     }
@@ -105,9 +101,7 @@ def check(
     min_coverage: int = typer.Option(
         0, "--min-coverage", help="Minimum coverage %% (requires --reconcile)"
     ),
-    output_format: str = typer.Option(
-        "text", "--format", help="Output format: text, json, github"
-    ),
+    output_format: str = typer.Option("text", "--format", help="Output format: text, json, github"),
 ):
     """CI gate: run all integrity checks and exit 0 (pass) or 1 (fail)."""
     store = require_lattice()
@@ -126,9 +120,7 @@ def check(
             reconcile_path = Path(cfg_path)
 
     if min_coverage and not reconcile_path:
-        err_console.print(
-            "[red]Error:[/red] --min-coverage requires --reconcile"
-        )
+        err_console.print("[red]Error:[/red] --min-coverage requires --reconcile")
         raise typer.Exit(1)
 
     result = run_check(

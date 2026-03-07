@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from lattice_lens.models import Fact, FactConfidence, FactLayer, FactStatus
+from lattice_lens.models import FactLayer
 from lattice_lens.services.context_service import assemble_context
 from lattice_lens.services.project_service import write_project_registry
 from lattice_lens.store.index import FactIndex
@@ -71,15 +71,24 @@ class TestIndexByProject:
 
 class TestYamlStoreProjectFilter:
     def test_filter_returns_matching_and_global(self, yaml_store: YamlFileStore):
-        global_fact = make_fact(code="AUP-01", layer=FactLayer.GUARDRAILS,
-                               type="Acceptable Use Policy Rule",
-                               projects=[])
-        billing_fact = make_fact(code="AUP-02", layer=FactLayer.GUARDRAILS,
-                                type="Acceptable Use Policy Rule",
-                                projects=["billing"])
-        docs_fact = make_fact(code="AUP-03", layer=FactLayer.GUARDRAILS,
-                             type="Acceptable Use Policy Rule",
-                             projects=["docs"])
+        global_fact = make_fact(
+            code="AUP-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Acceptable Use Policy Rule",
+            projects=[],
+        )
+        billing_fact = make_fact(
+            code="AUP-02",
+            layer=FactLayer.GUARDRAILS,
+            type="Acceptable Use Policy Rule",
+            projects=["billing"],
+        )
+        docs_fact = make_fact(
+            code="AUP-03",
+            layer=FactLayer.GUARDRAILS,
+            type="Acceptable Use Policy Rule",
+            projects=["docs"],
+        )
         yaml_store.create(global_fact)
         yaml_store.create(billing_fact)
         yaml_store.create(docs_fact)
@@ -107,12 +116,18 @@ class TestYamlStoreProjectFilter:
             {"pci-scope": ["billing", "payments"]},
         )
 
-        f1 = make_fact(code="AUP-01", layer=FactLayer.GUARDRAILS,
-                       type="Acceptable Use Policy Rule",
-                       projects=["group:pci-scope"])
-        f2 = make_fact(code="AUP-02", layer=FactLayer.GUARDRAILS,
-                       type="Acceptable Use Policy Rule",
-                       projects=["docs"])
+        f1 = make_fact(
+            code="AUP-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Acceptable Use Policy Rule",
+            projects=["group:pci-scope"],
+        )
+        f2 = make_fact(
+            code="AUP-02",
+            layer=FactLayer.GUARDRAILS,
+            type="Acceptable Use Policy Rule",
+            projects=["docs"],
+        )
         yaml_store.create(f1)
         yaml_store.create(f2)
 
@@ -127,20 +142,32 @@ class TestContextAssemblyWithProject:
         """Build an index with facts scoped to different projects."""
         idx = FactIndex()
         # Global guardrail
-        idx._add(make_fact(
-            code="AUP-01", layer=FactLayer.GUARDRAILS,
-            type="Acceptable Use Policy Rule", projects=[],
-        ))
+        idx._add(
+            make_fact(
+                code="AUP-01",
+                layer=FactLayer.GUARDRAILS,
+                type="Acceptable Use Policy Rule",
+                projects=[],
+            )
+        )
         # Billing-only guardrail
-        idx._add(make_fact(
-            code="AUP-02", layer=FactLayer.GUARDRAILS,
-            type="Acceptable Use Policy Rule", projects=["billing"],
-        ))
+        idx._add(
+            make_fact(
+                code="AUP-02",
+                layer=FactLayer.GUARDRAILS,
+                type="Acceptable Use Policy Rule",
+                projects=["billing"],
+            )
+        )
         # Docs-only guardrail
-        idx._add(make_fact(
-            code="AUP-03", layer=FactLayer.GUARDRAILS,
-            type="Acceptable Use Policy Rule", projects=["docs"],
-        ))
+        idx._add(
+            make_fact(
+                code="AUP-03",
+                layer=FactLayer.GUARDRAILS,
+                type="Acceptable Use Policy Rule",
+                projects=["docs"],
+            )
+        )
         return idx
 
     def test_project_filter_in_context(self):

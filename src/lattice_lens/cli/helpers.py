@@ -20,8 +20,7 @@ def require_lattice(path: Path | None = None) -> LatticeStore:
     root = find_lattice_root(path)
     if root is None:
         err_console.print(
-            "[red]Error:[/red] No .lattice/ directory found. "
-            "Run [bold]lattice init[/bold] first."
+            "[red]Error:[/red] No .lattice/ directory found. Run [bold]lattice init[/bold] first."
         )
         raise typer.Exit(1)
 

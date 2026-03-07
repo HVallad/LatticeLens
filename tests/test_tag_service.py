@@ -59,7 +59,9 @@ class TestBuildRegistry:
     def test_includes_all_statuses(self, yaml_store):
         yaml_store.create(make_fact(code="ADR-01", tags=["active-tag", "shared"]))
         yaml_store.create(
-            make_fact(code="ADR-02", tags=["deprecated-tag", "shared"], status=FactStatus.DEPRECATED)
+            make_fact(
+                code="ADR-02", tags=["deprecated-tag", "shared"], status=FactStatus.DEPRECATED
+            )
         )
 
         registry = build_tag_registry(yaml_store)

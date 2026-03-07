@@ -103,8 +103,7 @@ def extract_facts_from_document(
             facts.append(fact)
         except Exception as e:
             print(
-                f"Warning: skipping invalid extracted fact "
-                f"{raw.get('code', '?')}: {e}",
+                f"Warning: skipping invalid extracted fact {raw.get('code', '?')}: {e}",
                 file=sys.stderr,
             )
 
@@ -127,13 +126,10 @@ def _read_document(path: Path) -> str:
             )
         except FileNotFoundError:
             raise RuntimeError(
-                "pandoc is required for .docx files. "
-                "Install: https://pandoc.org/installing.html"
+                "pandoc is required for .docx files. Install: https://pandoc.org/installing.html"
             )
         if result.returncode != 0:
             raise RuntimeError(f"pandoc failed: {result.stderr}")
         return result.stdout
     else:
-        raise ValueError(
-            f"Unsupported document type: {suffix}. Supported: .md, .txt, .docx"
-        )
+        raise ValueError(f"Unsupported document type: {suffix}. Supported: .md, .txt, .docx")

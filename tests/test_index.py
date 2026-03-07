@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from lattice_lens.store.yaml_store import YamlFileStore
-from tests.conftest import make_fact
 
 
 class TestFactIndex:

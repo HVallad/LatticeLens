@@ -5,7 +5,6 @@ from __future__ import annotations
 from conftest import make_fact
 from lattice_lens.config import LAYER_PREFIXES
 from lattice_lens.services.type_service import (
-    CANONICAL_TYPES,
     audit_types,
     canonical_type_for_prefix,
     description_for_prefix,

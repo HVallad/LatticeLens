@@ -4,12 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 
-from lattice_lens.models import Fact, FactConfidence, FactLayer, FactStatus
+from lattice_lens.models import FactConfidence, FactLayer, FactStatus
 from lattice_lens.services.evaluate_service import (
     EvaluationResult,
-    HookInput,
     evaluate_governance,
     parse_hook_input,
 )

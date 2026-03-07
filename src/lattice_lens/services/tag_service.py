@@ -16,32 +16,68 @@ TAGS_FILE = "tags.yaml"
 # Controlled vocabulary per DG-07
 VOCABULARY: dict[str, list[str]] = {
     "domain": [
-        "model-selection", "inference", "latency", "scaling",
-        "architecture", "storage", "serialization", "api",
-        "cli", "formatting", "discovery", "configuration",
-        "context-assembly", "design", "extraction", "git-native",
-        "impact-analysis", "import-export", "index", "project-scoping", "pydantic",
-        "reconciliation", "sqlite",
+        "model-selection",
+        "inference",
+        "latency",
+        "scaling",
+        "architecture",
+        "storage",
+        "serialization",
+        "api",
+        "cli",
+        "formatting",
+        "discovery",
+        "configuration",
+        "context-assembly",
+        "design",
+        "extraction",
+        "git-native",
+        "impact-analysis",
+        "import-export",
+        "index",
+        "project-scoping",
+        "pydantic",
+        "reconciliation",
+        "sqlite",
     ],
     "concern": [
-        "security", "privacy", "bias", "compliance",
-        "data-integrity", "validation", "audit-trail",
-        "governance", "normalization",
-        "controlled-vocabulary", "developer-experience", "extensibility",
-        "policy", "tag-vocabulary", "type-registry",
+        "security",
+        "privacy",
+        "bias",
+        "compliance",
+        "data-integrity",
+        "validation",
+        "audit-trail",
+        "governance",
+        "normalization",
+        "controlled-vocabulary",
+        "developer-experience",
+        "extensibility",
+        "policy",
+        "tag-vocabulary",
+        "type-registry",
     ],
     "lifecycle": [
-        "design-time", "runtime", "incident-response",
-        "status-lifecycle", "versioning",
-        "lifecycle", "migration",
+        "design-time",
+        "runtime",
+        "incident-response",
+        "status-lifecycle",
+        "versioning",
+        "lifecycle",
+        "migration",
     ],
     "stakeholder": [
-        "end-user", "developer", "auditor",
+        "end-user",
+        "developer",
+        "auditor",
         "ops-team",
     ],
     "risk": [
-        "high-severity", "mitigated", "accepted-risk",
-        "risk", "staleness",
+        "high-severity",
+        "mitigated",
+        "accepted-risk",
+        "risk",
+        "staleness",
     ],
 }
 
@@ -72,11 +108,13 @@ def build_tag_registry(store: LatticeStore) -> list[dict]:
 
     registry = []
     for tag, count in sorted(tag_counts.items(), key=lambda x: (-x[1], x[0])):
-        registry.append({
-            "tag": tag,
-            "count": count,
-            "category": categorize_tag(tag),
-        })
+        registry.append(
+            {
+                "tag": tag,
+                "count": count,
+                "category": categorize_tag(tag),
+            }
+        )
     return registry
 
 

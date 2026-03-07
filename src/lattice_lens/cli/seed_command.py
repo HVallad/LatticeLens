@@ -58,8 +58,7 @@ def seed(
     seed_file = _find_seed_file()
     if seed_file is None:
         err_console.print(
-            "[red]Error:[/red] seed/example_facts.yaml not found. "
-            "Run from the project root."
+            "[red]Error:[/red] seed/example_facts.yaml not found. Run from the project root."
         )
         raise typer.Exit(1)
 

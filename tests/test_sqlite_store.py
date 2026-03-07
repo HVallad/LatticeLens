@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from lattice_lens.config import FACTS_DIR, HISTORY_DIR, LATTICE_DIR, ROLES_DIR
-from lattice_lens.models import Fact, FactConfidence, FactLayer, FactStatus
+from lattice_lens.models import FactLayer, FactStatus
 from lattice_lens.store.sqlite_store import SqliteStore
 from tests.conftest import make_fact
 
@@ -64,18 +64,14 @@ class TestSqliteStoreCRUD:
                 type="Risk Register Entry",
             )
         )
-        facts = sqlite_store.list_facts(
-            layer="WHY", status=["Active", "Draft"]
-        )
+        facts = sqlite_store.list_facts(layer="WHY", status=["Active", "Draft"])
         assert all(f.layer == FactLayer.WHY for f in facts)
 
     def test_list_facts_tag_filter(self, sqlite_store: SqliteStore):
         """tags_any matches correctly."""
         sqlite_store.create(make_fact(code="ADR-01", tags=["alpha", "beta"]))
         sqlite_store.create(make_fact(code="ADR-02", tags=["gamma", "delta"]))
-        facts = sqlite_store.list_facts(
-            tags_any=["alpha"], status=["Active"]
-        )
+        facts = sqlite_store.list_facts(tags_any=["alpha"], status=["Active"])
         assert len(facts) == 1
         assert facts[0].code == "ADR-01"
 
@@ -92,9 +88,7 @@ class TestSqliteStoreCRUD:
         fact = make_fact(code="ADR-01")
         sqlite_store.create(fact)
         original_created = sqlite_store.get("ADR-01").created_at
-        sqlite_store.update(
-            "ADR-01", {"fact": "Changed fact text with enough chars."}, "test"
-        )
+        sqlite_store.update("ADR-01", {"fact": "Changed fact text with enough chars."}, "test")
         assert sqlite_store.get("ADR-01").created_at == original_created
 
     def test_deprecate_sets_status(self, sqlite_store: SqliteStore):
@@ -174,9 +168,7 @@ class TestSqliteStoreCRUD:
 
     def test_update_tags_and_refs(self, sqlite_store: SqliteStore):
         """Tags and refs are properly replaced on update."""
-        sqlite_store.create(
-            make_fact(code="ADR-01", tags=["old-tag", "common"], refs=["DES-01"])
-        )
+        sqlite_store.create(make_fact(code="ADR-01", tags=["old-tag", "common"], refs=["DES-01"]))
         sqlite_store.update(
             "ADR-01",
             {"tags": ["new-tag", "common"], "refs": ["DES-02"]},

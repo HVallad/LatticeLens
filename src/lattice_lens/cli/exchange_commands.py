@@ -36,9 +36,7 @@ def export_cmd(
 
     if output:
         output.write_text(result, encoding="utf-8")
-        err_console.print(
-            f"[green]Exported[/green] to {output} ({format})"
-        )
+        err_console.print(f"[green]Exported[/green] to {output} ({format})")
     else:
         print(result)
 
@@ -59,8 +57,7 @@ def import_cmd(
 
     if strategy not in ("skip", "overwrite", "fail"):
         err_console.print(
-            f"[red]Error:[/red] Invalid strategy '{strategy}'. "
-            "Use: skip, overwrite, fail"
+            f"[red]Error:[/red] Invalid strategy '{strategy}'. Use: skip, overwrite, fail"
         )
         raise typer.Exit(1)
 

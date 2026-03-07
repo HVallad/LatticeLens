@@ -17,9 +17,7 @@ err_console = Console(stderr=True)
 
 
 def extract(
-    file: Optional[Path] = typer.Argument(
-        None, help="Path to document (.md, .txt, .docx)"
-    ),
+    file: Optional[Path] = typer.Argument(None, help="Path to document (.md, .txt, .docx)"),
     prompt: bool = typer.Option(
         False,
         "--prompt",
@@ -28,9 +26,7 @@ def extract(
     dry_run: bool = typer.Option(
         False, "--dry-run", help="Preview extracted facts without writing"
     ),
-    model: str = typer.Option(
-        "claude-sonnet-4-20250514", "--model", help="Extraction model"
-    ),
+    model: str = typer.Option("claude-sonnet-4-20250514", "--model", help="Extraction model"),
     api_key: Optional[str] = typer.Option(
         None,
         "--api-key",
@@ -57,18 +53,14 @@ def extract(
         return
 
     if file is None:
-        err_console.print(
-            "[red]Error:[/red] A file argument is required "
-            "(unless using --prompt)."
-        )
+        err_console.print("[red]Error:[/red] A file argument is required (unless using --prompt).")
         raise typer.Exit(1)
 
     # Resolve API key
     resolved_key = api_key or Settings().anthropic_api_key
     if not resolved_key:
         err_console.print(
-            "[red]Error:[/red] No API key provided. "
-            "Set LATTICE_ANTHROPIC_API_KEY or use --api-key."
+            "[red]Error:[/red] No API key provided. Set LATTICE_ANTHROPIC_API_KEY or use --api-key."
         )
         raise typer.Exit(1)
 

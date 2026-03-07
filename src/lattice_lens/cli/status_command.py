@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
-import typer
 from rich.console import Console
 from rich.table import Table
 
 from lattice_lens.cli.helpers import require_lattice
-from lattice_lens.config import HISTORY_DIR
 
 console = Console()
 
@@ -65,4 +62,6 @@ def status():
         lines = changelog.read_text().strip().splitlines()
         if lines:
             last = json.loads(lines[-1])
-            console.print(f"[bold]Last change:[/bold] {last['timestamp']} — {last['action']} {last['code']}")
+            console.print(
+                f"[bold]Last change:[/bold] {last['timestamp']} — {last['action']} {last['code']}"
+            )

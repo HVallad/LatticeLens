@@ -32,17 +32,13 @@ err_console = Console(stderr=True)
 
 
 def evaluate(
-    as_json: bool = typer.Option(
-        False, "--json", help="Output governance briefing as JSON."
-    ),
+    as_json: bool = typer.Option(False, "--json", help="Output governance briefing as JSON."),
     path: Optional[Path] = typer.Option(
         None,
         "--path",
         help="Directory to evaluate (default: hook stdin cwd, or cwd).",
     ),
-    verbose: bool = typer.Option(
-        False, "--verbose", help="Print diagnostics to stderr."
-    ),
+    verbose: bool = typer.Option(False, "--verbose", help="Print diagnostics to stderr."),
 ) -> None:
     """Evaluate governance rules for Claude Code hook injection.
 
