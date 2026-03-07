@@ -7,9 +7,9 @@ fact: The Fact model includes a projects field (list of strings, default empty).
   (lowercased, alphanumeric with hyphens/underscores) or group references prefixed
   with "group:" that expand to member lists via projects.yaml. Project filtering
   includes both scoped matches and global facts (empty projects list). The active
-  project is detected from the LATTICE_PROJECT environment variable or the
-  default_project field in config.yaml. All stores (YAML and SQLite), context
-  assembly, and governance briefing respect this filter.
+  project is detected from the default_project field in config.yaml or via
+  --project CLI flags. All stores (YAML and SQLite), context assembly, and
+  governance briefing respect this filter.
 tags:
 - data-integrity
 - governance

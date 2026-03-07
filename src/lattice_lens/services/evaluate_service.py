@@ -12,8 +12,6 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import os
-
 from lattice_lens.config import ROLES_DIR, find_lattice_root, load_config
 from lattice_lens.models import Fact, FactConfidence
 from lattice_lens.services.context_service import estimate_tokens
@@ -253,11 +251,8 @@ def evaluate_governance(
     store = YamlFileStore(lattice_root)
 
     # ---- Detect active project ----
-    # Priority: env var > config.yaml > None (no scoping)
-    active_project = os.environ.get("LATTICE_PROJECT", "")
-    if not active_project:
-        config = load_config(lattice_root)
-        active_project = config.get("default_project", "")
+    config = load_config(lattice_root)
+    active_project = config.get("default_project", "")
 
     registry: dict | None = None
     if active_project and is_scoping_enabled(lattice_root):
