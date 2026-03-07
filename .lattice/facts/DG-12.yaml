@@ -1,23 +1,23 @@
 code: DG-12
 layer: GUARDRAILS
 type: Data Governance Rule
-fact: The Fact model includes a projects field (list of strings, default empty). An
-  empty list means the fact is global and applies to all projects. A non-empty list
-  scopes the fact to those projects — entries are either literal project names
-  (lowercased, alphanumeric with hyphens/underscores) or group references prefixed
-  with "group:" that expand to member lists via projects.yaml. Project filtering
-  includes both scoped matches and global facts (empty projects list). The active
-  project is detected from the default_project field in config.yaml or via
-  --project CLI flags. All stores (YAML and SQLite), context assembly, and
-  governance briefing respect this filter.
+fact: The Fact model includes a projects field (list of strings, default empty).
+  An empty list means the fact is global and applies to all projects. A 
+  non-empty list scopes the fact to those projects — entries are either 
+  literal project names (lowercased, alphanumeric with hyphens/underscores) or 
+  group references prefixed with "group:" that expand to member lists via 
+  projects.yaml. Project filtering includes both scoped matches and global facts
+  (empty projects list). The active project is detected from the default_project
+  field in config.yaml or via --project CLI flags. All stores (YAML and SQLite),
+  context assembly, and governance briefing respect this filter.
 tags:
 - data-integrity
 - governance
 - project-scoping
 - scoping
-status: Draft
-confidence: Confirmed
-version: 1
+status: Under Review
+confidence: Provisional
+version: 2
 refs:
 - ADR-18
 - DG-13
@@ -26,5 +26,6 @@ refs:
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
-created_at: '2026-03-07T12:00:00.000000'
-updated_at: '2026-03-07T12:00:00.000000'
+created_at: '2026-03-07T12:00:00'
+updated_at: '2026-03-07T01:05:17.359956'
+projects: []
