@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -11,9 +12,15 @@ from rich.console import Console
 from rich.table import Table
 
 from lattice_lens.cli.helpers import require_lattice
-from lattice_lens.services.reconcile_service import reconcile, ReconciliationReport
+from lattice_lens.config import Settings
+from lattice_lens.services.reconcile_service import (
+    ReconciliationReport,
+    reconcile,
+    render_reconciliation_prompt,
+)
 
 console = Console()
+err_console = Console(stderr=True)
 
 
 def reconcile_cmd(
@@ -27,7 +34,20 @@ def reconcile_cmd(
         None, "--exclude", help="Glob patterns to exclude."
     ),
     llm: bool = typer.Option(
-        False, "--llm", help="Enable LLM-assisted analysis (not yet implemented)."
+        False, "--llm", help="Enable LLM-assisted analysis via Anthropic API."
+    ),
+    llm_prompt: bool = typer.Option(
+        False,
+        "--llm-prompt",
+        help="Print reconciliation prompt to stdout for agent integration.",
+    ),
+    model: str = typer.Option(
+        "claude-sonnet-4-20250514", "--model", help="Model for LLM analysis."
+    ),
+    api_key: Optional[str] = typer.Option(
+        None,
+        "--api-key",
+        help="Anthropic API key (default: $LATTICE_ANTHROPIC_API_KEY).",
     ),
     json_output: bool = typer.Option(
         False, "--json", help="Output report as JSON."
@@ -37,11 +57,45 @@ def reconcile_cmd(
     ),
 ):
     """Reconcile governance facts against the codebase."""
+    # Mutual exclusion check
+    if llm and llm_prompt:
+        err_console.print(
+            "[red]Error:[/red] --llm and --llm-prompt are mutually exclusive."
+        )
+        raise typer.Exit(1)
+
     store = require_lattice()
 
     # Default scan path: parent of .lattice/ (project root)
     codebase_root = path or store.root.parent
 
+    # ── Prompt mode: run rule-based, render prompt, exit ──
+    if llm_prompt:
+        report = reconcile(
+            store,
+            codebase_root,
+            include_patterns=include,
+            exclude_patterns=exclude,
+        )
+        active_facts = store.list_facts(status=["Active"])
+        prompt_text = render_reconciliation_prompt(report, active_facts)
+        sys.stdout.buffer.write(prompt_text.encode("utf-8"))
+        sys.stdout.buffer.write(b"\n")
+        return
+
+    # ── Direct LLM mode: resolve API key ──
+    if llm:
+        resolved_key = api_key or Settings().anthropic_api_key
+        if not resolved_key:
+            err_console.print(
+                "[red]Error:[/red] No API key provided. "
+                "Set LATTICE_ANTHROPIC_API_KEY or use --api-key."
+            )
+            raise typer.Exit(1)
+    else:
+        resolved_key = None
+
+    # ── Run reconciliation ──
     try:
         report = reconcile(
             store,
@@ -49,9 +103,11 @@ def reconcile_cmd(
             include_patterns=include,
             exclude_patterns=exclude,
             use_llm=llm,
+            api_key=resolved_key,
+            model=model,
         )
-    except NotImplementedError as e:
-        console.print(f"[red]Error:[/red] {e}")
+    except ValueError as e:
+        err_console.print(f"[red]Error:[/red] {e}")
         raise typer.Exit(1)
 
     if json_output:
@@ -98,6 +154,8 @@ def _print_rich(report: ReconciliationReport, verbose: bool):
             console.print(f"  {f.code} \u2014 {f.description}")
             if f.file:
                 console.print(f"           {f.file}:{f.line}")
+            if verbose and f.llm_reasoning:
+                console.print(f"           [dim]LLM: {f.llm_reasoning}[/dim]")
 
     if report.violated:
         console.print("\n[red]\u2717 Violated:[/red]")
@@ -105,6 +163,8 @@ def _print_rich(report: ReconciliationReport, verbose: bool):
             console.print(f"  {f.code} \u2014 {f.description}")
             if f.file:
                 console.print(f"           {f.file}:{f.line}")
+            if verbose and f.llm_reasoning:
+                console.print(f"           [dim]LLM: {f.llm_reasoning}[/dim]")
 
     if report.untracked:
         console.print("\n[blue]! Untracked Patterns:[/blue]")
@@ -112,6 +172,8 @@ def _print_rich(report: ReconciliationReport, verbose: bool):
             console.print(f"  {f.description}")
             if f.file:
                 console.print(f"             {f.file}:{f.line}")
+            if verbose and f.llm_reasoning:
+                console.print(f"             [dim]LLM: {f.llm_reasoning}[/dim]")
 
     if verbose:
         if report.confirmed:
@@ -120,15 +182,19 @@ def _print_rich(report: ReconciliationReport, verbose: bool):
                 console.print(f"  {f.code} \u2014 {f.description}")
                 if f.file:
                     console.print(f"           {f.file}:{f.line}")
+                if f.llm_reasoning:
+                    console.print(f"           [dim]LLM: {f.llm_reasoning}[/dim]")
 
         if report.orphaned:
             console.print("\n[dim]? Orphaned Facts:[/dim]")
             for f in report.orphaned:
                 console.print(f"  {f.code} \u2014 {f.description}")
+                if f.llm_reasoning:
+                    console.print(f"           [dim]LLM: {f.llm_reasoning}[/dim]")
 
 
 def _finding_dict(f) -> dict:
-    return {
+    d = {
         "category": f.category,
         "code": f.code,
         "description": f.description,
@@ -137,3 +203,6 @@ def _finding_dict(f) -> dict:
         "confidence": f.confidence,
         "evidence": f.evidence,
     }
+    if f.llm_reasoning:
+        d["llm_reasoning"] = f.llm_reasoning
+    return d

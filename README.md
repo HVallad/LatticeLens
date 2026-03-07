@@ -396,12 +396,52 @@ pip install -e .
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/audit-governance.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/compliance-check.sh",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   }
 }
 ```
 
-That's it. Every prompt you submit in Claude Code will now be preceded by the project's governance briefing.
+**Step 3:** Copy the hook scripts into your project:
+
+```bash
+mkdir -p .claude/hooks
+cp .claude/hooks/audit-governance.sh .claude/hooks/
+cp .claude/hooks/compliance-check.sh .claude/hooks/
+```
+
+The three hooks work together as a governance pipeline:
+
+| Hook | Trigger | Purpose |
+|------|---------|---------|
+| `UserPromptSubmit` | Every prompt | Injects governance rules and knowledge context before Claude responds |
+| `PostToolUse` | After `Edit` or `Write` | Runs `lattice validate` after file changes — blocks on validation failure |
+| `Stop` | When Claude finishes responding | Audits modified source files against governance rules — blocks on new changes to force a compliance report |
+
+The `PostToolUse` hook catches lattice integrity issues immediately after edits. The `Stop` hook performs a broader compliance audit once Claude is done, checking all modified `src/` files against governance rules. It uses a stamp file (`.claude/.audit-stamp`) to avoid infinite re-prompt loops — if the same changes have already been audited, it reports findings without blocking.
 
 #### What the agent sees
 
