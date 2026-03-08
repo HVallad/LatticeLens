@@ -8,7 +8,7 @@ import typer
 from rich.console import Console
 from ruamel.yaml import YAML
 
-from lattice_lens.cli.helpers import require_lattice
+from lattice_lens.cli.helpers import require_local_lattice
 from lattice_lens.models import Fact, FactConfidence, FactLayer, FactStatus
 
 console = Console()
@@ -53,7 +53,7 @@ def seed(
     force: bool = typer.Option(False, "--force", help="Overwrite existing facts"),
 ):
     """Load 12 example facts + placeholder drafts into .lattice/facts/."""
-    store = require_lattice()
+    store = require_local_lattice()
 
     seed_file = _find_seed_file()
     if seed_file is None:

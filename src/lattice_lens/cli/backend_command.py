@@ -5,7 +5,7 @@ from __future__ import annotations
 import typer
 from rich.console import Console
 
-from lattice_lens.cli.helpers import require_lattice
+from lattice_lens.cli.helpers import is_lens_mode, require_lattice
 from lattice_lens.config import find_lattice_root, load_config, save_config
 
 console = Console()
@@ -39,6 +39,12 @@ def backend_switch(
     target: str = typer.Argument(..., help="Target backend: 'sqlite' or 'yaml'."),
 ):
     """Migrate between YAML and SQLite backends."""
+    if is_lens_mode():
+        err_console.print(
+            "[red]Error:[/red] 'backend switch' is not available in lens mode.\n"
+            "Backend management must be performed on the remote lattice server."
+        )
+        raise typer.Exit(1)
     root = find_lattice_root()
     if root is None:
         err_console.print("[red]Error:[/red] No .lattice/ directory found.")

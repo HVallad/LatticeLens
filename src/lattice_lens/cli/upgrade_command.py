@@ -5,7 +5,7 @@ from __future__ import annotations
 from rich.console import Console
 from ruamel.yaml import YAML
 
-from lattice_lens.cli.helpers import require_lattice
+from lattice_lens.cli.helpers import require_local_lattice
 from lattice_lens.config import CONFIG_FILE, LATTICE_VERSION, ROLES_DIR
 
 console = Console()
@@ -155,7 +155,7 @@ def _version_tuple(v: str) -> tuple[int, ...]:
 
 def upgrade():
     """Upgrade lattice to the latest schema version."""
-    store = require_lattice()
+    store = require_local_lattice()
     config = _read_config(store)
     current = _current_version(config)
 

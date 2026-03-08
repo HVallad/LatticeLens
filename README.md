@@ -8,12 +8,13 @@
 <p align="center">
   <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-blue">
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green">
-  <img alt="Tests: 324 passed" src="https://img.shields.io/badge/tests-324%20passed-brightgreen">
+  <img alt="Tests: 470 passed" src="https://img.shields.io/badge/tests-470%20passed-brightgreen">
 </p>
 
 <p align="center">
   <a href="#quick-start">Quick Start</a> &middot;
   <a href="#commands">Commands</a> &middot;
+  <a href="#lens-mode">Lens Mode</a> &middot;
   <a href="#claude-code-integration">Claude Code Integration</a> &middot;
   <a href="#roadmap">Roadmap</a>
 </p>
@@ -84,7 +85,7 @@ Each fact is validated by Pydantic, tracked by git, and queryable by tag, layer,
 # From source
 pip install -e .
 
-# With MCP server support
+# With MCP support (server + lens mode)
 pip install -e ".[mcp]"
 
 # With LLM extraction support
@@ -120,7 +121,7 @@ Loads 12 example facts covering all three layers plus placeholder drafts for ref
 
 ## Commands
 
-LatticeLens provides 20 top-level commands organized into four categories: core operations, fact management, knowledge graph analysis, and backend management.
+LatticeLens provides 23 top-level commands organized into five categories: core operations, fact management, knowledge graph analysis, backend management, and lens mode (remote lattice).
 
 ### Core Commands
 
@@ -299,10 +300,10 @@ Start a Model Context Protocol server for AI agent integration.
 ```bash
 lattice serve                             # stdio transport (default)
 lattice serve --writable                  # Enable write tools
-lattice serve --host 0.0.0.0 --port 3100 # SSE transport for network access
+lattice serve --no-stdio --host 0.0.0.0 --port 3100  # SSE transport for network access
 ```
 
-The MCP server exposes 8 read-only tools (`fact_get`, `fact_query`, `fact_list`, `context_assemble`, `graph_impact`, `graph_orphans`, `lattice_status`, `reconcile`) and optionally 3 write tools (`fact_create`, `fact_update`, `fact_deprecate`) in writable mode.
+The MCP server exposes 12 read-only tools (`fact_get`, `fact_query`, `fact_list`, `context_assemble`, `graph_impact`, `graph_orphans`, `graph_contradictions`, `lattice_status`, `lattice_validate`, `reconcile`, `fact_exists`, `all_codes`) and optionally 4 write tools (`fact_create`, `fact_update`, `fact_deprecate`, `fact_promote`) in writable mode.
 
 #### MCP client configuration
 
@@ -317,6 +318,139 @@ The MCP server exposes 8 read-only tools (`fact_get`, `fact_query`, `fact_list`,
   }
 }
 ```
+
+### Lens Mode — `lattice lens`
+
+Connect to a remote lattice over MCP instead of maintaining local fact files. A single `.lens` file in `.lattice/` turns any project into a thin client governed by a central lattice server.
+
+| Subcommand | Description |
+|------------|-------------|
+| `lattice lens connect ENDPOINT` | Verify server and create `.lattice/.lens` |
+| `lattice lens status` | Show lens configuration and connection health |
+| `lattice lens disconnect` | Remove `.lens` file and exit lens mode |
+
+```bash
+# Connect to a remote lattice (read-only by default)
+lattice lens connect http://lattice.company.com:3100/sse
+
+# Connect with write access
+lattice lens connect --writable http://lattice.company.com:3100/sse
+
+# Connect with project scoping
+lattice lens connect --project my-app http://lattice.company.com:3100/sse
+
+# Check connection health
+lattice lens status
+
+# Disconnect
+lattice lens disconnect
+```
+
+Once connected, all read commands (`fact ls`, `fact get`, `context`, `graph impact`, etc.) transparently proxy to the remote server. No local YAML files are needed. Write commands (`fact add`, `fact edit`, `fact promote`) are available only when `writable: true` is set in the `.lens` file.
+
+Commands that only apply to locally-hosted lattices (`serve`, `seed`, `diff`, `log`, `reindex`, `upgrade`, `backend switch`) are blocked in lens mode with a clear error message.
+
+See [Lens Mode (Remote Lattice)](#lens-mode) below for the full concept.
+
+## Lens Mode
+
+LatticeLens earns the second word in its name: the **Lattice** is the knowledge store, the **Lens** is how you view into one.
+
+A project can drop a single `.lens` file into `.lattice/` and transparently query a remote lattice over MCP — no local YAML files needed. This decouples lattice consumption from lattice hosting: one team maintains the canonical lattice, and every consumer project gets governed context without duplicating facts.
+
+### How it works
+
+```
+┌───────────────────────────────────────────┐
+│  Consumer Project (my-app/)               │
+│  .lattice/                                │
+│    .lens  ← endpoint, transport, writable │
+│                                           │
+│  lattice fact ls  → LensStore → MCP ──┐   │
+│  lattice context  → LensStore → MCP ──┤   │
+└───────────────────────────────────────┤───┘
+                                        │ SSE / stdio
+                                        ▼
+┌───────────────────────────────────────────┐
+│  Lattice Server (remote)                  │
+│  .lattice/                                │
+│    facts/why/  facts/guardrails/  facts/how│
+│                                           │
+│  lattice serve --no-stdio --port 3100     │
+└───────────────────────────────────────────┘
+```
+
+### Setting up the server
+
+On the machine hosting the canonical lattice:
+
+```bash
+# Initialize and populate the lattice
+lattice init
+lattice seed  # or import your own facts
+
+# Start the MCP server on the network
+lattice serve --no-stdio --host 0.0.0.0 --port 3100
+```
+
+### Connecting a consumer project
+
+On any project that should consume the lattice:
+
+```bash
+# Connect (verifies the server is reachable)
+lattice lens connect http://lattice-server:3100/sse
+
+# Now all read commands work transparently
+lattice fact ls
+lattice fact get ADR-01
+lattice context planning --budget 4000
+lattice graph impact ADR-03
+lattice check
+```
+
+### The `.lens` file
+
+The `.lens` file is a YAML configuration stored in `.lattice/.lens`:
+
+```yaml
+version: "1.0"
+endpoint: http://lattice-server:3100/sse
+transport: sse
+writable: false
+project: my-app
+```
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `version` | `1.0` | Lens file format version |
+| `endpoint` | (required) | MCP server URL (SSE) or command path (stdio) |
+| `transport` | `sse` | Transport type: `sse` or `stdio` |
+| `writable` | `false` | Enable write operations through the lens |
+| `project` | `null` | Project name for scoped queries |
+
+### Read-only vs writable
+
+By default, a lens is read-only. Write commands (`fact add`, `fact edit`, `fact promote`, `fact deprecate`) are rejected with a clear error. To enable writes:
+
+```bash
+lattice lens connect --writable http://lattice-server:3100/sse
+```
+
+Or edit `.lattice/.lens` and set `writable: true`.
+
+### Blocked commands in lens mode
+
+These commands only make sense for locally-hosted lattices and are blocked in lens mode:
+
+| Command | Reason |
+|---------|--------|
+| `lattice serve` | Cannot serve a lens as a server |
+| `lattice seed` | Remote initialization concern |
+| `lattice diff` / `lattice log` | No local git-tracked files |
+| `lattice reindex` | Local index file operation |
+| `lattice upgrade` | Remote schema migration |
+| `lattice backend switch` | Remote admin concern |
 
 ## Fact YAML Format
 
@@ -534,7 +668,7 @@ cp -r .claude/skills/lattice ~/.claude/skills/lattice
 # Install with all dev dependencies
 pip install -e ".[dev]"
 
-# Run tests (324 tests)
+# Run tests (470 tests)
 pytest
 
 # Run tests with coverage
@@ -549,9 +683,12 @@ ruff check src/ tests/
 ```
 src/lattice_lens/
 ├── cli/              # Typer CLI commands
+│   └── lens_commands.py  # lattice lens connect/status/disconnect
 ├── mcp/              # MCP server (FastMCP)
 ├── services/         # Business logic (context, graph, tags, types, reconciliation)
-├── store/            # Storage abstraction (protocol + YAML/SQLite backends)
+├── store/            # Storage abstraction (protocol + YAML/SQLite/Lens backends)
+│   └── lens_store.py     # LensStore — remote lattice via MCP client
+├── lens.py           # LensConfig model + .lens file helpers
 ├── models.py         # Pydantic Fact model
 └── config.py         # Settings, lattice root discovery, backend config
 ```
@@ -583,6 +720,12 @@ Expose the lattice over Model Context Protocol (`lattice serve`) so Claude Deskt
 **Reconciliation** (`lattice reconcile`): Verify knowledge against codebases in both directions. Facts-to-Code checks whether documented decisions match implementation. Code-to-Facts surfaces code behaviors with no corresponding fact. Produces a report categorizing each finding as confirmed, stale, violated, untracked, or orphaned.
 
 **SQLite Backend** (`lattice backend switch sqlite`): Tier 2 of the progressive storage architecture for lattices with 500+ facts. Indexed queries, WAL-mode concurrent reads, zero CLI changes via the LatticeStore protocol abstraction. Backend switching is always explicit — the system advises but never auto-migrates.
+
+### Phase 7 — Lens Mode (Remote Lattice via MCP) ✓
+
+**MCP Tool Expansion**: Five new MCP tools — `fact_promote`, `graph_contradictions`, `lattice_validate`, `fact_exists`, `all_codes` — bringing the total to 12 read-only + 4 write tools for full protocol parity.
+
+**Lens Mode** (`lattice lens connect`): Decouple lattice consumption from hosting. A single `.lens` file in `.lattice/` turns any project into a thin MCP client that transparently queries a remote lattice server. Read-only by default with opt-in writes. All read commands proxy seamlessly; incompatible local-only commands (`serve`, `seed`, `diff`, `log`) are blocked with clear error messages.
 
 ## Complete CLI Reference
 
@@ -886,6 +1029,30 @@ Start the LatticeLens MCP server.
 | `--host` | text | `127.0.0.1` | HTTP host (disables stdio) |
 | `--port` | int | 3100 | HTTP port |
 | `--writable` | flag | false | Enable write operations |
+
+### Lens Mode — `lattice lens`
+
+#### `lattice lens connect ENDPOINT`
+
+Connect to a remote lattice over MCP. Verifies the server responds, then creates `.lattice/.lens`.
+
+| Argument | Description |
+|----------|-------------|
+| `ENDPOINT` | MCP server URL (e.g., `http://host:3100/sse`) |
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--transport` | text | `sse` | Transport type: `sse` or `stdio` |
+| `--writable` | flag | false | Enable write operations through the lens |
+| `--project` | text | — | Project name for scoped queries |
+
+#### `lattice lens status`
+
+Show lens configuration and test connection health. No options.
+
+#### `lattice lens disconnect`
+
+Remove `.lens` file and exit lens mode. If `.lattice/` is empty after removal, it is cleaned up too. No options.
 
 ## License
 

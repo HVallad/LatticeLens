@@ -9,16 +9,21 @@ from ruamel.yaml import YAML
 from tests.conftest import make_fact
 from lattice_lens.config import ROLES_DIR
 from lattice_lens.mcp.tools import (
+    tool_all_codes,
     tool_context_assemble,
     tool_fact_create,
     tool_fact_deprecate,
+    tool_fact_exists,
     tool_fact_get,
     tool_fact_list,
+    tool_fact_promote,
     tool_fact_query,
     tool_fact_update,
+    tool_graph_contradictions,
     tool_graph_impact,
     tool_graph_orphans,
     tool_lattice_status,
+    tool_lattice_validate,
 )
 from lattice_lens.models import FactStatus
 
@@ -226,3 +231,107 @@ class TestWriteTools:
         result = tool_fact_deprecate(yaml_store, "ADR-01", "no longer needed")
         assert result["status"] == "Deprecated"
         assert "error" not in result
+
+
+class TestFactPromote:
+    def test_draft_to_under_review(self, yaml_store):
+        fact = make_fact(code="ADR-01", status=FactStatus.DRAFT)
+        yaml_store.create(fact)
+
+        result = tool_fact_promote(yaml_store, "ADR-01", "ready for review")
+        assert result["status"] == "Under Review"
+        assert result["confidence"] == "Provisional"
+        assert "error" not in result
+
+    def test_under_review_to_active(self, yaml_store):
+        fact = make_fact(code="ADR-01", status=FactStatus.UNDER_REVIEW)
+        yaml_store.create(fact)
+
+        result = tool_fact_promote(yaml_store, "ADR-01", "approved")
+        assert result["status"] == "Active"
+        assert result["confidence"] == "Confirmed"
+        assert "error" not in result
+
+    def test_already_active(self, yaml_store):
+        fact = make_fact(code="ADR-01", status=FactStatus.ACTIVE)
+        yaml_store.create(fact)
+
+        result = tool_fact_promote(yaml_store, "ADR-01", "try again")
+        assert "error" in result
+
+    def test_nonexistent(self, yaml_store):
+        result = tool_fact_promote(yaml_store, "NOPE-99", "ghost")
+        assert "error" in result
+
+
+class TestGraphContradictions:
+    def test_finds_pairs(self, yaml_store):
+        # Two facts in different layers sharing tags → contradiction candidate
+        f1 = make_fact(
+            code="ADR-01", layer="WHY", tags=["security", "validation"], status=FactStatus.ACTIVE
+        )
+        f2 = make_fact(
+            code="AUP-01",
+            layer="GUARDRAILS",
+            tags=["security", "validation"],
+            status=FactStatus.ACTIVE,
+        )
+        yaml_store.create(f1)
+        yaml_store.create(f2)
+
+        results = tool_graph_contradictions(yaml_store, min_shared_tags=2)
+        assert len(results) > 0
+        pair = results[0]
+        assert "fact_a" in pair
+        assert "fact_b" in pair
+        assert "shared_tags" in pair
+
+    def test_empty_when_no_overlaps(self, yaml_store):
+        f1 = make_fact(code="ADR-01", layer="WHY", tags=["alpha", "beta"])
+        f2 = make_fact(code="AUP-01", layer="GUARDRAILS", tags=["gamma", "delta"])
+        yaml_store.create(f1)
+        yaml_store.create(f2)
+
+        results = tool_graph_contradictions(yaml_store, min_shared_tags=2)
+        assert results == []
+
+
+class TestLatticeValidate:
+    def test_clean_lattice(self, seeded_store):
+        result = tool_lattice_validate(seeded_store)
+        assert result["ok"] is True
+        assert isinstance(result["errors"], list)
+        assert isinstance(result["warnings"], list)
+
+    def test_missing_facts_dir(self, yaml_store):
+        # Point at a non-existent facts dir
+        import shutil
+
+        shutil.rmtree(yaml_store.facts_dir)
+        result = tool_lattice_validate(yaml_store)
+        assert result["ok"] is False
+        assert len(result["errors"]) > 0
+
+
+class TestFactExists:
+    def test_found(self, seeded_store):
+        result = tool_fact_exists(seeded_store, "ADR-01")
+        assert result["code"] == "ADR-01"
+        assert result["exists"] is True
+
+    def test_missing(self, seeded_store):
+        result = tool_fact_exists(seeded_store, "ZZZ-99")
+        assert result["code"] == "ZZZ-99"
+        assert result["exists"] is False
+
+
+class TestAllCodes:
+    def test_returns_all(self, seeded_store):
+        result = tool_all_codes(seeded_store)
+        assert isinstance(result, list)
+        assert len(result) > 0
+        assert "ADR-01" in result
+
+    def test_empty_store(self, yaml_store):
+        result = tool_all_codes(yaml_store)
+        assert result == []

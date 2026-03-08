@@ -61,7 +61,7 @@ class TestListTools:
         tools = _run(server.list_tools())
         tool_names = [t.name for t in tools]
 
-        assert len(tool_names) == 8
+        assert len(tool_names) == 12
         assert "fact_get" in tool_names
         assert "fact_query" in tool_names
         assert "fact_list" in tool_names
@@ -70,10 +70,16 @@ class TestListTools:
         assert "graph_orphans" in tool_names
         assert "lattice_status" in tool_names
         assert "reconcile" in tool_names
+        # Phase 7a read-only tools
+        assert "graph_contradictions" in tool_names
+        assert "lattice_validate" in tool_names
+        assert "fact_exists" in tool_names
+        assert "all_codes" in tool_names
         # Write tools should NOT be present
         assert "fact_create" not in tool_names
         assert "fact_update" not in tool_names
         assert "fact_deprecate" not in tool_names
+        assert "fact_promote" not in tool_names
 
     def test_writable(self, tmp_lattice):
         from lattice_lens.mcp.server import create_server
@@ -83,10 +89,11 @@ class TestListTools:
         tools = _run(server.list_tools())
         tool_names = [t.name for t in tools]
 
-        assert len(tool_names) == 11
+        assert len(tool_names) == 16
         assert "fact_create" in tool_names
         assert "fact_update" in tool_names
         assert "fact_deprecate" in tool_names
+        assert "fact_promote" in tool_names
 
 
 class TestCallTool:
@@ -113,3 +120,44 @@ class TestCallTool:
         text = _call_tool_text(server, "fact_get", {"code": "ADR-01"})
         data = json.loads(text)
         assert data["code"] == "ADR-01"
+
+    def test_promote_roundtrip(self, yaml_store):
+        from lattice_lens.mcp.server import create_server
+        from lattice_lens.models import FactStatus
+
+        _write_role_templates(yaml_store.root / "roles")
+        server = create_server(yaml_store.root, writable=True)
+
+        # Create a Draft fact
+        fact = make_fact(code="ADR-01", status=FactStatus.DRAFT)
+        yaml_store.create(fact)
+
+        # Promote via MCP tool
+        text = _call_tool_text(server, "fact_promote", {"code": "ADR-01", "reason": "ready"})
+        data = json.loads(text)
+        assert data["status"] == "Under Review"
+
+    def test_fact_exists_roundtrip(self, seeded_store):
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(seeded_store.root / "roles")
+        server = create_server(seeded_store.root, writable=False)
+
+        text = _call_tool_text(server, "fact_exists", {"code": "ADR-01"})
+        data = json.loads(text)
+        assert data["exists"] is True
+
+        text = _call_tool_text(server, "fact_exists", {"code": "ZZZ-99"})
+        data = json.loads(text)
+        assert data["exists"] is False
+
+    def test_all_codes_roundtrip(self, seeded_store):
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(seeded_store.root / "roles")
+        server = create_server(seeded_store.root, writable=False)
+
+        text = _call_tool_text(server, "all_codes", {})
+        codes = json.loads(text)
+        assert isinstance(codes, list)
+        assert "ADR-01" in codes

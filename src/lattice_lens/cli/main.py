@@ -14,6 +14,7 @@ from lattice_lens.cli.fact_commands import fact_app
 from lattice_lens.cli.git_commands import diff, log
 from lattice_lens.cli.graph_commands import graph_app
 from lattice_lens.cli.init_command import init
+from lattice_lens.cli.lens_commands import lens_app
 from lattice_lens.cli.reconcile_command import reconcile_cmd
 from lattice_lens.cli.seed_command import seed
 from lattice_lens.cli.serve_command import serve
@@ -32,6 +33,7 @@ app = typer.Typer(
 app.add_typer(fact_app, name="fact", help="Manage facts (add, get, ls, edit, promote, deprecate).")
 app.add_typer(graph_app, name="graph", help="Knowledge graph analysis.")
 app.add_typer(backend_app, name="backend", help="Backend management (status, switch).")
+app.add_typer(lens_app, name="lens", help="Remote lattice via MCP lens.")
 app.command()(init)
 app.command()(check)
 app.command()(validate)

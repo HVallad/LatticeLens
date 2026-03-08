@@ -14,6 +14,7 @@ HISTORY_DIR = "history"
 CONFIG_FILE = "config.yaml"
 INDEX_FILE = "index.yaml"
 PROJECTS_FILE = "projects.yaml"
+LENS_FILE = ".lens"
 
 # Schema version — minor version tracks phases, patch for fixes within a phase.
 # "0.1.0" = Phase 1 (flat role templates)

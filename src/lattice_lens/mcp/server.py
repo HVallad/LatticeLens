@@ -9,16 +9,21 @@ from mcp.server.fastmcp import FastMCP
 
 from lattice_lens.config import ROLES_DIR, load_config
 from lattice_lens.mcp.tools import (
+    tool_all_codes,
     tool_context_assemble,
     tool_fact_create,
     tool_fact_deprecate,
+    tool_fact_exists,
     tool_fact_get,
     tool_fact_list,
+    tool_fact_promote,
     tool_fact_query,
     tool_fact_update,
+    tool_graph_contradictions,
     tool_graph_impact,
     tool_graph_orphans,
     tool_lattice_status,
+    tool_lattice_validate,
     tool_reconcile,
 )
 from lattice_lens.store.yaml_store import YamlFileStore
@@ -166,6 +171,43 @@ def create_server(lattice_root: Path, writable: bool = False) -> FastMCP:
         codebase_root = Path(path) if path else lattice_root.parent
         return _json(tool_reconcile(store, codebase_root, include, exclude))
 
+    @mcp.tool()
+    async def graph_contradictions(min_shared_tags: int = 2) -> str:
+        """Find pairs of active facts across different layers that may contradict.
+
+        Facts sharing many tags but in different layers are flagged as candidates.
+
+        Args:
+            min_shared_tags: Minimum shared tags to flag a pair (default: 2).
+        """
+        _refresh()
+        return _json(tool_graph_contradictions(store, min_shared_tags))
+
+    @mcp.tool()
+    async def lattice_validate() -> str:
+        """Run schema and integrity validation on the lattice.
+
+        Returns ok status, list of errors, and list of warnings.
+        """
+        _refresh()
+        return _json(tool_lattice_validate(store))
+
+    @mcp.tool()
+    async def fact_exists(code: str) -> str:
+        """Check if a fact code exists in the lattice.
+
+        Args:
+            code: The fact code to check (e.g., ADR-03).
+        """
+        _refresh()
+        return _json(tool_fact_exists(store, code))
+
+    @mcp.tool()
+    async def all_codes() -> str:
+        """Return all fact codes in the lattice."""
+        _refresh()
+        return _json(tool_all_codes(store))
+
     # ── Write Tools (writable mode only) ──
 
     if writable:
@@ -230,5 +272,16 @@ def create_server(lattice_root: Path, writable: bool = False) -> FastMCP:
             """
             _refresh()
             return _json(tool_fact_deprecate(store, code, reason))
+
+        @mcp.tool()
+        async def fact_promote(code: str, reason: str) -> str:
+            """Promote a fact through the lifecycle (Draft -> Under Review -> Active).
+
+            Args:
+                code: The fact code to promote.
+                reason: Reason for promotion.
+            """
+            _refresh()
+            return _json(tool_fact_promote(store, code, reason))
 
     return mcp
