@@ -55,11 +55,11 @@ def _seed_facts(lattice_root: Path):
             owner="safety-team",
         ),
         Fact(
-            code="GR-01",
+            code="RISK-01",
             layer=FactLayer.GUARDRAILS,
             type="Risk Register Entry",
             fact="PII leakage risk for user-facing models.",
-            tags=["risk", "privacy"],
+            tags=["privacy", "risk"],
             status=FactStatus.DRAFT,
             confidence=FactConfidence.PROVISIONAL,
             owner="risk-team",
@@ -277,9 +277,9 @@ class TestLensIntegration:
             # Verify index structure
             assert "ADR-01" in idx.codes_by_layer("WHY")
             assert "SP-01" in idx.codes_by_layer("HOW")
-            assert "GR-01" in idx.codes_by_layer("GUARDRAILS")
+            assert "RISK-01" in idx.codes_by_layer("GUARDRAILS")
 
             # Verify refs are indexed
-            assert "ADR-01" in idx.refs_from("GR-01")
+            assert "ADR-01" in idx.refs_from("RISK-01")
         except Exception:
             pytest.skip("MCP server did not start; skipping integration test")
