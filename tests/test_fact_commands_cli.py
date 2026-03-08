@@ -202,9 +202,7 @@ class TestFactPromoteCommand:
         with open(facts_dir / "ADR-01.yaml", "w") as f:
             yaml_rw.dump(fact.model_dump(mode="json"), f)
 
-        result = runner.invoke(
-            app, ["fact", "promote", "ADR-01", "--reason", "Ready for review"]
-        )
+        result = runner.invoke(app, ["fact", "promote", "ADR-01", "--reason", "Ready for review"])
         assert result.exit_code == 0
         assert "Promoted" in result.output
         assert "Under Review" in result.output
@@ -223,17 +221,13 @@ class TestFactPromoteCommand:
         assert "Active" in result.output
 
     def test_promote_not_found(self, initialized_dir: Path):
-        result = runner.invoke(
-            app, ["fact", "promote", "NOPE-99", "--reason", "test"]
-        )
+        result = runner.invoke(app, ["fact", "promote", "NOPE-99", "--reason", "test"])
         assert result.exit_code == 1
         assert "not found" in result.output
 
     def test_promote_already_active(self, seeded_dir: Path):
         """Active facts cannot be promoted further."""
-        result = runner.invoke(
-            app, ["fact", "promote", "ADR-01", "--reason", "try again"]
-        )
+        result = runner.invoke(app, ["fact", "promote", "ADR-01", "--reason", "try again"])
         assert result.exit_code == 1
         assert "Error" in result.output
         assert "not promotable" in result.output
@@ -241,9 +235,7 @@ class TestFactPromoteCommand:
     def test_promote_deprecated_fails(self, seeded_dir: Path):
         """Deprecated facts cannot be promoted."""
         runner.invoke(app, ["fact", "deprecate", "ADR-01", "--reason", "old"])
-        result = runner.invoke(
-            app, ["fact", "promote", "ADR-01", "--reason", "revive"]
-        )
+        result = runner.invoke(app, ["fact", "promote", "ADR-01", "--reason", "revive"])
         assert result.exit_code == 1
         assert "not promotable" in result.output
 
