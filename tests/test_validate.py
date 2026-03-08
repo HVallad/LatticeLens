@@ -128,29 +128,15 @@ class TestValidation:
         assert not result.ok
         assert any("prefix" in e.lower() for e in result.errors)
 
-    def test_pydantic_normalizes_tags_so_no_unsorted_warning(self, yaml_store: YamlFileStore):
-        """Pydantic's normalize_tags sorts tags on load, so validate_lattice
-        never sees unsorted tags from well-formed facts. This test confirms
-        that writing tags in any order results in no 'not sorted' warning."""
+    def test_pydantic_normalizes_tags(self, yaml_store: YamlFileStore):
+        """Pydantic's normalize_tags sorts and lowercases tags on load.
+        validate_lattice relies on Pydantic for tag normalization (no dead
+        tag-sorting checks in the validation loop)."""
         fact = make_fact(code="ADR-10", tags=["zebra", "alpha"])
         yaml_store.create(fact)
 
         result = validate_lattice(yaml_store.facts_dir)
-        # Tags were normalized by Pydantic on create, so no unsorted warning
-        assert not any("not sorted" in w.lower() for w in result.warnings)
-
-    def test_raw_unsorted_tags_also_normalized(self, yaml_store: YamlFileStore):
-        """Even raw unsorted tags in YAML don't trigger a 'not sorted' warning
-        because validate_lattice parses via Fact(**data), which normalizes."""
-        data = make_fact(code="ADR-10").model_dump(mode="json")
-        data["tags"] = ["zebra", "alpha"]  # Write unsorted directly
-        path = yaml_store.facts_dir / "ADR-10.yaml"
-        with open(path, "w") as f:
-            yaml_rw.dump(data, f)
-
-        result = validate_lattice(yaml_store.facts_dir)
-        # Pydantic normalizes tags on Fact(**data), so no unsorted warning
-        assert not any("not sorted" in w.lower() for w in result.warnings)
+        assert result.ok
 
     def test_superseded_without_target_is_validation_error(self, yaml_store: YamlFileStore):
         """Superseded status without superseded_by field is rejected by Pydantic

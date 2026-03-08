@@ -6,7 +6,9 @@ MCP dependencies and spin up an in-process server.
 
 from __future__ import annotations
 
+import socket
 import threading
+import time
 from pathlib import Path
 
 import pytest
@@ -71,6 +73,30 @@ def _seed_facts(lattice_root: Path):
     return store
 
 
+def _get_free_port() -> int:
+    """Get a free TCP port on localhost."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+def _start_server(server, port: int) -> threading.Thread:
+    """Start a FastMCP server on the given port in a daemon thread.
+
+    Uses server.settings for host/port (mcp >=1.26 API).
+    """
+    server.settings.host = "127.0.0.1"
+    server.settings.port = port
+
+    server_thread = threading.Thread(
+        target=lambda: server.run(transport="sse"),
+        daemon=True,
+    )
+    server_thread.start()
+    time.sleep(1.5)
+    return server_thread
+
+
 @pytest.fixture
 def server_lattice(tmp_path):
     """Create a seeded server-side lattice."""
@@ -94,25 +120,8 @@ class TestLensIntegration:
             pytest.skip("MCP dependencies not installed")
 
         server = create_server(server_lattice, writable=False)
-
-        # Use a free port for the test server
-        import socket
-
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(("127.0.0.1", 0))
-            port = s.getsockname()[1]
-
-        # Start the server in a background thread
-        server_thread = threading.Thread(
-            target=lambda: server.run(transport="sse", host="127.0.0.1", port=port),
-            daemon=True,
-        )
-        server_thread.start()
-
-        # Give the server time to start
-        import time
-
-        time.sleep(1.5)
+        port = _get_free_port()
+        _start_server(server, port)
 
         try:
             from lattice_lens.store.lens_store import LensStore
@@ -141,22 +150,8 @@ class TestLensIntegration:
             pytest.skip("MCP dependencies not installed")
 
         server = create_server(server_lattice, writable=False)
-
-        import socket
-
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(("127.0.0.1", 0))
-            port = s.getsockname()[1]
-
-        server_thread = threading.Thread(
-            target=lambda: server.run(transport="sse", host="127.0.0.1", port=port),
-            daemon=True,
-        )
-        server_thread.start()
-
-        import time
-
-        time.sleep(1.5)
+        port = _get_free_port()
+        _start_server(server, port)
 
         try:
             from lattice_lens.store.lens_store import LensStore
@@ -187,22 +182,8 @@ class TestLensIntegration:
             pytest.skip("MCP dependencies not installed")
 
         server = create_server(server_lattice, writable=True)
-
-        import socket
-
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(("127.0.0.1", 0))
-            port = s.getsockname()[1]
-
-        server_thread = threading.Thread(
-            target=lambda: server.run(transport="sse", host="127.0.0.1", port=port),
-            daemon=True,
-        )
-        server_thread.start()
-
-        import time
-
-        time.sleep(1.5)
+        port = _get_free_port()
+        _start_server(server, port)
 
         try:
             from lattice_lens.store.lens_store import LensStore
@@ -242,22 +223,8 @@ class TestLensIntegration:
             pytest.skip("MCP dependencies not installed")
 
         server = create_server(server_lattice, writable=False)
-
-        import socket
-
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(("127.0.0.1", 0))
-            port = s.getsockname()[1]
-
-        server_thread = threading.Thread(
-            target=lambda: server.run(transport="sse", host="127.0.0.1", port=port),
-            daemon=True,
-        )
-        server_thread.start()
-
-        import time
-
-        time.sleep(1.5)
+        port = _get_free_port()
+        _start_server(server, port)
 
         try:
             from lattice_lens.store.lens_store import LensStore

@@ -91,13 +91,6 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
                 f"{fact.layer.value} (allowed: {allowed})"
             )
 
-        # Check tag normalization
-        for tag in fact.tags:
-            if tag != tag.lower():
-                result.add_warning(f"{path.name}: Tag '{tag}' is not lowercase")
-        if fact.tags != sorted(fact.tags):
-            result.add_warning(f"{path.name}: Tags are not sorted")
-
         # Superseded consistency is checked after all facts are loaded (see below)
 
         # Check staleness

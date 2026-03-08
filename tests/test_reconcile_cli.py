@@ -10,6 +10,7 @@ from typer.testing import CliRunner
 
 from lattice_lens.cli.main import app
 from lattice_lens.config import FACTS_DIR, HISTORY_DIR, LATTICE_DIR, ROLES_DIR
+from lattice_lens.services.reconcile_service import Finding, ReconciliationReport
 from tests.conftest import make_fact
 
 runner = CliRunner()
@@ -211,3 +212,150 @@ class TestReconcileLlmCli:
         confirmed = data["findings"]["confirmed"]
         assert len(confirmed) >= 1
         assert "llm_reasoning" in confirmed[0]
+
+
+def _make_finding(category: str, code: str | None = None, **kwargs) -> Finding:
+    """Create a Finding with sensible defaults."""
+    defaults = {
+        "category": category,
+        "code": code,
+        "description": f"Test {category} finding",
+        "file": "src/main.py",
+        "line": 10,
+        "confidence": 0.85,
+        "evidence": "# some code",
+    }
+    defaults.update(kwargs)
+    return Finding(**defaults)
+
+
+class TestReconcileRichOutput:
+    """Tests for the Rich output rendering branches in _print_rich()."""
+
+    def test_stale_section_rendered(self, tmp_path, monkeypatch):
+        """When report has stale findings, the Stale Facts section is shown."""
+        lattice_root, _ = _setup_project(tmp_path)
+        _add_fact(lattice_root, make_fact(code="ADR-01"))
+        monkeypatch.chdir(tmp_path)
+
+        report = ReconciliationReport(
+            stale=[_make_finding("stale", "ADR-01", description="Code diverged from fact")],
+        )
+        with patch("lattice_lens.cli.reconcile_command.reconcile", return_value=report):
+            result = runner.invoke(app, ["reconcile", "--path", str(tmp_path / "src")])
+        assert result.exit_code == 0
+        assert "Stale" in result.output
+        assert "Code diverged" in result.output
+
+    def test_violated_section_rendered(self, tmp_path, monkeypatch):
+        """When report has violated findings, the Violated section is shown."""
+        lattice_root, _ = _setup_project(tmp_path)
+        _add_fact(lattice_root, make_fact(code="ADR-01"))
+        monkeypatch.chdir(tmp_path)
+
+        report = ReconciliationReport(
+            violated=[_make_finding("violated", "ADR-01", description="Constraint violated")],
+        )
+        with patch("lattice_lens.cli.reconcile_command.reconcile", return_value=report):
+            result = runner.invoke(app, ["reconcile", "--path", str(tmp_path / "src")])
+        assert result.exit_code == 0
+        assert "Violated" in result.output
+        assert "Constraint violated" in result.output
+
+    def test_untracked_section_rendered(self, tmp_path, monkeypatch):
+        """When report has untracked findings, the Untracked section is shown."""
+        lattice_root, _ = _setup_project(tmp_path)
+        _add_fact(lattice_root, make_fact(code="ADR-01"))
+        monkeypatch.chdir(tmp_path)
+
+        report = ReconciliationReport(
+            untracked=[
+                _make_finding(
+                    "untracked",
+                    None,
+                    description="Framework usage without governance fact",
+                    file="src/main.py",
+                    line=5,
+                )
+            ],
+        )
+        with patch("lattice_lens.cli.reconcile_command.reconcile", return_value=report):
+            result = runner.invoke(app, ["reconcile", "--path", str(tmp_path / "src")])
+        assert result.exit_code == 0
+        assert "Untracked" in result.output
+        assert "Framework usage" in result.output
+
+    def test_verbose_confirmed_section(self, tmp_path, monkeypatch):
+        """--verbose shows the Confirmed Facts section."""
+        lattice_root, _ = _setup_project(tmp_path)
+        _add_fact(lattice_root, make_fact(code="ADR-01"))
+        monkeypatch.chdir(tmp_path)
+
+        report = ReconciliationReport(
+            confirmed=[
+                _make_finding("confirmed", "ADR-01", description="Explicitly referenced in code")
+            ],
+        )
+        with patch("lattice_lens.cli.reconcile_command.reconcile", return_value=report):
+            result = runner.invoke(app, ["reconcile", "--path", str(tmp_path / "src"), "--verbose"])
+        assert result.exit_code == 0
+        assert "Confirmed" in result.output
+        assert "ADR-01" in result.output
+
+    def test_verbose_orphaned_section(self, tmp_path, monkeypatch):
+        """--verbose shows the Orphaned Facts section."""
+        lattice_root, _ = _setup_project(tmp_path)
+        _add_fact(lattice_root, make_fact(code="ADR-01"))
+        monkeypatch.chdir(tmp_path)
+
+        report = ReconciliationReport(
+            orphaned=[
+                _make_finding(
+                    "orphaned",
+                    "ADR-01",
+                    description="No code evidence found",
+                    file=None,
+                    line=None,
+                )
+            ],
+        )
+        with patch("lattice_lens.cli.reconcile_command.reconcile", return_value=report):
+            result = runner.invoke(app, ["reconcile", "--path", str(tmp_path / "src"), "--verbose"])
+        assert result.exit_code == 0
+        assert "Orphaned" in result.output
+        assert "No code evidence" in result.output
+
+    def test_verbose_with_llm_reasoning(self, tmp_path, monkeypatch):
+        """--verbose shows LLM reasoning when present."""
+        lattice_root, _ = _setup_project(tmp_path)
+        _add_fact(lattice_root, make_fact(code="ADR-01"))
+        monkeypatch.chdir(tmp_path)
+
+        report = ReconciliationReport(
+            stale=[
+                _make_finding(
+                    "stale",
+                    "ADR-01",
+                    description="Stale fact",
+                    llm_reasoning="LLM detected drift in implementation",
+                )
+            ],
+        )
+        with patch("lattice_lens.cli.reconcile_command.reconcile", return_value=report):
+            result = runner.invoke(app, ["reconcile", "--path", str(tmp_path / "src"), "--verbose"])
+        assert result.exit_code == 0
+        assert "LLM detected drift" in result.output
+
+    def test_reconcile_value_error(self, tmp_path, monkeypatch):
+        """ValueError from reconcile → error exit 1."""
+        lattice_root, _ = _setup_project(tmp_path)
+        _add_fact(lattice_root, make_fact(code="ADR-01"))
+        monkeypatch.chdir(tmp_path)
+
+        with patch(
+            "lattice_lens.cli.reconcile_command.reconcile",
+            side_effect=ValueError("use_llm requires api_key"),
+        ):
+            result = runner.invoke(app, ["reconcile", "--path", str(tmp_path / "src")])
+        assert result.exit_code == 1
+        assert "api_key" in result.output.lower()
