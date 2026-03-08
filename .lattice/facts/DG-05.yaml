@@ -1,25 +1,45 @@
-code: DG-05
-layer: GUARDRAILS
-type: Data Governance Rule
-fact: The changelog at .lattice/changelog.jsonl uses JSON Lines format — one 
-  JSON object per line, append-only. Each entry records action (add, update, 
-  delete), fact code, timestamp, and reason. JSONL is streamable, grep-friendly,
-  and avoids the need to parse an entire file for new appends. The changelog is 
-  written by LatticeStore on every mutation. Full fact state snapshots are not 
-  included — git history on the YAML files themselves serves that purpose.
-tags:
-- append-only
-- audit-trail
-- changelog
-- jsonl
-status: Active
-confidence: Confirmed
-version: 2
-refs:
-- ADR-06
-- DG-01
-superseded_by:
-owner: architecture-team
-review_by: '2026-09-01'
-created_at: '2026-03-05T13:00:32.840045'
-updated_at: '2026-03-05T20:24:37.680067'
+code: DG-05
+
+layer: GUARDRAILS
+
+type: Data Governance Rule
+
+fact: "The changelog at .lattice/changelog.jsonl uses JSON Lines format — one\n\
+  JSON object per line, append-only. Each entry records action (add, update,\ndelete),
+  fact code, timestamp, and reason. JSONL is streamable, grep-friendly,\nand avoids
+  the need to parse an entire file for new appends. The changelog is\nwritten by LatticeStore
+  on every mutation. Full fact state snapshots are not\nincluded — git history on
+  the YAML files themselves serves that purpose."
+
+tags:
+
+- append-only
+
+- audit-trail
+
+- changelog
+
+- jsonl
+
+status: Active
+
+confidence: Confirmed
+
+version: 2
+
+refs:
+
+- code: ADR-06
+  rel: constrains
+- code: DG-01
+  rel: relates
+superseded_by:
+
+owner: architecture-team
+
+review_by: '2026-09-01'
+
+created_at: '2026-03-05T13:00:32.840045'
+
+updated_at: '2026-03-05T20:24:37.680067'
+

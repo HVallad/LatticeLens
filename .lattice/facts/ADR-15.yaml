@@ -16,10 +16,14 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- ADR-03
-- ADR-04
-- AUP-02
-- AUP-05
+- code: ADR-03
+  rel: relates
+- code: ADR-04
+  rel: relates
+- code: AUP-02
+  rel: mitigates
+- code: AUP-05
+  rel: mitigates
 superseded_by:
 owner: architecture-team
 review_by: '2026-06-01'

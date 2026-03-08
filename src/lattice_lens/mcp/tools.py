@@ -87,7 +87,7 @@ def tool_context_assemble(
                 "fact": f.fact,
                 "tags": f.tags,
                 "confidence": f.confidence.value,
-                "refs": f.refs,
+                "refs": [{"code": r.code, "rel": r.rel.value} for r in f.refs],
             }
             for f in result.loaded_facts
         ],

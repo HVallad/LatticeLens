@@ -14,3 +14,9 @@ query:
   - monitoring
   max_facts: 20
   extra: []
+  graph_depth: 1
+  edge_priority:
+  - constrains
+  - contradicts
+  - drives
+  - mitigates

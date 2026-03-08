@@ -73,7 +73,15 @@ def graph_impact(
         direct_branch = tree.add("[bold]Directly affected[/bold]")
         for c in result.directly_affected:
             f = index.get(c)
-            label = f"[cyan]{c}[/cyan] — {f.type}" if f else f"[dim]{c}[/dim] (not found)"
+            if f:
+                # Show how this fact references the source
+                edges = index.edges_to(code)
+                edge_label = ""
+                if c in edges:
+                    edge_label = f" [{edges[c].value}]"
+                label = f"[cyan]{c}[/cyan]{edge_label} — {f.type}"
+            else:
+                label = f"[dim]{c}[/dim] (not found)"
             direct_branch.add(label)
     else:
         tree.add("[dim]No directly affected facts[/dim]")

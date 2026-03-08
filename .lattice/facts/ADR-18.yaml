@@ -18,10 +18,14 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- DG-12
-- DG-13
-- DES-09
-- DES-10
+- code: DG-12
+  rel: mitigates
+- code: DG-13
+  rel: mitigates
+- code: DES-09
+  rel: drives
+- code: DES-10
+  rel: drives
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

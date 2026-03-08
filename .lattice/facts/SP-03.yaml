@@ -15,8 +15,10 @@ status: Active
 confidence: Confirmed
 version: 1
 refs:
-- SP-02
-- DES-01
+- code: SP-02
+  rel: depends_on
+- code: DES-01
+  rel: implements
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

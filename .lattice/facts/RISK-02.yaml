@@ -14,8 +14,10 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- DES-02
-- ADR-03
+- code: DES-02
+  rel: constrains
+- code: ADR-03
+  rel: constrains
 superseded_by:
 owner: architecture-team
 review_by:

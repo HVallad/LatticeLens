@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from lattice_lens.config import FACTS_DIR, HISTORY_DIR, LATTICE_DIR, ROLES_DIR
-from lattice_lens.models import FactLayer, FactStatus
+from lattice_lens.models import EdgeType, FactLayer, FactStatus
 from lattice_lens.store.sqlite_store import SqliteStore
 from tests.conftest import make_fact
 
@@ -177,5 +177,41 @@ class TestSqliteStoreCRUD:
         fact = sqlite_store.get("ADR-01")
         assert "new-tag" in fact.tags
         assert "old-tag" not in fact.tags
-        assert "DES-02" in fact.refs
-        assert "DES-01" not in fact.refs
+        assert "DES-02" in fact.ref_codes
+        assert "DES-01" not in fact.ref_codes
+
+    def test_typed_refs_round_trip(self, sqlite_store: SqliteStore):
+        """Typed refs are stored and retrieved with correct edge types."""
+        sqlite_store.create(
+            make_fact(
+                code="ADR-01",
+                refs=[
+                    {"code": "DES-01", "rel": "drives"},
+                    {"code": "RISK-01", "rel": "mitigates"},
+                ],
+            )
+        )
+        fact = sqlite_store.get("ADR-01")
+        assert len(fact.refs) == 2
+        ref_map = {r.code: r.rel for r in fact.refs}
+        assert ref_map["DES-01"] == EdgeType.DRIVES
+        assert ref_map["RISK-01"] == EdgeType.MITIGATES
+
+    def test_typed_refs_update_round_trip(self, sqlite_store: SqliteStore):
+        """Typed refs survive update cycles."""
+        sqlite_store.create(make_fact(code="ADR-01", refs=[{"code": "DES-01", "rel": "drives"}]))
+        sqlite_store.update(
+            "ADR-01",
+            {"refs": [{"code": "RISK-01", "rel": "constrains"}]},
+            "change refs",
+        )
+        fact = sqlite_store.get("ADR-01")
+        assert len(fact.refs) == 1
+        assert fact.refs[0].code == "RISK-01"
+        assert fact.refs[0].rel == EdgeType.CONSTRAINS
+
+    def test_plain_string_refs_default_relates(self, sqlite_store: SqliteStore):
+        """Plain string refs default to 'relates' edge type in SQLite."""
+        sqlite_store.create(make_fact(code="ADR-01", refs=["DES-01"]))
+        fact = sqlite_store.get("ADR-01")
+        assert fact.refs[0].rel == EdgeType.RELATES

@@ -6,7 +6,7 @@ from rich.console import Console
 from ruamel.yaml import YAML
 
 from lattice_lens.cli.helpers import require_local_lattice
-from lattice_lens.config import CONFIG_FILE, LATTICE_VERSION, ROLES_DIR
+from lattice_lens.config import CONFIG_FILE, FACTS_DIR, LATTICE_VERSION, ROLES_DIR
 
 console = Console()
 err_console = Console(stderr=True)
@@ -140,11 +140,92 @@ def _migrate_to_0_4_0(store) -> int:
     return 1
 
 
+def _migrate_to_0_7_0(store) -> int:
+    """Convert plain string refs to typed FactRef format using edge inference."""
+    from lattice_lens.services.edge_inference import infer_edge_type
+
+    facts_dir = store.root / FACTS_DIR
+    if not facts_dir.exists():
+        return 0
+
+    migrated = 0
+    for path in sorted(facts_dir.glob("*.yaml")):
+        try:
+            with open(path) as f:
+                data = yaml_rw.load(f)
+        except Exception:
+            continue
+
+        if data is None or "refs" not in data:
+            continue
+
+        refs = data["refs"]
+        if not refs or not isinstance(refs, list):
+            continue
+
+        # Check if already typed (list of dicts)
+        if all(isinstance(r, dict) for r in refs):
+            continue
+
+        source_code = data.get("code", "")
+        new_refs = []
+        for ref in refs:
+            if isinstance(ref, str):
+                edge_type = infer_edge_type(source_code, ref)
+                new_refs.append({"code": ref, "rel": edge_type.value})
+            elif isinstance(ref, dict):
+                new_refs.append(ref)
+            else:
+                new_refs.append({"code": str(ref), "rel": "relates"})
+
+        data["refs"] = new_refs
+        with open(path, "w") as f:
+            yaml_rw.dump(data, f)
+        console.print(f"  [green]Typed refs[/green] {path.name}")
+        migrated += 1
+
+    # Add graph_depth and edge_priority to role templates
+    roles_dir = store.root / ROLES_DIR
+    if roles_dir.exists():
+        for path in sorted(roles_dir.glob("*.yaml")):
+            try:
+                with open(path) as f:
+                    data = yaml_rw.load(f)
+            except Exception:
+                continue
+
+            if data is None or "query" not in data:
+                continue
+
+            query = data["query"]
+            changed = False
+            if "graph_depth" not in query:
+                query["graph_depth"] = 1
+                changed = True
+            if "edge_priority" not in query:
+                query["edge_priority"] = [
+                    "constrains",
+                    "contradicts",
+                    "drives",
+                    "mitigates",
+                ]
+                changed = True
+
+            if changed:
+                with open(path, "w") as f:
+                    yaml_rw.dump(data, f)
+                console.print(f"  [green]Updated role[/green] {path.name}")
+                migrated += 1
+
+    return migrated
+
+
 # Ordered list of migrations. Add new entries at the bottom for future phases.
 MIGRATIONS: list[tuple[str, str, callable]] = [
     ("0.2.0", "Nested query format for role templates", _migrate_to_0_2_0),
     ("0.3.0", "Type registry and canonical type names in role templates", _migrate_to_0_3_0),
     ("0.4.0", "Enriched type registry with descriptions", _migrate_to_0_4_0),
+    ("0.7.0", "Typed edges and graph expansion for context assembly", _migrate_to_0_7_0),
 ]
 
 

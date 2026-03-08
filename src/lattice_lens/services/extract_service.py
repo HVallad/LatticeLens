@@ -32,7 +32,7 @@ Respond ONLY with a valid JSON array. Each object has these fields:
 - fact: The atomic fact as a complete, self-contained sentence or short paragraph
 - tags: Array of at least 2 lowercase hyphenated tags
 - confidence: "Confirmed" if explicitly stated in the document, "Provisional" if inferred, "Assumed" if your interpretation
-- refs: Array of codes this fact relates to (use codes you've assigned to other facts in this extraction)
+- refs: Array of references. Each ref can be a plain code string (defaults to "relates") or an object {"code": "ADR-01", "rel": "drives"}. Edge types: drives, constrains, mitigates, contradicts, implements, supersedes, validates, depends_on, relates
 - owner: Best guess at the responsible team based on content (e.g., "architecture-team", "security-team", "product-team")
 
 Do not include any preamble, explanation, or markdown formatting. Only valid JSON."""

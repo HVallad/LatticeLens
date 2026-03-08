@@ -14,9 +14,12 @@ status: Active
 confidence: Confirmed
 version: 1
 refs:
-- DES-01
-- MC-01
-- MON-01
+- code: DES-01
+  rel: drives
+- code: MC-01
+  rel: mitigates
+- code: MON-01
+  rel: drives
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

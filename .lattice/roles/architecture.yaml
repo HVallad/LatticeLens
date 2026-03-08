@@ -15,3 +15,9 @@ query:
   - api
   max_facts: 30
   extra: []
+  graph_depth: 1
+  edge_priority:
+  - constrains
+  - contradicts
+  - drives
+  - mitigates

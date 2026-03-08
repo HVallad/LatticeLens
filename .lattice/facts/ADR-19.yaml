@@ -1,0 +1,33 @@
+code: ADR-19
+layer: WHY
+type: Architecture Decision Record
+fact: >-
+  Adopted typed edges for fact references using 9 edge types: drives,
+  constrains, mitigates, contradicts, implements, supersedes, validates,
+  depends_on, and relates (default). References are modeled as FactRef objects
+  with code and rel fields. Plain string refs are backward-compatible via a
+  Pydantic field validator that coerces strings to FactRef(code=s,
+  rel=RELATES). The supersedes edge replaces the superseded_by field — the
+  new fact points to the old via a supersedes edge, making the direction
+  natural (new supersedes old). Edge types are inferred during migration using
+  prefix-pair heuristics with layer-pair fallbacks.
+tags:
+- architecture
+- edge-types
+- graph
+- typed-refs
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- code: DES-13
+  rel: drives
+- code: DG-14
+  rel: drives
+- code: AUP-07
+  rel: drives
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-08T01:44:23.845562'
+updated_at: '2026-03-08T01:44:23.845562'

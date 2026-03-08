@@ -480,3 +480,404 @@ class TestStaleDowngrade:
 
         result = assemble_context(index, "test", template)
         assert len(result.loaded_facts) == 1  # Still loaded, just in lower tier
+
+
+class TestGraphExpansion:
+    """Tests for graph expansion (Phase 3 — Layer 4)."""
+
+    def _make_role_template(self, **query_overrides):
+        query = {
+            "layers": ["WHY"],
+            "types": ["Architecture Decision Record"],
+            "tags": ["architecture"],
+            "max_facts": 50,
+            "extra": [],
+        }
+        query.update(query_overrides)
+        return {"name": "Test Agent", "query": query}
+
+    def test_graph_depth_0_no_expansion(self):
+        """depth=0 disables graph expansion."""
+        adr = make_fact(
+            code="ADR-01",
+            status=FactStatus.ACTIVE,
+            tags=["architecture", "test"],
+            refs=[{"code": "RISK-01", "rel": "mitigates"}],
+        )
+        risk = make_fact(
+            code="RISK-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Risk Assessment Finding",
+            status=FactStatus.ACTIVE,
+            tags=["risk", "test"],
+        )
+        index = _build_index([adr, risk])
+        template = self._make_role_template()
+
+        result = assemble_context(index, "test", template, graph_depth=0)
+        codes = [f.code for f in result.loaded_facts]
+        assert "ADR-01" in codes
+        assert "RISK-01" not in codes
+        assert result.graph_facts == []
+
+    def test_graph_depth_1_expands_neighbors(self):
+        """depth=1 pulls in directly connected facts."""
+        adr = make_fact(
+            code="ADR-01",
+            status=FactStatus.ACTIVE,
+            tags=["architecture", "test"],
+            refs=[{"code": "RISK-01", "rel": "mitigates"}],
+        )
+        risk = make_fact(
+            code="RISK-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Risk Assessment Finding",
+            status=FactStatus.ACTIVE,
+            tags=["risk", "test"],
+        )
+        index = _build_index([adr, risk])
+        template = self._make_role_template()
+
+        result = assemble_context(index, "test", template, graph_depth=1)
+        codes = [f.code for f in result.loaded_facts]
+        assert "ADR-01" in codes
+        assert "RISK-01" in codes
+        assert "RISK-01" in result.graph_facts
+
+    def test_graph_depth_cli_overrides_template(self):
+        """CLI graph_depth parameter overrides template graph_depth."""
+        adr = make_fact(
+            code="ADR-01",
+            status=FactStatus.ACTIVE,
+            tags=["architecture", "test"],
+            refs=["RISK-01"],
+        )
+        risk = make_fact(
+            code="RISK-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Risk Assessment Finding",
+            status=FactStatus.ACTIVE,
+            tags=["risk", "test"],
+        )
+        index = _build_index([adr, risk])
+        # Template says depth=1, but CLI says depth=0
+        template = self._make_role_template(graph_depth=1)
+
+        result = assemble_context(index, "test", template, graph_depth=0)
+        codes = [f.code for f in result.loaded_facts]
+        assert "RISK-01" not in codes  # CLI override wins
+
+    def test_template_graph_depth_used_when_no_cli(self):
+        """Template graph_depth is used when CLI doesn't specify depth."""
+        adr = make_fact(
+            code="ADR-01",
+            status=FactStatus.ACTIVE,
+            tags=["architecture", "test"],
+            refs=["RISK-01"],
+        )
+        risk = make_fact(
+            code="RISK-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Risk Assessment Finding",
+            status=FactStatus.ACTIVE,
+            tags=["risk", "test"],
+        )
+        index = _build_index([adr, risk])
+        template = self._make_role_template(graph_depth=1)
+
+        result = assemble_context(index, "test", template)  # No graph_depth CLI arg
+        codes = [f.code for f in result.loaded_facts]
+        assert "RISK-01" in codes  # Template depth=1 kicks in
+
+    def test_direct_before_graph_in_sort(self):
+        """Direct matches rank above graph-pulled within same confidence tier."""
+        # ADR-01 is a direct match, RISK-01 is graph-pulled
+        adr = make_fact(
+            code="ADR-01",
+            status=FactStatus.ACTIVE,
+            confidence=FactConfidence.CONFIRMED,
+            tags=["architecture", "test"],
+            refs=[{"code": "RISK-01", "rel": "mitigates"}],
+        )
+        risk = make_fact(
+            code="RISK-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Risk Assessment Finding",
+            status=FactStatus.ACTIVE,
+            confidence=FactConfidence.CONFIRMED,
+            tags=["risk", "test"],
+        )
+        index = _build_index([adr, risk])
+        template = self._make_role_template()
+
+        result = assemble_context(index, "test", template, graph_depth=1)
+        assert len(result.loaded_facts) == 2
+        # Direct match first, graph-pulled second (same confidence tier)
+        assert result.loaded_facts[0].code == "ADR-01"
+        assert result.loaded_facts[1].code == "RISK-01"
+
+    def test_confidence_beats_source_type(self):
+        """Confidence tier takes priority over source type."""
+        # ADR-01 (direct, Provisional), RISK-01 (graph, Confirmed)
+        adr = make_fact(
+            code="ADR-01",
+            status=FactStatus.ACTIVE,
+            confidence=FactConfidence.PROVISIONAL,
+            tags=["architecture", "test"],
+            refs=[{"code": "RISK-01", "rel": "mitigates"}],
+        )
+        risk = make_fact(
+            code="RISK-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Risk Assessment Finding",
+            status=FactStatus.ACTIVE,
+            confidence=FactConfidence.CONFIRMED,
+            tags=["risk", "test"],
+        )
+        index = _build_index([adr, risk])
+        template = self._make_role_template()
+
+        result = assemble_context(index, "test", template, graph_depth=1)
+        # RISK-01 (Confirmed, graph) should come before ADR-01 (Provisional, direct)
+        assert result.loaded_facts[0].code == "RISK-01"
+        assert result.loaded_facts[1].code == "ADR-01"
+
+    def test_budget_enforced_after_expansion(self):
+        """Token budget is enforced on the expanded candidate set."""
+        adr = make_fact(
+            code="ADR-01",
+            status=FactStatus.ACTIVE,
+            tags=["architecture", "test"],
+            refs=["RISK-01"],
+        )
+        risk = make_fact(
+            code="RISK-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Risk Assessment Finding",
+            status=FactStatus.ACTIVE,
+            tags=["risk", "test"],
+        )
+        index = _build_index([adr, risk])
+        template = self._make_role_template()
+
+        # Budget so small only one fact fits
+        result = assemble_context(index, "test", template, budget=50, graph_depth=1)
+        assert len(result.loaded_facts) == 1
+        assert result.budget_exhausted is True
+
+    def test_no_expansion_when_max_facts_met(self):
+        """Graph expansion doesn't run if direct matches already meet max_facts."""
+        facts = [
+            make_fact(
+                code=f"ADR-{i:02d}",
+                status=FactStatus.ACTIVE,
+                tags=["architecture", "test"],
+                refs=["RISK-01"],
+            )
+            for i in range(1, 4)
+        ]
+        risk = make_fact(
+            code="RISK-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Risk Assessment Finding",
+            status=FactStatus.ACTIVE,
+            tags=["risk", "test"],
+        )
+        index = _build_index(facts + [risk])
+        template = self._make_role_template(max_facts=3)
+
+        result = assemble_context(index, "test", template, graph_depth=1)
+        codes = [f.code for f in result.loaded_facts]
+        assert "RISK-01" not in codes  # No expansion because 3 directs already fill max_facts
+
+    def test_expansion_fills_remaining_slots(self):
+        """Graph expansion runs when direct matches < max_facts."""
+        adr = make_fact(
+            code="ADR-01",
+            status=FactStatus.ACTIVE,
+            tags=["architecture", "test"],
+            refs=["RISK-01"],
+        )
+        risk = make_fact(
+            code="RISK-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Risk Assessment Finding",
+            status=FactStatus.ACTIVE,
+            tags=["risk", "test"],
+        )
+        index = _build_index([adr, risk])
+        template = self._make_role_template(max_facts=5)
+
+        result = assemble_context(index, "test", template, graph_depth=1)
+        codes = [f.code for f in result.loaded_facts]
+        assert "RISK-01" in codes  # Expansion fills remaining slots
+
+    def test_edge_priority_filter(self):
+        """edge_priority in template limits which edges are traversed."""
+        adr = make_fact(
+            code="ADR-01",
+            status=FactStatus.ACTIVE,
+            tags=["architecture", "test"],
+            refs=[
+                {"code": "RISK-01", "rel": "mitigates"},
+                {"code": "DES-01", "rel": "relates"},
+            ],
+        )
+        risk = make_fact(
+            code="RISK-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Risk Assessment Finding",
+            status=FactStatus.ACTIVE,
+            tags=["risk", "test"],
+        )
+        des = make_fact(
+            code="DES-01",
+            layer=FactLayer.WHY,
+            type="Design Proposal Decision",
+            status=FactStatus.ACTIVE,
+            tags=["design", "test"],
+        )
+        index = _build_index([adr, risk, des])
+        # Only follow "mitigates" edges
+        template = self._make_role_template(graph_depth=1, edge_priority=["mitigates"])
+
+        result = assemble_context(index, "test", template)
+        codes = [f.code for f in result.loaded_facts]
+        assert "RISK-01" in codes  # mitigates edge followed
+        # DES-01 may or may not be in codes (it's a direct match via layer/type)
+        # But it should NOT be in graph_facts
+        assert "DES-01" not in result.graph_facts
+
+    def test_graph_facts_tracking(self):
+        """graph_facts list accurately tracks which facts came from expansion."""
+        adr = make_fact(
+            code="ADR-01",
+            status=FactStatus.ACTIVE,
+            tags=["architecture", "test"],
+            refs=["RISK-01", "SP-01"],
+        )
+        risk = make_fact(
+            code="RISK-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Risk Assessment Finding",
+            status=FactStatus.ACTIVE,
+            tags=["risk", "test"],
+        )
+        sp = make_fact(
+            code="SP-01",
+            layer=FactLayer.HOW,
+            type="System Prompt Rule",
+            status=FactStatus.ACTIVE,
+            tags=["system", "test"],
+        )
+        index = _build_index([adr, risk, sp])
+        template = self._make_role_template()
+
+        result = assemble_context(index, "test", template, graph_depth=1)
+        # ADR-01 is direct, RISK-01 and SP-01 are graph-pulled
+        assert "ADR-01" not in result.graph_facts
+        assert "RISK-01" in result.graph_facts
+        assert "SP-01" in result.graph_facts
+
+    def test_to_dict_includes_source(self):
+        """to_dict output includes 'source' field per fact."""
+        adr = make_fact(
+            code="ADR-01",
+            status=FactStatus.ACTIVE,
+            tags=["architecture", "test"],
+            refs=["RISK-01"],
+        )
+        risk = make_fact(
+            code="RISK-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Risk Assessment Finding",
+            status=FactStatus.ACTIVE,
+            tags=["risk", "test"],
+        )
+        index = _build_index([adr, risk])
+        template = self._make_role_template()
+
+        result = assemble_context(index, "test", template, graph_depth=1)
+        d = result.to_dict()
+        fact_sources = {f["code"]: f["source"] for f in d["facts"]}
+        assert fact_sources["ADR-01"] == "direct"
+        assert fact_sources["RISK-01"] == "graph"
+
+    def test_render_text_shows_source(self):
+        """render_text includes (direct) or (graph) per fact."""
+        adr = make_fact(
+            code="ADR-01",
+            status=FactStatus.ACTIVE,
+            tags=["architecture", "test"],
+            refs=["RISK-01"],
+        )
+        risk = make_fact(
+            code="RISK-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Risk Assessment Finding",
+            status=FactStatus.ACTIVE,
+            tags=["risk", "test"],
+        )
+        index = _build_index([adr, risk])
+        template = self._make_role_template()
+
+        result = assemble_context(index, "test", template, graph_depth=1)
+        text = result.render_text()
+        assert "(direct)" in text
+        assert "(graph)" in text
+
+    def test_excluded_statuses_not_expanded(self):
+        """Graph expansion skips Draft/Deprecated/Superseded facts."""
+        adr = make_fact(
+            code="ADR-01",
+            status=FactStatus.ACTIVE,
+            tags=["architecture", "test"],
+            refs=["RISK-01"],
+        )
+        risk = make_fact(
+            code="RISK-01",
+            layer=FactLayer.GUARDRAILS,
+            type="Risk Assessment Finding",
+            status=FactStatus.DEPRECATED,
+            tags=["risk", "test"],
+        )
+        index = _build_index([adr, risk])
+        template = self._make_role_template()
+
+        result = assemble_context(index, "test", template, graph_depth=1)
+        codes = [f.code for f in result.loaded_facts]
+        assert "RISK-01" not in codes
+
+    def test_unbounded_depth(self):
+        """depth=-1 traverses entire connected component."""
+        adr = make_fact(
+            code="ADR-01",
+            status=FactStatus.ACTIVE,
+            tags=["architecture", "test"],
+            refs=["DES-01"],
+        )
+        des = make_fact(
+            code="DES-01",
+            layer=FactLayer.WHY,
+            type="Design Proposal Decision",
+            status=FactStatus.ACTIVE,
+            tags=["design", "test"],
+            refs=["SP-01"],
+        )
+        sp = make_fact(
+            code="SP-01",
+            layer=FactLayer.HOW,
+            type="System Prompt Rule",
+            status=FactStatus.ACTIVE,
+            tags=["system", "test"],
+        )
+        index = _build_index([adr, des, sp])
+        template = self._make_role_template()
+
+        result = assemble_context(index, "test", template, graph_depth=-1)
+        codes = [f.code for f in result.loaded_facts]
+        # DES-01 is a direct match (WHY/Design Proposal Decision matches template)
+        # SP-01 is graph-pulled
+        assert "ADR-01" in codes
+        assert "DES-01" in codes
+        assert "SP-01" in codes

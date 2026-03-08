@@ -25,6 +25,9 @@ def context(
         None, "--budget", help="Token budget (omit for unlimited)"
     ),
     project: Optional[str] = typer.Option(None, "--project", help="Filter facts by project scope"),
+    depth: Optional[int] = typer.Option(
+        None, "--depth", help="Graph traversal depth (0=off, 1=default, -1=unbounded)"
+    ),
     as_json: bool = typer.Option(False, "--json", help="Output assembled context as JSON"),
 ):
     """Assemble governed, token-budgeted facts for an agent role."""
@@ -47,7 +50,9 @@ def context(
         raise typer.Exit(1)
 
     template = templates[role]
-    result = assemble_context(store.index, role, template, budget=budget, project=project)
+    result = assemble_context(
+        store.index, role, template, budget=budget, project=project, graph_depth=depth
+    )
 
     if as_json:
         print(json.dumps(result.to_dict(), indent=2))
@@ -74,19 +79,23 @@ def context(
         return
 
     # Facts table
+    graph_set = set(result.graph_facts)
     table = Table(title="Assembled Facts")
     table.add_column("Code", style="bold")
     table.add_column("Layer")
     table.add_column("Type")
     table.add_column("Confidence")
+    table.add_column("Source")
     table.add_column("Tokens", justify="right")
 
     for fact in result.loaded_facts:
+        source = "graph" if fact.code in graph_set else "direct"
         table.add_row(
             fact.code,
             fact.layer.value,
             fact.type,
             fact.confidence.value,
+            source,
             str(estimate_fact_tokens(fact)),
         )
 

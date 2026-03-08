@@ -14,8 +14,10 @@ status: Active
 confidence: Confirmed
 version: 1
 refs:
-- ADR-04
-- DG-01
+- code: ADR-04
+  rel: constrains
+- code: DG-01
+  rel: relates
 superseded_by:
 owner: architecture-team
 review_by:

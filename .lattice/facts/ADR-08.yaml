@@ -14,8 +14,10 @@ status: Active
 confidence: Confirmed
 version: 1
 refs:
-- ADR-01
-- DES-01
+- code: ADR-01
+  rel: relates
+- code: DES-01
+  rel: drives
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

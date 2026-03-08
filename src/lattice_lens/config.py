@@ -22,7 +22,7 @@ LENS_FILE = ".lens"
 # "0.3.0" = Phase 5 (type registry, canonical types in role templates)
 # "0.4.0" = Phase 5 (enriched type registry with descriptions)
 # "0.5.0" = Phase 6 (reconciliation engine, SQLite backend)
-LATTICE_VERSION = "0.6.0"
+LATTICE_VERSION = "0.7.0"
 
 LAYER_PREFIXES: dict[str, list[str]] = {
     "WHY": ["ADR", "PRD", "ETH", "DES"],

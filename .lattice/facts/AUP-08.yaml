@@ -17,9 +17,12 @@ status: Deprecated
 confidence: Confirmed
 version: 4
 refs:
-- DG-06
-- DG-04
-- AUP-07
+- code: DG-06
+  rel: relates
+- code: DG-04
+  rel: relates
+- code: AUP-07
+  rel: relates
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

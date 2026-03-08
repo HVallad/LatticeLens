@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS fact_tags (
 CREATE TABLE IF NOT EXISTS fact_refs (
     source_code TEXT NOT NULL REFERENCES facts(code) ON DELETE CASCADE,
     target_code TEXT NOT NULL,
+    rel_type    TEXT NOT NULL DEFAULT 'relates',
     PRIMARY KEY (source_code, target_code)
 );
 
@@ -90,9 +91,20 @@ class SqliteStore:
         return self._conn
 
     def _ensure_schema(self):
-        """Create tables if they don't exist."""
+        """Create tables if they don't exist, and run migrations."""
         self.conn.executescript(_SCHEMA)
         self.conn.commit()
+        self._migrate_schema()
+
+    def _migrate_schema(self):
+        """Run schema migrations for existing databases."""
+        # Migration: add rel_type column to fact_refs if missing
+        cols = {row[1] for row in self.conn.execute("PRAGMA table_info(fact_refs)").fetchall()}
+        if "rel_type" not in cols:
+            self.conn.execute(
+                "ALTER TABLE fact_refs ADD COLUMN rel_type TEXT NOT NULL DEFAULT 'relates'"
+            )
+            self.conn.commit()
 
     @property
     def index(self) -> FactIndex:
@@ -195,8 +207,8 @@ class SqliteStore:
                 )
             for ref in fact.refs:
                 self.conn.execute(
-                    "INSERT INTO fact_refs (source_code, target_code) VALUES (?, ?)",
-                    (fact.code, ref),
+                    "INSERT INTO fact_refs (source_code, target_code, rel_type) VALUES (?, ?, ?)",
+                    (fact.code, ref.code, ref.rel.value),
                 )
             for project in fact.projects:
                 self.conn.execute(
@@ -256,8 +268,8 @@ class SqliteStore:
             self.conn.execute("DELETE FROM fact_refs WHERE source_code = ?", (code,))
             for ref in updated.refs:
                 self.conn.execute(
-                    "INSERT INTO fact_refs (source_code, target_code) VALUES (?, ?)",
-                    (code, ref),
+                    "INSERT INTO fact_refs (source_code, target_code, rel_type) VALUES (?, ?, ?)",
+                    (code, ref.code, ref.rel.value),
                 )
             # Replace projects
             self.conn.execute("DELETE FROM fact_projects WHERE code = ?", (code,))
@@ -323,12 +335,12 @@ class SqliteStore:
         ).fetchall()
         tags = [r["tag"] for r in tag_rows]
 
-        # Fetch refs
+        # Fetch refs (typed)
         ref_rows = self.conn.execute(
-            "SELECT target_code FROM fact_refs WHERE source_code = ? ORDER BY target_code",
+            "SELECT target_code, rel_type FROM fact_refs WHERE source_code = ? ORDER BY target_code",
             (code,),
         ).fetchall()
-        refs = [r["target_code"] for r in ref_rows]
+        refs = [{"code": r["target_code"], "rel": r["rel_type"]} for r in ref_rows]
 
         # Fetch projects
         project_rows = self.conn.execute(

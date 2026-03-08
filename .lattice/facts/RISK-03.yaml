@@ -15,9 +15,12 @@ status: Active
 confidence: Confirmed
 version: 1
 refs:
-- ADR-05
-- DES-04
-- ADR-10
+- code: ADR-05
+  rel: constrains
+- code: DES-04
+  rel: constrains
+- code: ADR-10
+  rel: constrains
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

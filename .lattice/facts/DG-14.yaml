@@ -1,0 +1,35 @@
+code: DG-14
+layer: GUARDRAILS
+type: Data Governance Rule
+fact: >-
+  The edge type vocabulary defines 9 relationship types for fact references.
+  drives: source motivates or requires target. constrains: source limits or
+  restricts target. mitigates: source reduces risk identified in target.
+  contradicts: source conflicts with target. implements: source realizes or
+  fulfills target. supersedes: source replaces target (target becomes
+  Superseded). validates: source confirms or monitors target. depends_on:
+  source requires target to function. relates: generic association (default).
+  Each fact reference must specify exactly one edge type. The lattice validate
+  command checks that Superseded facts have either a superseded_by field or an
+  inbound supersedes edge. Edge types are stored as FactRef objects in YAML
+  ({code: X, rel: type}) and as a rel_type column in SQLite.
+tags:
+- edge-types
+- governance
+- graph
+- validation
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- code: ADR-19
+  rel: implements
+- code: DG-06
+  rel: relates
+- code: AUP-04
+  rel: relates
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-08T01:44:23.845562'
+updated_at: '2026-03-08T01:44:23.845562'

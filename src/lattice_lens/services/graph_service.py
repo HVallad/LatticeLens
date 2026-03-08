@@ -158,17 +158,39 @@ def find_contradiction_candidates(
     index: FactIndex,
     min_shared_tags: int = 2,
 ) -> list[tuple[str, str, list[str]]]:
-    """Find pairs of Active facts that share tags but differ in layer or owner.
+    """Find pairs of Active facts that share tags but differ in layer or owner,
+    plus any pairs explicitly linked with a CONTRADICTS edge.
 
     These are CANDIDATES for human review, not confirmed contradictions.
     Returns list of (code_a, code_b, shared_tags) tuples.
     """
+    from lattice_lens.models import EdgeType
+
     active_facts = [f for f in index.all_facts() if f.status.value == "Active"]
+    seen_pairs: set[tuple[str, str]] = set()
     candidates = []
+
+    # Tag-based contradiction candidates
     for i, a in enumerate(active_facts):
         for b in active_facts[i + 1 :]:
             shared = sorted(set(a.tags) & set(b.tags))
             if len(shared) >= min_shared_tags:
                 if a.layer != b.layer or a.owner != b.owner:
-                    candidates.append((a.code, b.code, shared))
+                    pair = (min(a.code, b.code), max(a.code, b.code))
+                    if pair not in seen_pairs:
+                        seen_pairs.add(pair)
+                        candidates.append((a.code, b.code, shared))
+
+    # Explicit CONTRADICTS edges
+    for fact in active_facts:
+        edges = index.edges_from(fact.code, edge_types=[EdgeType.CONTRADICTS])
+        for target_code in edges:
+            target = index.get(target_code)
+            if target and target.status.value == "Active":
+                pair = (min(fact.code, target_code), max(fact.code, target_code))
+                if pair not in seen_pairs:
+                    seen_pairs.add(pair)
+                    shared = sorted(set(fact.tags) & set(target.tags))
+                    candidates.append((fact.code, target_code, shared))
+
     return candidates

@@ -16,9 +16,12 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- PRD-01
-- SP-10
-- SP-11
+- code: PRD-01
+  rel: relates
+- code: SP-10
+  rel: drives
+- code: SP-11
+  rel: drives
 superseded_by:
 owner: product-team
 review_by: '2026-09-01'

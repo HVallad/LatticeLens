@@ -17,9 +17,12 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- ADR-12
-- ADR-14
-- SP-07
+- code: ADR-12
+  rel: implements
+- code: ADR-14
+  rel: implements
+- code: SP-07
+  rel: depends_on
 superseded_by:
 owner: architecture-team
 review_by: '2026-06-01'

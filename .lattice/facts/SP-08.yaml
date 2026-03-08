@@ -15,9 +15,12 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- DES-09
-- DG-09
-- DG-02
+- code: DES-09
+  rel: implements
+- code: DG-09
+  rel: validates
+- code: DG-02
+  rel: validates
 superseded_by:
 owner: architecture-team
 review_by:

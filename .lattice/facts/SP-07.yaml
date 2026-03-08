@@ -17,9 +17,12 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- ADR-14
-- DG-06
-- RISK-08
+- code: ADR-14
+  rel: implements
+- code: DG-06
+  rel: validates
+- code: RISK-08
+  rel: mitigates
 superseded_by:
 owner: architecture-team
 review_by: '2026-06-01'

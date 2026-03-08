@@ -161,3 +161,9 @@
 {"timestamp": "2026-03-07T11:23:18.969860", "action": "update", "code": "RUN-07", "reason": "Promoted to Active: Verified against implementation and promoted to Active"}
 {"timestamp": "2026-03-07T11:23:19.355546", "action": "update", "code": "SP-10", "reason": "Promoted to Active: Verified against implementation and promoted to Active"}
 {"timestamp": "2026-03-07T11:23:19.764809", "action": "update", "code": "SP-11", "reason": "Promoted to Active: Verified against implementation and promoted to Active"}
+{"timestamp": "2026-03-08T01:31:59.137144", "action": "update", "code": "AUP-07", "reason": "Updated priority loading rules to document 6-step context assembly pipeline with graph expansion (Layer 4)"}
+{"timestamp": "2026-03-08T01:45:44.747007", "action": "add", "code": "ADR-19", "reason": "Typed edges architecture decision (Layer 4)"}
+{"timestamp": "2026-03-08T01:45:44.747007", "action": "add", "code": "DES-13", "reason": "Context graph expansion design (Layer 4)"}
+{"timestamp": "2026-03-08T01:45:44.747007", "action": "add", "code": "DG-14", "reason": "Edge type vocabulary and validation rules (Layer 4)"}
+{"timestamp": "2026-03-08T01:45:44.747007", "action": "update", "code": "DG-06", "reason": "Updated superseded lifecycle: supersedes edge replaces superseded_by field"}
+{"timestamp": "2026-03-08T01:45:44.747007", "action": "update", "code": "DG-08", "reason": "Documented FactRef format for import overwrite path"}

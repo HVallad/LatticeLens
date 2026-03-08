@@ -98,9 +98,7 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
         if fact.tags != sorted(fact.tags):
             result.add_warning(f"{path.name}: Tags are not sorted")
 
-        # Check superseded consistency
-        if fact.status.value == "Superseded" and not fact.superseded_by:
-            result.add_error(f"{path.name}: Superseded fact missing superseded_by")
+        # Superseded consistency is checked after all facts are loaded (see below)
 
         # Check staleness
         if fact.review_by and fact.review_by < today:
@@ -111,8 +109,28 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
     # Check ref integrity (soft warnings)
     for fact in all_facts:
         for ref in fact.refs:
-            if ref not in all_codes:
-                result.add_warning(f"{fact.code}: Reference target '{ref}' does not exist")
+            if ref.code not in all_codes:
+                result.add_warning(f"{fact.code}: Reference target '{ref.code}' does not exist")
+
+    # Check superseded consistency — requires all facts to be loaded
+    # Superseded facts need either superseded_by field OR an inbound supersedes edge
+    from lattice_lens.models import EdgeType
+
+    supersedes_targets: set[str] = set()
+    for fact in all_facts:
+        for ref in fact.refs:
+            if ref.rel == EdgeType.SUPERSEDES:
+                supersedes_targets.add(ref.code)
+
+    for fact in all_facts:
+        if fact.status.value == "Superseded":
+            has_field = bool(fact.superseded_by)
+            has_edge = fact.code in supersedes_targets
+            if not has_field and not has_edge:
+                result.add_error(
+                    f"{fact.code}: Superseded fact has neither "
+                    "superseded_by field nor inbound supersedes edge"
+                )
 
     # Check type canonicality (RISK-03 mitigation)
     from lattice_lens.services.type_service import canonical_type_for_prefix

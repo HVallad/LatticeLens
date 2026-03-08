@@ -15,8 +15,10 @@ status: Active
 confidence: Confirmed
 version: 2
 refs:
-- ADR-12
-- RUN-01
+- code: ADR-12
+  rel: implements
+- code: RUN-01
+  rel: depends_on
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

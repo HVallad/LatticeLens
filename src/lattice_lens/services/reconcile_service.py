@@ -158,7 +158,7 @@ def render_reconciliation_prompt(
     if active_facts:
         for fact in active_facts:
             tags_str = ", ".join(fact.tags) if fact.tags else "none"
-            refs_str = ", ".join(fact.refs) if fact.refs else "none"
+            refs_str = ", ".join(fact.ref_codes) if fact.refs else "none"
             sections.append(
                 f"### [{fact.code}] {fact.type} ({fact.layer.value})\n"
                 f"Tags: {tags_str}\n"
@@ -219,7 +219,7 @@ def _build_llm_user_message(
     sections.append("## Active Governance Facts\n")
     for fact in active_facts:
         tags_str = ", ".join(fact.tags) if fact.tags else "none"
-        refs_str = ", ".join(fact.refs) if fact.refs else "none"
+        refs_str = ", ".join(fact.ref_codes) if fact.refs else "none"
         sections.append(
             f"### [{fact.code}] {fact.type} ({fact.layer.value})\n"
             f"Tags: {tags_str} | Refs: {refs_str} | "

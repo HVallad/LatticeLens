@@ -15,8 +15,10 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- ADR-15
-- AUP-06
+- code: ADR-15
+  rel: constrains
+- code: AUP-06
+  rel: relates
 superseded_by:
 owner: architecture-team
 review_by: '2026-06-01'

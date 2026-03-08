@@ -15,8 +15,10 @@ status: Active
 confidence: Confirmed
 version: 1
 refs:
-- ADR-01
-- ADR-04
+- code: ADR-01
+  rel: implements
+- code: ADR-04
+  rel: implements
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

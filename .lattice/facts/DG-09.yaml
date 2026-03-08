@@ -16,9 +16,12 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- DES-09
-- DG-02
-- DG-07
+- code: DES-09
+  rel: constrains
+- code: DG-02
+  rel: relates
+- code: DG-07
+  rel: relates
 superseded_by:
 owner: architecture-team
 review_by:

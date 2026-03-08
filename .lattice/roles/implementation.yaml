@@ -14,3 +14,9 @@ query:
   - rate-limiting
   max_facts: 25
   extra: []
+  graph_depth: 1
+  edge_priority:
+  - constrains
+  - contradicts
+  - drives
+  - mitigates

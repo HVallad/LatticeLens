@@ -16,8 +16,10 @@ status: Active
 confidence: Confirmed
 version: 2
 refs:
-- ADR-05
-- SP-01
+- code: ADR-05
+  rel: constrains
+- code: SP-01
+  rel: constrains
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

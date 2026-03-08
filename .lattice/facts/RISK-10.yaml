@@ -17,9 +17,12 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- DES-11
-- DES-12
-- ADR-17
+- code: DES-11
+  rel: constrains
+- code: DES-12
+  rel: constrains
+- code: ADR-17
+  rel: constrains
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

@@ -10,7 +10,10 @@
   status: Active
   confidence: Confirmed
   owner: architecture-team
-  refs: [DES-01, RISK-03, API-01]
+  refs:
+    - {code: DES-01, rel: drives}
+    - {code: RISK-03, rel: mitigates}
+    - {code: API-01, rel: drives}
 
 - code: ADR-03
   layer: WHY
@@ -23,7 +26,10 @@
   status: Active
   confidence: Confirmed
   owner: architecture-team
-  refs: [PRD-01, RISK-07, MC-01]
+  refs:
+    - {code: PRD-01, rel: relates}
+    - {code: RISK-07, rel: mitigates}
+    - {code: MC-01, rel: mitigates}
 
 - code: PRD-01
   layer: WHY
@@ -36,7 +42,10 @@
   status: Active
   confidence: Confirmed
   owner: product-team
-  refs: [ADR-01, MON-01, RISK-05]
+  refs:
+    - {code: ADR-01, rel: drives}
+    - {code: MON-01, rel: drives}
+    - {code: RISK-05, rel: mitigates}
 
 - code: DES-01
   layer: WHY
@@ -49,7 +58,10 @@
   status: Active
   confidence: Confirmed
   owner: architecture-team
-  refs: [ADR-01, API-01, RUN-01]
+  refs:
+    - {code: ADR-01, rel: relates}
+    - {code: API-01, rel: drives}
+    - {code: RUN-01, rel: drives}
 
 - code: MC-01
   layer: GUARDRAILS
@@ -61,7 +73,10 @@
   status: Active
   confidence: Confirmed
   owner: ml-team
-  refs: [ADR-03, ETH-01, RISK-02]
+  refs:
+    - {code: ADR-03, rel: constrains}
+    - {code: ETH-01, rel: relates}
+    - {code: RISK-02, rel: relates}
 
 - code: AUP-05
   layer: GUARDRAILS
@@ -74,7 +89,12 @@
   status: Active
   confidence: Confirmed
   owner: compliance-team
-  refs: [DG-01, DG-03, COMP-01, COMP-04, ETH-02]
+  refs:
+    - {code: DG-01, rel: relates}
+    - {code: DG-03, rel: relates}
+    - {code: COMP-01, rel: relates}
+    - {code: COMP-04, rel: relates}
+    - {code: ETH-02, rel: relates}
 
 - code: RISK-07
   layer: GUARDRAILS
@@ -88,7 +108,11 @@
   status: Active
   confidence: Confirmed
   owner: security-team
-  refs: [ADR-03, AUP-02, SP-03, MON-04]
+  refs:
+    - {code: ADR-03, rel: constrains}
+    - {code: AUP-02, rel: relates}
+    - {code: SP-03, rel: constrains}
+    - {code: MON-04, rel: constrains}
 
 - code: DG-01
   layer: GUARDRAILS
@@ -101,7 +125,10 @@
   status: Active
   confidence: Confirmed
   owner: security-team
-  refs: [AUP-05, COMP-04, SP-03]
+  refs:
+    - {code: AUP-05, rel: relates}
+    - {code: COMP-04, rel: relates}
+    - {code: SP-03, rel: constrains}
 
 - code: SP-01
   layer: HOW
@@ -114,7 +141,10 @@
   status: Active
   confidence: Confirmed
   owner: product-team
-  refs: [ETH-01, AUP-01, COMP-01]
+  refs:
+    - {code: ETH-01, rel: validates}
+    - {code: AUP-01, rel: validates}
+    - {code: COMP-01, rel: validates}
 
 - code: API-01
   layer: HOW
@@ -127,7 +157,10 @@
   status: Active
   confidence: Confirmed
   owner: backend-team
-  refs: [ADR-01, DES-01, MON-01]
+  refs:
+    - {code: ADR-01, rel: implements}
+    - {code: DES-01, rel: implements}
+    - {code: MON-01, rel: depends_on}
 
 - code: MON-01
   layer: HOW
@@ -140,7 +173,10 @@
   status: Active
   confidence: Confirmed
   owner: ops-team
-  refs: [PRD-01, RUN-01, RISK-05]
+  refs:
+    - {code: PRD-01, rel: implements}
+    - {code: RUN-01, rel: depends_on}
+    - {code: RISK-05, rel: validates}
 
 - code: RUN-01
   layer: HOW
@@ -154,4 +190,6 @@
   status: Active
   confidence: Confirmed
   owner: ops-team
-  refs: [MON-01, DES-01]
+  refs:
+    - {code: MON-01, rel: depends_on}
+    - {code: DES-01, rel: implements}

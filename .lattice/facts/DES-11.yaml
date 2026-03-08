@@ -20,11 +20,16 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- DES-06
-- DES-07
-- PRD-01
-- RISK-02
-- RISK-06
+- code: DES-06
+  rel: depends_on
+- code: DES-07
+  rel: depends_on
+- code: PRD-01
+  rel: relates
+- code: RISK-02
+  rel: mitigates
+- code: RISK-06
+  rel: mitigates
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
