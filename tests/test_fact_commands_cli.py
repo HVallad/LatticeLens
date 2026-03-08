@@ -1,10 +1,11 @@
-"""Extended CLI tests for `lattice fact` commands — add, ls filters, promote, get display."""
+"""Extended CLI tests for `lattice fact` commands — add, ls filters, promote, get display, edit."""
 
 from __future__ import annotations
 
 import json
 from datetime import date, timedelta
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 from ruamel.yaml import YAML
@@ -277,3 +278,339 @@ class TestFactGetDisplay:
         assert "owner" in data
         assert "refs" in data
         assert "projects" in data
+
+    def test_get_not_found(self, initialized_dir: Path):
+        result = runner.invoke(app, ["fact", "get", "NOPE-99"])
+        assert result.exit_code == 1
+
+    def test_get_shows_refs(self, initialized_dir: Path):
+        """Panel display shows ref codes."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        target = make_fact(code="ADR-01")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(target.model_dump(mode="json"), f)
+
+        referrer = make_fact(code="ADR-02", refs=["ADR-01"])
+        with open(facts_dir / "ADR-02.yaml", "w") as f:
+            yaml_rw.dump(referrer.model_dump(mode="json"), f)
+
+        result = runner.invoke(app, ["fact", "get", "ADR-02"])
+        assert result.exit_code == 0
+        assert "ADR-01" in result.output
+
+    def test_get_shows_projects(self, initialized_dir: Path):
+        """Panel display shows project names."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", projects=["my-proj"])
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(app, ["fact", "get", "ADR-01"])
+        assert result.exit_code == 0
+        assert "my-proj" in result.output
+
+
+# -- fact add interactive tests -----------------------------------------------
+
+
+def _interactive_input(*lines: str) -> str:
+    """Build input string for typer.prompt() calls. Adds trailing newline."""
+    return "\n".join(lines) + "\n"
+
+
+class TestFactAddInteractive:
+    """Tests for `lattice fact add` (interactive mode — no --from flag)."""
+
+    def test_basic_interactive_add(self, initialized_dir: Path):
+        """Happy path: interactive add with all required prompts."""
+        inp = _interactive_input(
+            "ADR",  # prefix
+            "Architecture Decision Record",  # type
+            "We decided to use YAML for storage of all facts.",  # fact text
+            "architecture, storage",  # tags
+            "platform-team",  # owner
+            "Draft",  # status
+            "Confirmed",  # confidence
+            "",  # refs (empty)
+            "",  # review_by (empty)
+            "",  # projects (empty)
+        )
+        result = runner.invoke(app, ["fact", "add"], input=inp)
+        assert result.exit_code == 0
+        assert "Created" in result.output
+        assert "ADR-01" in result.output
+
+    def test_interactive_add_with_refs(self, initialized_dir: Path):
+        """Interactive add with ref to another fact."""
+        # First create a fact to reference
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        target = make_fact(code="ADR-01", status="Draft")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(target.model_dump(mode="json"), f)
+
+        inp = _interactive_input(
+            "ADR",
+            "Architecture Decision Record",
+            "Follow-on decision about YAML storage layout.",
+            "architecture, storage",
+            "platform-team",
+            "Draft",
+            "Confirmed",
+            "ADR-01",  # refs
+            "",  # review_by
+            "",  # projects
+        )
+        result = runner.invoke(app, ["fact", "add"], input=inp)
+        assert result.exit_code == 0
+        assert "Created" in result.output
+        assert "ADR-02" in result.output  # auto-incremented
+
+    def test_interactive_add_with_broken_ref(self, initialized_dir: Path):
+        """Interactive add with ref to non-existent code produces warning."""
+        inp = _interactive_input(
+            "ADR",
+            "Architecture Decision Record",
+            "Decision referencing something that does not exist.",
+            "architecture, test",
+            "platform-team",
+            "Draft",
+            "Confirmed",
+            "NOPE-99",  # broken ref
+            "",
+            "",
+        )
+        result = runner.invoke(app, ["fact", "add"], input=inp)
+        assert result.exit_code == 0
+        assert "Created" in result.output
+        assert "Warning" in result.output
+        assert "NOPE-99" in result.output
+
+    def test_interactive_add_unknown_prefix(self, initialized_dir: Path):
+        """Unknown prefix exits with error."""
+        inp = _interactive_input(
+            "ZZZ",  # unknown prefix
+        )
+        result = runner.invoke(app, ["fact", "add"], input=inp)
+        assert result.exit_code == 1
+
+    def test_interactive_add_validation_error(self, initialized_dir: Path):
+        """Validation error (e.g., fact text too short) exits with error."""
+        inp = _interactive_input(
+            "ADR",
+            "Architecture Decision Record",
+            "short",  # too short (< 10 chars)
+            "test, example",
+            "team",
+            "Draft",
+            "Confirmed",
+            "",
+            "",
+            "",
+        )
+        result = runner.invoke(app, ["fact", "add"], input=inp)
+        assert result.exit_code == 1
+
+    def test_interactive_add_with_review_by(self, initialized_dir: Path):
+        """Interactive add with review_by date."""
+        future = (date.today() + timedelta(days=90)).isoformat()
+        inp = _interactive_input(
+            "ADR",
+            "Architecture Decision Record",
+            "Decision with a review-by date set for the future.",
+            "architecture, review",
+            "platform-team",
+            "Draft",
+            "Confirmed",
+            "",
+            future,  # review_by
+            "",
+        )
+        result = runner.invoke(app, ["fact", "add"], input=inp)
+        assert result.exit_code == 0
+        assert "Created" in result.output
+
+    def test_interactive_add_with_projects(self, initialized_dir: Path):
+        """Interactive add with project scoping."""
+        inp = _interactive_input(
+            "ADR",
+            "Architecture Decision Record",
+            "Decision scoped to a specific project for isolation.",
+            "architecture, scoping",
+            "platform-team",
+            "Draft",
+            "Confirmed",
+            "",
+            "",
+            "my-project",  # projects
+        )
+        result = runner.invoke(app, ["fact", "add"], input=inp)
+        assert result.exit_code == 0
+        assert "Created" in result.output
+
+    def test_interactive_add_auto_increments_code(self, initialized_dir: Path):
+        """Two successive adds auto-increment the code."""
+        base_inp = _interactive_input(
+            "ADR",
+            "Architecture Decision Record",
+            "First decision about YAML storage and format.",
+            "architecture, test",
+            "team",
+            "Draft",
+            "Confirmed",
+            "",
+            "",
+            "",
+        )
+        result1 = runner.invoke(app, ["fact", "add"], input=base_inp)
+        assert result1.exit_code == 0
+        assert "ADR-01" in result1.output
+
+        result2 = runner.invoke(app, ["fact", "add"], input=base_inp)
+        assert result2.exit_code == 0
+        assert "ADR-02" in result2.output
+
+
+# -- fact edit tests ----------------------------------------------------------
+
+
+def _mock_editor(changes: dict):
+    """Return a callable that simulates $EDITOR by modifying the temp YAML file."""
+
+    def fake_run(cmd, **kwargs):
+        tmp_path = cmd[-1]  # last arg is the temp file path
+        if not changes:
+            return MagicMock(returncode=0)
+        from ruamel.yaml import YAML as _YAML
+
+        y = _YAML()
+        y.default_flow_style = False
+        with open(tmp_path) as f:
+            data = y.load(f)
+        data.update(changes)
+        with open(tmp_path, "w") as f:
+            y.dump(data, f)
+        return MagicMock(returncode=0)
+
+    return fake_run
+
+
+class TestFactEdit:
+    """Tests for `lattice fact edit CODE` — opens $EDITOR on a temp YAML file."""
+
+    def test_successful_change(self, initialized_dir: Path, monkeypatch):
+        """Edit updates fact text successfully."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        monkeypatch.setattr(
+            "subprocess.run",
+            _mock_editor({"fact": "Updated fact text with at least ten characters."}),
+        )
+        result = runner.invoke(app, ["fact", "edit", "ADR-01"])
+        assert result.exit_code == 0
+        assert "Updated" in result.output
+
+    def test_edit_not_found(self, initialized_dir: Path):
+        """Editing a nonexistent fact exits with error."""
+        result = runner.invoke(app, ["fact", "edit", "NOPE-99"])
+        assert result.exit_code == 1
+
+    def test_edit_no_changes(self, initialized_dir: Path, monkeypatch):
+        """No changes detected → exits cleanly."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        monkeypatch.setattr("subprocess.run", _mock_editor({}))
+        result = runner.invoke(app, ["fact", "edit", "ADR-01"])
+        assert result.exit_code == 0
+        assert "No changes" in result.output
+
+    def test_code_change_rejected(self, initialized_dir: Path, monkeypatch):
+        """Changing the code is blocked; user declines re-edit."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        monkeypatch.setattr("subprocess.run", _mock_editor({"code": "ADR-99"}))
+        # "n" declines re-edit → aborted
+        result = runner.invoke(app, ["fact", "edit", "ADR-01"], input="n\n")
+        assert result.exit_code == 0
+        assert "Aborted" in result.output
+
+    def test_validation_error_then_abort(self, initialized_dir: Path, monkeypatch):
+        """Validation error on edit → user declines re-edit → aborted."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        # Empty fact text fails validation
+        monkeypatch.setattr("subprocess.run", _mock_editor({"fact": "x"}))
+        result = runner.invoke(app, ["fact", "edit", "ADR-01"], input="n\n")
+        assert result.exit_code == 0
+        assert "Aborted" in result.output
+
+    def test_promotion_via_edit_blocked(self, initialized_dir: Path, monkeypatch):
+        """Status change matching promotion transition is blocked."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Draft")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        # Try to promote Draft → Under Review via edit
+        monkeypatch.setattr("subprocess.run", _mock_editor({"status": "Under Review"}))
+        # "n" declines re-edit → aborted
+        result = runner.invoke(app, ["fact", "edit", "ADR-01"], input="n\n")
+        assert result.exit_code == 0
+        assert "promote" in result.output.lower() or "Aborted" in result.output
+
+    def test_updates_tags(self, initialized_dir: Path, monkeypatch):
+        """Edit can update tags."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active", tags=["architecture", "test"])
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        monkeypatch.setattr(
+            "subprocess.run",
+            _mock_editor({"tags": ["architecture", "test", "updated"]}),
+        )
+        result = runner.invoke(app, ["fact", "edit", "ADR-01"])
+        assert result.exit_code == 0
+        assert "Updated" in result.output
+
+    def test_updates_refs_with_warning(self, initialized_dir: Path, monkeypatch):
+        """Adding a broken ref via edit produces a warning."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        monkeypatch.setattr(
+            "subprocess.run",
+            _mock_editor({"refs": [{"code": "NOPE-99", "rel": "relates"}]}),
+        )
+        result = runner.invoke(app, ["fact", "edit", "ADR-01"])
+        assert result.exit_code == 0
+        assert "Warning" in result.output
+        assert "NOPE-99" in result.output
+
+
+# -- fact deprecate tests -----------------------------------------------------
+
+
+class TestFactDeprecateCommand:
+    def test_deprecate_existing_fact(self, seeded_dir: Path):
+        result = runner.invoke(app, ["fact", "deprecate", "ADR-01", "--reason", "no longer needed"])
+        assert result.exit_code == 0
+        assert "Deprecated" in result.output
+        assert "ADR-01" in result.output
+
+    def test_deprecate_not_found(self, initialized_dir: Path):
+        result = runner.invoke(app, ["fact", "deprecate", "NOPE-99", "--reason", "does not exist"])
+        assert result.exit_code == 1
