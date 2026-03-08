@@ -15,6 +15,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
+    "pytest-cov>=6.0.0",
     "ruff>=0.3.0",
 ]
 extract = [
@@ -38,6 +39,20 @@ where = ["src"]
 testpaths = ["tests"]
 markers = [
     "integration: marks tests that require external API access (deselect with '-m \"not integration\"')",
+]
+
+[tool.coverage.run]
+source = ["lattice_lens"]
+omit = ["*/mcp/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.",
+    "@overload",
 ]
 
 [tool.ruff]
