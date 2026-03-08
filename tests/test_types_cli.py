@@ -93,3 +93,31 @@ class TestTypesCommand:
         assert result.exit_code == 0
         data = json.loads(result.output)
         assert isinstance(data, list)
+
+    # --- New tests ---
+
+    def test_types_no_lattice_errors(self, cli_dir: Path):
+        """Without .lattice/, types should exit with error."""
+        result = runner.invoke(app, ["types"])
+        assert result.exit_code != 0
+
+    def test_types_audit_json_empty(self, initialized_dir: Path):
+        """--audit --json on a clean lattice returns an empty list."""
+        result = runner.invoke(app, ["types", "--audit", "--json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data == []
+
+    def test_types_descriptions_shown(self, initialized_dir: Path):
+        """Table output includes the Description column."""
+        result = runner.invoke(app, ["types"])
+        assert result.exit_code == 0
+        assert "Description" in result.output
+
+    def test_types_all_layers_present(self, initialized_dir: Path):
+        """All three layers appear in the default type registry output."""
+        result = runner.invoke(app, ["types"])
+        assert result.exit_code == 0
+        assert "WHY" in result.output
+        assert "GUARDRAILS" in result.output
+        assert "HOW" in result.output

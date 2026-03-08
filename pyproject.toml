@@ -1,6 +1,6 @@
 [project]
 name = "lattice-lens"
-version = "0.1.0"
+version = "1.0.0"
 description = "Knowledge governance layer for AI agent systems"
 license = {text = "MIT"}
 requires-python = ">=3.11"
@@ -43,9 +43,9 @@ markers = [
 
 [tool.coverage.run]
 source = ["lattice_lens"]
-omit = ["*/mcp/*"]
 
 [tool.coverage.report]
+fail_under = 80
 show_missing = true
 skip_empty = true
 exclude_lines = [

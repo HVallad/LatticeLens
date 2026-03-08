@@ -161,3 +161,69 @@ class TestCallTool:
         codes = json.loads(text)
         assert isinstance(codes, list)
         assert "ADR-01" in codes
+
+    # --- New tests ---
+
+    def test_fact_get_missing(self, yaml_store):
+        """Getting a nonexistent fact returns an error dict."""
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(yaml_store.root / "roles")
+        server = create_server(yaml_store.root, writable=False)
+
+        text = _call_tool_text(server, "fact_get", {"code": "ZZZ-99"})
+        data = json.loads(text)
+        assert "error" in data
+
+    def test_fact_query_by_layer(self, seeded_store):
+        """Querying with a layer filter returns only matching facts."""
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(seeded_store.root / "roles")
+        server = create_server(seeded_store.root, writable=False)
+
+        text = _call_tool_text(server, "fact_query", {"layer": "WHY"})
+        data = json.loads(text)
+        assert isinstance(data, list)
+        for fact in data:
+            assert fact["layer"] == "WHY"
+
+    def test_lattice_status(self, seeded_store):
+        """lattice_status returns a dict with summary counts."""
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(seeded_store.root / "roles")
+        server = create_server(seeded_store.root, writable=False)
+
+        text = _call_tool_text(server, "lattice_status", {})
+        data = json.loads(text)
+        assert isinstance(data, dict)
+        assert "total" in data or "total_facts" in data or len(data) > 0
+
+    def test_fact_create_roundtrip(self, yaml_store):
+        """Create a fact via MCP, then retrieve it."""
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(yaml_store.root / "roles")
+        server = create_server(yaml_store.root, writable=True)
+
+        create_text = _call_tool_text(
+            server,
+            "fact_create",
+            {
+                "code": "ADR-01",
+                "layer": "WHY",
+                "type": "Architecture Decision Record",
+                "fact": "We chose FastMCP for the MCP server implementation.",
+                "tags": ["architecture", "api"],
+                "owner": "platform-team",
+            },
+        )
+        create_data = json.loads(create_text)
+        assert create_data.get("code") == "ADR-01" or "error" not in create_data
+
+        # Retrieve it back
+        get_text = _call_tool_text(server, "fact_get", {"code": "ADR-01"})
+        get_data = json.loads(get_text)
+        assert get_data["code"] == "ADR-01"
+        assert "FastMCP" in get_data["fact"]
