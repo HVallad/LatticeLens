@@ -124,9 +124,20 @@ def _add_interactive(store):
     # Confidence
     confidence_str = typer.prompt("Confidence", default="Confirmed")
 
-    # Refs
-    refs_input = typer.prompt("Refs (comma-separated codes, optional)", default="")
-    refs = [r.strip() for r in refs_input.split(",") if r.strip()]
+    # Refs — accepts "CODE" (defaults to relates) or "CODE:edge_type"
+    refs_input = typer.prompt(
+        "Refs (comma-separated, CODE or CODE:edge_type; optional)", default=""
+    )
+    refs: list[dict | str] = []
+    for r in refs_input.split(","):
+        r = r.strip()
+        if not r:
+            continue
+        if ":" in r:
+            ref_code, rel = r.split(":", 1)
+            refs.append({"code": ref_code.strip(), "rel": rel.strip()})
+        else:
+            refs.append(r)
 
     # Review by
     review_by_str = typer.prompt("Review by (YYYY-MM-DD, optional)", default="")
@@ -194,7 +205,7 @@ def fact_get(
         f"[bold]Version:[/bold] {fact.version}\n"
         f"[bold]Owner:[/bold] {fact.owner}\n"
         f"[bold]Tags:[/bold] {', '.join(fact.tags)}\n"
-        f"[bold]Refs:[/bold] {', '.join(fact.refs) if fact.refs else '(none)'}\n"
+        f"[bold]Refs:[/bold] {', '.join(f'{r.code} ({r.rel.value})' for r in fact.refs) if fact.refs else '(none)'}\n"
         f"[bold]Projects:[/bold] {projects_display}\n"
         f"[bold]Review by:[/bold] {fact.review_by or '(not set)'}\n"
         f"[bold]Created:[/bold] {fact.created_at}\n"

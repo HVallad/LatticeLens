@@ -18,9 +18,12 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- DES-10
-- RISK-03
-- MC-01
+- code: DES-10
+  rel: constrains
+- code: RISK-03
+  rel: relates
+- code: MC-01
+  rel: relates
 superseded_by:
 owner: architecture-team
 review_by:

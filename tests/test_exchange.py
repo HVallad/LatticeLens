@@ -188,7 +188,7 @@ class TestRoundTrip:
             tuple(sorted(item.get("tags", []))),
             item["status"],
             item["confidence"],
-            tuple(sorted(item.get("refs", []))),
+            tuple(sorted(r["code"] if isinstance(r, dict) else r for r in item.get("refs", []))),
             item["owner"],
         )
 

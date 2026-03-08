@@ -111,9 +111,9 @@ def reindex():
             tag_index.setdefault(tag, []).append(f.code)
         layer_groups.setdefault(f.layer.value, []).append(f.code)
         if f.refs:
-            refs_forward[f.code] = f.refs
+            refs_forward[f.code] = f.ref_codes
         for ref in f.refs:
-            refs_reverse.setdefault(ref, []).append(f.code)
+            refs_reverse.setdefault(ref.code, []).append(f.code)
         by_status[f.status.value] = by_status.get(f.status.value, 0) + 1
         by_layer[f.layer.value] = by_layer.get(f.layer.value, 0) + 1
 

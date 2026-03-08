@@ -127,7 +127,7 @@ class EvaluationResult:
             for fact in self.guardrails:
                 lines.append(f"### [{fact.code}] {fact.type} ({fact.confidence.value})")
                 if fact.refs:
-                    lines.append(f"Refs: {', '.join(fact.refs)}")
+                    lines.append(f"Refs: {', '.join(fact.ref_codes)}")
                 lines.append("")
                 lines.append(fact.fact)
                 lines.append("")
@@ -196,7 +196,7 @@ class EvaluationResult:
                     "type": f.type,
                     "confidence": f.confidence.value,
                     "tags": f.tags,
-                    "refs": f.refs,
+                    "refs": [{"code": r.code, "rel": r.rel.value} for r in f.refs],
                     "fact": f.fact,
                 }
                 for f in self.guardrails

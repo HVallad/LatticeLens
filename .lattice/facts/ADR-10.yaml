@@ -15,9 +15,12 @@ status: Active
 confidence: Confirmed
 version: 1
 refs:
-- DES-01
-- SP-03
-- PRD-01
+- code: DES-01
+  rel: drives
+- code: SP-03
+  rel: drives
+- code: PRD-01
+  rel: relates
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

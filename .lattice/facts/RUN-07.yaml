@@ -1,30 +1,53 @@
-code: RUN-07
-layer: HOW
-type: Runbook Procedure
-fact: Backend migration procedure. Run lattice backend status to view the 
-  current backend type and fact count. Run lattice backend switch sqlite to 
-  migrate YAML to SQLite, or lattice backend switch yaml for the reverse. The 
-  switch command reads all facts from the source backend, writes them to the 
-  target, updates config.yaml with the new backend setting, and preserves the 
-  original data (YAML files or DB file) as backup. Migration is always explicit 
-  per RISK-06 — the system never auto-migrates. Verify the migration with 
-  lattice fact ls and lattice validate after switching.
-tags:
-- developer
-- incident-response
-- migration
-- sqlite
-- storage
-status: Active
-confidence: Confirmed
-version: 3
-refs:
-- ADR-16
-- RISK-06
-- DES-06
-superseded_by:
-owner: architecture-team
-review_by: '2026-09-01'
-created_at: '2026-03-05T23:55:55.524327'
-updated_at: '2026-03-07T11:23:18.967895'
-projects: []
+code: RUN-07
+
+layer: HOW
+
+type: Runbook Procedure
+
+fact: "Backend migration procedure. Run lattice backend status to view the\ncurrent
+  backend type and fact count. Run lattice backend switch sqlite to\nmigrate YAML
+  to SQLite, or lattice backend switch yaml for the reverse. The\nswitch command reads
+  all facts from the source backend, writes them to the\ntarget, updates config.yaml
+  with the new backend setting, and preserves the\noriginal data (YAML files or DB
+  file) as backup. Migration is always explicit\nper RISK-06 — the system never
+  auto-migrates. Verify the migration with\nlattice fact ls and lattice validate after
+  switching."
+
+tags:
+
+- developer
+
+- incident-response
+
+- migration
+
+- sqlite
+
+- storage
+
+status: Active
+
+confidence: Confirmed
+
+version: 3
+
+refs:
+
+- code: ADR-16
+  rel: implements
+- code: RISK-06
+  rel: validates
+- code: DES-06
+  rel: implements
+superseded_by:
+
+owner: architecture-team
+
+review_by: '2026-09-01'
+
+created_at: '2026-03-05T23:55:55.524327'
+
+updated_at: '2026-03-07T11:23:18.967895'
+
+projects: []
+

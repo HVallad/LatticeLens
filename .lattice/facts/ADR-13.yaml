@@ -16,8 +16,10 @@ status: Active
 confidence: Confirmed
 version: 1
 refs:
-- PRD-01
-- PRD-02
+- code: PRD-01
+  rel: relates
+- code: PRD-02
+  rel: relates
 superseded_by:
 owner: architecture-team
 review_by: '2026-12-01'

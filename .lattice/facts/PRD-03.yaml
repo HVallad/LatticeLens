@@ -17,11 +17,16 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- DG-06
-- AUP-08
-- AUP-07
-- DES-08
-- PRD-01
+- code: DG-06
+  rel: mitigates
+- code: AUP-08
+  rel: mitigates
+- code: AUP-07
+  rel: mitigates
+- code: DES-08
+  rel: drives
+- code: PRD-01
+  rel: relates
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

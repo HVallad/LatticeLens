@@ -17,10 +17,14 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- DES-11
-- DES-12
-- SP-10
-- API-01
+- code: DES-11
+  rel: implements
+- code: DES-12
+  rel: implements
+- code: SP-10
+  rel: depends_on
+- code: API-01
+  rel: depends_on
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

@@ -1,14 +1,18 @@
 code: DG-06
 layer: GUARDRAILS
 type: Data Governance Rule
-fact: 'Facts progress through a defined lifecycle that controls context inclusion.
-  Draft: author creates initial fact, never included in agent context. Under Review:
-  peer validates, may be included with confidence Provisional. Active: enters the
-  live index, primary content of agent context. Deprecated: no longer relevant, excluded
-  from queries but preserved for audit. Superseded: replaced by a newer fact, must
-  point to replacement via superseded_by. Review Expired is not a formal FactStatus
-  enum value but a runtime condition: facts past their review_by date are flagged
-  and downgraded to Provisional confidence during context assembly.'
+fact: >-
+  Facts progress through a defined lifecycle that controls context inclusion.
+  Draft: author creates initial fact, never included in agent context. Under
+  Review: peer validates, may be included with confidence Provisional. Active:
+  enters the live index, primary content of agent context. Deprecated: no
+  longer relevant, excluded from queries but preserved for audit. Superseded:
+  replaced by a newer fact — the replacement must point to it via a supersedes
+  edge (inbound from the replacing fact), enforced at command-level and by
+  lattice validate. The legacy superseded_by field is also accepted during
+  validation. Review Expired is not a formal FactStatus enum value but a
+  runtime condition: facts past their review_by date are flagged and
+  downgraded to Provisional confidence during context assembly.
 tags:
 - governance
 - lifecycle
@@ -16,14 +20,18 @@ tags:
 - status
 status: Active
 confidence: Confirmed
-version: 2
+version: 3
 refs:
-- DES-01
-- AUP-01
-- AUP-04
-- DG-04
+- code: DES-01
+  rel: constrains
+- code: AUP-01
+  rel: relates
+- code: AUP-04
+  rel: relates
+- code: DG-04
+  rel: relates
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
 created_at: '2026-03-05T13:06:54.483174'
-updated_at: '2026-03-05T18:11:10.839604'
+updated_at: '2026-03-08T01:44:23.845562'

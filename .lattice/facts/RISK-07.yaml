@@ -20,8 +20,10 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- RISK-02
-- DES-02
+- code: RISK-02
+  rel: relates
+- code: DES-02
+  rel: constrains
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

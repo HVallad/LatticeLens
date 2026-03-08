@@ -14,8 +14,10 @@ status: Active
 confidence: Confirmed
 version: 2
 refs:
-- ADR-04
-- MON-01
+- code: ADR-04
+  rel: constrains
+- code: MON-01
+  rel: constrains
 superseded_by:
 owner: architecture-team
 review_by:

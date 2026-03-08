@@ -19,10 +19,14 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- ADR-18
-- DG-13
-- MC-01
-- DG-02
+- code: ADR-18
+  rel: constrains
+- code: DG-13
+  rel: relates
+- code: MC-01
+  rel: relates
+- code: DG-02
+  rel: relates
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

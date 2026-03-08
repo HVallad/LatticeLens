@@ -16,9 +16,12 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- DES-10
-- DG-10
-- RISK-03
+- code: DES-10
+  rel: implements
+- code: DG-10
+  rel: validates
+- code: RISK-03
+  rel: mitigates
 superseded_by:
 owner: architecture-team
 review_by:

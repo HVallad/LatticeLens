@@ -30,6 +30,27 @@ class FactConfidence(str, enum.Enum):
     ASSUMED = "Assumed"
 
 
+class EdgeType(str, enum.Enum):
+    """Typed relationship between two facts."""
+
+    DRIVES = "drives"
+    CONSTRAINS = "constrains"
+    MITIGATES = "mitigates"
+    CONTRADICTS = "contradicts"
+    IMPLEMENTS = "implements"
+    SUPERSEDES = "supersedes"
+    VALIDATES = "validates"
+    DEPENDS_ON = "depends_on"
+    RELATES = "relates"
+
+
+class FactRef(BaseModel):
+    """A typed reference from one fact to another."""
+
+    code: str = Field(..., pattern=r"^[A-Z]+-\d+$")
+    rel: EdgeType = EdgeType.RELATES
+
+
 class Fact(BaseModel):
     """Core fact model. One YAML file per fact."""
 
@@ -41,13 +62,34 @@ class Fact(BaseModel):
     status: FactStatus = FactStatus.DRAFT
     confidence: FactConfidence = FactConfidence.CONFIRMED
     version: int = Field(default=1, ge=1)
-    refs: list[str] = Field(default_factory=list)
+    refs: list[FactRef] = Field(default_factory=list)
     superseded_by: str | None = None
     owner: str = Field(..., min_length=1, max_length=100)
     review_by: date | None = None
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
     projects: list[str] = Field(default_factory=list)
+
+    @field_validator("refs", mode="before")
+    @classmethod
+    def normalize_refs(cls, v: list) -> list[FactRef]:
+        """Accept list[str], list[dict], or list[FactRef]. Strings become relates edges."""
+        result = []
+        for item in v:
+            if isinstance(item, str):
+                result.append(FactRef(code=item))
+            elif isinstance(item, dict):
+                result.append(FactRef(**item))
+            elif isinstance(item, FactRef):
+                result.append(item)
+            else:
+                raise ValueError(f"Invalid ref: {item}")
+        return result
+
+    @property
+    def ref_codes(self) -> list[str]:
+        """Return just the ref target codes (backward-compat convenience)."""
+        return [r.code for r in self.refs]
 
     @field_validator("projects")
     @classmethod

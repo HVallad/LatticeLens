@@ -13,9 +13,12 @@ status: Active
 confidence: Confirmed
 version: 1
 refs:
-- RISK-01
-- MC-01
-- ADR-04
+- code: RISK-01
+  rel: validates
+- code: MC-01
+  rel: validates
+- code: ADR-04
+  rel: implements
 superseded_by:
 owner: architecture-team
 review_by:

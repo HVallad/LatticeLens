@@ -16,9 +16,12 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- ADR-16
-- RISK-06
-- DES-06
+- code: ADR-16
+  rel: implements
+- code: RISK-06
+  rel: mitigates
+- code: DES-06
+  rel: implements
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

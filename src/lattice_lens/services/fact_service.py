@@ -34,12 +34,16 @@ def infer_layer(prefix: str) -> str | None:
     return PREFIX_TO_LAYER.get(prefix)
 
 
-def check_refs(store: LatticeStore, refs: list[str]) -> list[str]:
-    """Return list of warning messages for refs pointing to non-existent codes."""
+def check_refs(store: LatticeStore, refs: list) -> list[str]:
+    """Return list of warning messages for refs pointing to non-existent codes.
+
+    Accepts list[str], list[FactRef], or mixed.
+    """
     warnings = []
     for ref in refs:
-        if not store.exists(ref):
-            warnings.append(f"Reference target '{ref}' does not exist (soft warning)")
+        code = ref.code if hasattr(ref, "code") else ref
+        if not store.exists(code):
+            warnings.append(f"Reference target '{code}' does not exist (soft warning)")
     return warnings
 
 

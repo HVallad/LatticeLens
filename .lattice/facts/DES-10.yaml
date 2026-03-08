@@ -18,9 +18,12 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- RISK-03
-- ADR-05
-- DG-02
+- code: RISK-03
+  rel: mitigates
+- code: ADR-05
+  rel: relates
+- code: DG-02
+  rel: mitigates
 superseded_by:
 owner: architecture-team
 review_by:

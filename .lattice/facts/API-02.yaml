@@ -17,10 +17,14 @@ status: Active
 confidence: Confirmed
 version: 2
 refs:
-- SP-04
-- SP-05
-- DES-04
-- ADR-10
+- code: SP-04
+  rel: depends_on
+- code: SP-05
+  rel: depends_on
+- code: DES-04
+  rel: implements
+- code: ADR-10
+  rel: implements
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

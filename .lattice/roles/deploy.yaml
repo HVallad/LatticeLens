@@ -13,3 +13,9 @@ query:
   - ops-team
   max_facts: 15
   extra: []
+  graph_depth: 1
+  edge_priority:
+  - constrains
+  - contradicts
+  - drives
+  - mitigates

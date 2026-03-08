@@ -15,8 +15,10 @@ status: Active
 confidence: Confirmed
 version: 1
 refs:
-- RUN-01
-- PRD-01
+- code: RUN-01
+  rel: drives
+- code: PRD-01
+  rel: relates
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

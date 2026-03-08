@@ -1,0 +1,33 @@
+code: DES-13
+layer: WHY
+type: Design Proposal Decision
+fact: >-
+  Context assembly uses demand-driven graph expansion as step 4 of a 6-step
+  pipeline. After project filtering, role filtering, and tag scoring, if direct
+  matches are fewer than max_facts and graph_depth > 0, BFS traversal expands
+  along typed edges from seed facts. Traversal respects edge_priority (ordered
+  list of edge types to follow), excludes Deprecated and Superseded facts, and
+  tracks hop distance. Graph-pulled facts rank below direct matches within the
+  same confidence tier. The graph_depth parameter defaults to 1 (configurable
+  per role template or via --depth CLI flag). Depth 0 disables expansion, depth
+  -1 traverses the full connected component.
+tags:
+- architecture
+- context-assembly
+- graph
+- graph-expansion
+status: Active
+confidence: Confirmed
+version: 1
+refs:
+- code: ADR-19
+  rel: implements
+- code: AUP-07
+  rel: implements
+- code: DES-08
+  rel: depends_on
+superseded_by:
+owner: architecture-team
+review_by: '2026-09-01'
+created_at: '2026-03-08T01:44:23.845562'
+updated_at: '2026-03-08T01:44:23.845562'

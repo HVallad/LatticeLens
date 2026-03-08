@@ -16,8 +16,10 @@ status: Active
 confidence: Confirmed
 version: 1
 refs:
-- ADR-04
-- PRD-01
+- code: ADR-04
+  rel: relates
+- code: PRD-01
+  rel: relates
 superseded_by:
 owner: architecture-team
 review_by: '2026-12-01'

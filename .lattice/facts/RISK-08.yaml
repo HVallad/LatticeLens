@@ -16,10 +16,14 @@ status: Active
 confidence: Confirmed
 version: 3
 refs:
-- ADR-14
-- RISK-03
-- RISK-04
-- DG-06
+- code: ADR-14
+  rel: constrains
+- code: RISK-03
+  rel: relates
+- code: RISK-04
+  rel: relates
+- code: DG-06
+  rel: relates
 superseded_by:
 owner: architecture-team
 review_by: '2026-06-01'

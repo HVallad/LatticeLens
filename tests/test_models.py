@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from lattice_lens.models import FactLayer, FactStatus
+from lattice_lens.models import EdgeType, FactLayer, FactRef, FactStatus
 from tests.conftest import make_fact
 
 
@@ -53,3 +53,55 @@ class TestFactCreation:
     def test_tag_special_chars_rejected(self):
         with pytest.raises(ValidationError):
             make_fact(tags=["good-tag", "bad tag!"])
+
+
+class TestEdgeTypes:
+    def test_edge_type_enum_values(self):
+        assert len(EdgeType) == 9
+        assert EdgeType.DRIVES == "drives"
+        assert EdgeType.RELATES == "relates"
+        assert EdgeType.SUPERSEDES == "supersedes"
+
+    def test_factref_from_code(self):
+        ref = FactRef(code="ADR-01")
+        assert ref.code == "ADR-01"
+        assert ref.rel == EdgeType.RELATES
+
+    def test_factref_with_edge_type(self):
+        ref = FactRef(code="ADR-01", rel=EdgeType.DRIVES)
+        assert ref.rel == EdgeType.DRIVES
+
+    def test_factref_invalid_code(self):
+        with pytest.raises(ValidationError):
+            FactRef(code="bad-code")
+
+    def test_refs_backward_compat_strings(self):
+        fact = make_fact(refs=["ADR-01", "DES-01"])
+        assert len(fact.refs) == 2
+        assert all(isinstance(r, FactRef) for r in fact.refs)
+        assert fact.refs[0].code == "ADR-01"
+        assert fact.refs[0].rel == EdgeType.RELATES
+
+    def test_refs_from_dicts(self):
+        fact = make_fact(refs=[{"code": "ADR-01", "rel": "drives"}])
+        assert fact.refs[0].code == "ADR-01"
+        assert fact.refs[0].rel == EdgeType.DRIVES
+
+    def test_refs_mixed_input(self):
+        fact = make_fact(refs=["ADR-01", {"code": "DES-01", "rel": "drives"}])
+        assert fact.refs[0].rel == EdgeType.RELATES
+        assert fact.refs[1].rel == EdgeType.DRIVES
+
+    def test_ref_codes_property(self):
+        fact = make_fact(refs=["ADR-01", "DES-01"])
+        assert fact.ref_codes == ["ADR-01", "DES-01"]
+
+    def test_refs_model_dump_json(self):
+        fact = make_fact(refs=[{"code": "ADR-01", "rel": "drives"}])
+        dumped = fact.model_dump(mode="json")
+        assert dumped["refs"] == [{"code": "ADR-01", "rel": "drives"}]
+
+    def test_refs_empty_default(self):
+        fact = make_fact()
+        assert fact.refs == []
+        assert fact.ref_codes == []

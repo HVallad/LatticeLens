@@ -14,9 +14,12 @@ status: Active
 confidence: Confirmed
 version: 1
 refs:
-- DG-01
-- RISK-01
-- SP-01
+- code: DG-01
+  rel: mitigates
+- code: RISK-01
+  rel: mitigates
+- code: SP-01
+  rel: drives
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'

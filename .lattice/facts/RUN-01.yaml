@@ -14,8 +14,10 @@ status: Active
 confidence: Confirmed
 version: 1
 refs:
-- DG-01
-- PRD-01
+- code: DG-01
+  rel: validates
+- code: PRD-01
+  rel: implements
 superseded_by:
 owner: architecture-team
 review_by:

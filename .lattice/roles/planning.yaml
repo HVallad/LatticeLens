@@ -1,5 +1,5 @@
 name: Planning Agent
-description: Product Strategist — scopes work, defines acceptance criteria
+description: Product Strategist ï¿½ scopes work, defines acceptance criteria
 query:
   layers:
   - WHY
@@ -15,3 +15,9 @@ query:
   - layer: GUARDRAILS
     types:
     - Acceptable Use Policy Rule
+  graph_depth: 1
+  edge_priority:
+  - constrains
+  - contradicts
+  - drives
+  - mitigates

@@ -17,9 +17,12 @@ status: Active
 confidence: Confirmed
 version: 1
 refs:
-- DES-02
-- ADR-03
-- PRD-01
+- code: DES-02
+  rel: depends_on
+- code: ADR-03
+  rel: relates
+- code: PRD-01
+  rel: relates
 superseded_by:
 owner: architecture-team
 review_by: '2026-09-01'
