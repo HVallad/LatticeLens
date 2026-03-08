@@ -197,9 +197,7 @@ def tool_graph_contradictions(store: LatticeStore, min_shared_tags: int = 2) -> 
     candidates = graph_service.find_contradiction_candidates(
         store.index, min_shared_tags=min_shared_tags
     )
-    return [
-        {"fact_a": a, "fact_b": b, "shared_tags": tags} for a, b, tags in candidates
-    ]
+    return [{"fact_a": a, "fact_b": b, "shared_tags": tags} for a, b, tags in candidates]
 
 
 def tool_lattice_validate(store: LatticeStore) -> dict:

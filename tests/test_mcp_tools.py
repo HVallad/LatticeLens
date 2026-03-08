@@ -268,12 +268,13 @@ class TestGraphContradictions:
     def test_finds_pairs(self, yaml_store):
         # Two facts in different layers sharing tags → contradiction candidate
         f1 = make_fact(
-            code="ADR-01", layer="WHY", tags=["security", "validation"],
-            status=FactStatus.ACTIVE
+            code="ADR-01", layer="WHY", tags=["security", "validation"], status=FactStatus.ACTIVE
         )
         f2 = make_fact(
-            code="AUP-01", layer="GUARDRAILS", tags=["security", "validation"],
-            status=FactStatus.ACTIVE
+            code="AUP-01",
+            layer="GUARDRAILS",
+            tags=["security", "validation"],
+            status=FactStatus.ACTIVE,
         )
         yaml_store.create(f1)
         yaml_store.create(f2)

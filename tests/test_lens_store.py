@@ -74,9 +74,7 @@ class TestLensStoreReadOps:
         config = _make_lens_config()
         store = LensStore(tmp_path, config)
 
-        with patch.object(
-            store, "_call_json", return_value={"error": "Fact ZZZ-99 not found"}
-        ):
+        with patch.object(store, "_call_json", return_value={"error": "Fact ZZZ-99 not found"}):
             result = store.get("ZZZ-99")
 
         assert result is None
@@ -88,9 +86,7 @@ class TestLensStoreReadOps:
 
         with patch.object(store, "_call_json", return_value=facts) as mock:
             result = store.list_facts(layer="WHY", tags_any=["architecture"])
-            mock.assert_called_once_with(
-                "fact_query", {"layer": "WHY", "tags": ["architecture"]}
-            )
+            mock.assert_called_once_with("fact_query", {"layer": "WHY", "tags": ["architecture"]})
 
         assert len(result) == 1
         assert result[0].code == "ADR-01"
@@ -107,9 +103,7 @@ class TestLensStoreReadOps:
         config = _make_lens_config()
         store = LensStore(tmp_path, config)
 
-        with patch.object(
-            store, "_call_json", return_value={"error": "server error"}
-        ):
+        with patch.object(store, "_call_json", return_value={"error": "server error"}):
             result = store.list_facts()
 
         assert result == []
@@ -130,9 +124,7 @@ class TestLensStoreReadOps:
         config = _make_lens_config()
         store = LensStore(tmp_path, config)
 
-        with patch.object(
-            store, "_call_json", return_value={"code": "ZZZ-99", "exists": False}
-        ):
+        with patch.object(store, "_call_json", return_value={"code": "ZZZ-99", "exists": False}):
             result = store.exists("ZZZ-99")
 
         assert result is False
@@ -248,9 +240,7 @@ class TestLensStoreWriteOps:
         store = LensStore(tmp_path, config)
         fact = _sample_fact()
 
-        with patch.object(
-            store, "_call_json", return_value={"error": "Duplicate code ADR-01"}
-        ):
+        with patch.object(store, "_call_json", return_value={"error": "Duplicate code ADR-01"}):
             with pytest.raises(ValueError, match="Duplicate code"):
                 store.create(fact)
 

@@ -11,6 +11,7 @@ from rich.tree import Tree
 
 from lattice_lens.cli.helpers import require_lattice
 from lattice_lens.config import ROLES_DIR
+from lattice_lens.store.index import FactIndex
 from lattice_lens.services.graph_service import (
     find_contradiction_candidates,
     find_orphans,

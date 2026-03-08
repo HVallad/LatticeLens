@@ -42,12 +42,8 @@ class TestLensConnect:
         mock_store = MagicMock()
         mock_store.stats.return_value = {"total": 10, "backend": "yaml"}
 
-        with patch(
-            "lattice_lens.store.lens_store.LensStore", return_value=mock_store
-        ):
-            result = runner.invoke(
-                app, ["lens", "connect", "http://localhost:8080/mcp"]
-            )
+        with patch("lattice_lens.store.lens_store.LensStore", return_value=mock_store):
+            result = runner.invoke(app, ["lens", "connect", "http://localhost:8080/mcp"])
 
         assert result.exit_code == 0
         assert "Connected" in result.output
@@ -60,9 +56,7 @@ class TestLensConnect:
         mock_cls.return_value.stats.side_effect = LensConnectionError("Connection refused")
 
         with patch("lattice_lens.store.lens_store.LensStore", mock_cls):
-            result = runner.invoke(
-                app, ["lens", "connect", "http://bad-host:9999/mcp"]
-            )
+            result = runner.invoke(app, ["lens", "connect", "http://bad-host:9999/mcp"])
 
         # Should exit with error
         assert result.exit_code != 0 or "Error" in result.output
@@ -72,9 +66,7 @@ class TestLensConnect:
         mock_store = MagicMock()
         mock_store.stats.return_value = {"total": 5, "backend": "yaml"}
 
-        with patch(
-            "lattice_lens.store.lens_store.LensStore", return_value=mock_store
-        ):
+        with patch("lattice_lens.store.lens_store.LensStore", return_value=mock_store):
             result = runner.invoke(
                 app, ["lens", "connect", "--writable", "http://localhost:8080/mcp"]
             )
@@ -94,9 +86,7 @@ class TestLensConnect:
         mock_store = MagicMock()
         mock_store.stats.return_value = {"total": 5, "backend": "yaml"}
 
-        with patch(
-            "lattice_lens.store.lens_store.LensStore", return_value=mock_store
-        ):
+        with patch("lattice_lens.store.lens_store.LensStore", return_value=mock_store):
             result = runner.invoke(
                 app,
                 [
@@ -125,9 +115,7 @@ class TestLensConnect:
         # Create a dummy fact file
         (facts_dir / "ADR-01.yaml").write_text("code: ADR-01\n")
 
-        result = runner.invoke(
-            app, ["lens", "connect", "http://localhost:8080/mcp"]
-        )
+        result = runner.invoke(app, ["lens", "connect", "http://localhost:8080/mcp"])
         assert result.exit_code != 0
 
 
@@ -141,9 +129,7 @@ class TestLensStatus:
             "by_status": {"Active": 30, "Draft": 12},
         }
 
-        with patch(
-            "lattice_lens.store.lens_store.LensStore", return_value=mock_store
-        ):
+        with patch("lattice_lens.store.lens_store.LensStore", return_value=mock_store):
             result = runner.invoke(app, ["lens", "status"])
 
         assert result.exit_code == 0

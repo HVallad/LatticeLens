@@ -24,7 +24,9 @@ lens_app = typer.Typer(no_args_is_help=True)
 
 @lens_app.command()
 def connect(
-    endpoint: str = typer.Argument(help="MCP server endpoint URL (e.g., http://localhost:8080/mcp)"),
+    endpoint: str = typer.Argument(
+        help="MCP server endpoint URL (e.g., http://localhost:8080/mcp)"
+    ),
     transport: str = typer.Option("sse", "--transport", help="Transport type: sse or stdio."),
     writable: bool = typer.Option(False, "--writable", help="Enable write operations."),
     project: str | None = typer.Option(None, "--project", help="Scope to a specific project."),
@@ -95,16 +97,12 @@ def status():
     """Show lens connection status and remote lattice info."""
     root = find_lattice_root()
     if root is None:
-        err_console.print(
-            "[red]Error:[/red] No .lattice/ directory found."
-        )
+        err_console.print("[red]Error:[/red] No .lattice/ directory found.")
         raise typer.Exit(1)
 
     config = read_lens_file(root)
     if config is None:
-        err_console.print(
-            "[red]Error:[/red] Not in lens mode. No .lens file found in .lattice/."
-        )
+        err_console.print("[red]Error:[/red] Not in lens mode. No .lens file found in .lattice/.")
         raise typer.Exit(1)
 
     console.print("[bold]Lens Configuration[/bold]")
@@ -142,16 +140,12 @@ def disconnect():
     """Disconnect from a remote lattice (removes .lens file)."""
     root = find_lattice_root()
     if root is None:
-        err_console.print(
-            "[red]Error:[/red] No .lattice/ directory found."
-        )
+        err_console.print("[red]Error:[/red] No .lattice/ directory found.")
         raise typer.Exit(1)
 
     config = read_lens_file(root)
     if config is None:
-        err_console.print(
-            "[red]Error:[/red] Not in lens mode. No .lens file found in .lattice/."
-        )
+        err_console.print("[red]Error:[/red] Not in lens mode. No .lens file found in .lattice/.")
         raise typer.Exit(1)
 
     removed = remove_lens_file(root)

@@ -49,9 +49,7 @@ class LensStore:
         """Start a background event loop thread if not already running."""
         if self._loop is None or not self._loop.is_running():
             self._loop = asyncio.new_event_loop()
-            self._thread = threading.Thread(
-                target=self._loop.run_forever, daemon=True
-            )
+            self._thread = threading.Thread(target=self._loop.run_forever, daemon=True)
             self._thread.start()
 
     def _run_sync(self, coro):
@@ -62,8 +60,7 @@ class LensStore:
             return future.result(timeout=CALL_TIMEOUT)
         except TimeoutError:
             raise LensConnectionError(
-                f"MCP call timed out after {CALL_TIMEOUT}s "
-                f"(endpoint: {self._config.endpoint})"
+                f"MCP call timed out after {CALL_TIMEOUT}s (endpoint: {self._config.endpoint})"
             )
         except Exception as e:
             # Unwrap connection-level errors
@@ -87,9 +84,7 @@ class LensStore:
                 from mcp.client import ClientSession  # mcp <1.26 fallback
             import mcp.client.sse  # noqa: F401 — verify sse module available
         except ImportError:
-            raise ImportError(
-                "MCP client not installed. Run: pip install lattice-lens[mcp]"
-            )
+            raise ImportError("MCP client not installed. Run: pip install lattice-lens[mcp]")
 
         try:
             read_stream, write_stream = await self._enter_sse(self._config.endpoint)
@@ -196,9 +191,7 @@ class LensStore:
     def update(self, code: str, changes: dict, reason: str) -> Fact:
         """Update a fact remotely."""
         self._require_writable()
-        data = self._call_json(
-            "fact_update", {"code": code, "reason": reason, **changes}
-        )
+        data = self._call_json("fact_update", {"code": code, "reason": reason, **changes})
         if isinstance(data, dict) and "error" in data:
             raise ValueError(data["error"])
         return Fact.model_validate(data)
@@ -206,9 +199,7 @@ class LensStore:
     def deprecate(self, code: str, reason: str) -> Fact:
         """Deprecate a fact remotely."""
         self._require_writable()
-        data = self._call_json(
-            "fact_deprecate", {"code": code, "reason": reason}
-        )
+        data = self._call_json("fact_deprecate", {"code": code, "reason": reason})
         if isinstance(data, dict) and "error" in data:
             raise ValueError(data["error"])
         return Fact.model_validate(data)

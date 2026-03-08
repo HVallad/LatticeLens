@@ -27,9 +27,7 @@ class TestLensConfig:
         assert config.writable is True
 
     def test_project_scoped(self):
-        config = LensConfig(
-            endpoint="http://localhost:8080/mcp", project="my-project"
-        )
+        config = LensConfig(endpoint="http://localhost:8080/mcp", project="my-project")
         assert config.project == "my-project"
 
     def test_rejects_empty_endpoint(self):

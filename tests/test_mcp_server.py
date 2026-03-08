@@ -133,9 +133,7 @@ class TestCallTool:
         yaml_store.create(fact)
 
         # Promote via MCP tool
-        text = _call_tool_text(
-            server, "fact_promote", {"code": "ADR-01", "reason": "ready"}
-        )
+        text = _call_tool_text(server, "fact_promote", {"code": "ADR-01", "reason": "ready"})
         data = json.loads(text)
         assert data["status"] == "Under Review"
 
