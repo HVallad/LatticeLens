@@ -52,8 +52,11 @@ def serve(
         )
         server.run(transport="stdio")
     else:
+        # mcp >=1.26: host/port are set via settings, not run() kwargs
+        server.settings.host = host
+        server.settings.port = port
         err_console.print(
             f"[green]LatticeLens MCP server[/green] "
             f"http://{host}:{port} lattice={root} writable={writable}",
         )
-        server.run(transport="sse", host=host, port=port)
+        server.run(transport="sse")
