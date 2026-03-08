@@ -30,11 +30,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -e ".[dev,extract]"
+      - run: pip install -e ".[dev,extract,mcp]"
       - name: Run tests
         env:
           COLUMNS: "120"
-        run: pytest -m "not integration" -v
+        run: |
+          if [ "${{ matrix.python-version }}" = "3.11" ]; then
+            pytest -m "not integration" -v --cov --cov-report=term-missing --cov-fail-under=80
+          else
+            pytest -m "not integration" -v
+          fi
 
   lattice-check:
     runs-on: ubuntu-latest
