@@ -80,7 +80,11 @@ class LensStore:
             return self._session
 
         try:
-            from mcp.client import ClientSession  # noqa: F811
+            # mcp >=1.26 moved ClientSession to mcp.client.session
+            try:
+                from mcp.client.session import ClientSession
+            except ImportError:
+                from mcp.client import ClientSession  # mcp <1.26 fallback
             import mcp.client.sse  # noqa: F401 — verify sse module available
         except ImportError:
             raise ImportError(
