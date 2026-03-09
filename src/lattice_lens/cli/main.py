@@ -23,6 +23,7 @@ from lattice_lens.cli.tags_command import tags
 from lattice_lens.cli.types_command import types
 from lattice_lens.cli.upgrade_command import upgrade
 from lattice_lens.cli.validate_command import reindex, validate
+from lattice_lens.cli.view_command import view
 
 app = typer.Typer(
     name="lattice",
@@ -52,6 +53,7 @@ app.command()(serve)
 app.command()(tags)
 app.command()(types)
 app.command("reconcile")(reconcile_cmd)
+app.command()(view)
 
 
 if __name__ == "__main__":
