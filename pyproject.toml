@@ -24,6 +24,10 @@ extract = [
 mcp = [
     "mcp[cli]>=1.2.0",
 ]
+viewer = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+]
 
 [project.scripts]
 lattice = "lattice_lens.cli.main:app"
@@ -34,6 +38,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"lattice_lens.web" = ["static/**/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
