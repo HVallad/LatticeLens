@@ -4,7 +4,7 @@
 
 LatticeLens is a knowledge governance CLI for AI agent systems. It stores atomic facts as individual YAML files in a `.lattice/` directory, organized into three layers (WHY, GUARDRAILS, HOW). Facts have a lifecycle (Draft -> Under Review -> Active), are validated by Pydantic, tracked by git, and queryable by tag, layer, status, and text search.
 
-The project dogfoods itself: its own `.lattice/` directory contains 90 facts governing its development.
+The project dogfoods itself: its own `.lattice/` directory contains 93 facts governing its development.
 
 ## Development Setup
 
@@ -13,7 +13,7 @@ The project dogfoods itself: its own `.lattice/` directory contains 90 facts gov
 pip install -e ".[dev]"
 
 # Install with all optional features
-pip install -e ".[dev,extract,mcp]"
+pip install -e ".[dev,extract,mcp,viewer]"
 
 # Run tests (excludes integration tests that need API keys)
 pytest -m "not integration"
@@ -41,11 +41,15 @@ src/lattice_lens/
     check_command.py     # CI gate (--format github for Actions annotations)
     reconcile_command.py # Bidirectional code-to-facts reconciliation
     context_commands.py  # Role-scoped, token-budgeted context assembly
+    evaluate_command.py  # Fact quality evaluation and scoring
     extract_command.py   # LLM-powered fact extraction from docs
     exchange_commands.py # import/export (JSON/YAML)
     backend_command.py   # backend status/switch (yaml <-> sqlite)
     git_commands.py      # diff, log (git-scoped to .lattice/)
+    lens_commands.py     # Remote lattice access via MCP client
     serve_command.py     # MCP server
+    validate_command.py  # Lattice-wide validation
+    view_command.py      # Interactive web viewer (FastAPI)
     tags_command.py      # Tag registry
     types_command.py     # Type registry
     ...
@@ -55,9 +59,12 @@ src/lattice_lens/
     check_service.py     # CI-gate integrity checks
     reconcile_service.py # Code scanning + fact matching
     context_service.py   # Token-budgeted context assembly
+    evaluate_service.py  # Fact quality evaluation and scoring
+    edge_inference.py    # Typed edge inference between facts
     extract_service.py   # LLM extraction pipeline
     exchange_service.py  # Import/export with conflict strategies
     validate_service.py  # Lattice-wide validation
+    project_service.py   # Multi-project scoping
     tag_service.py       # Tag registry rebuild
     type_service.py      # Type registry + audit
     code_scanner.py      # Codebase scanning for reconciliation
@@ -66,10 +73,19 @@ src/lattice_lens/
     protocol.py          # LatticeStore Protocol (interface)
     yaml_store.py        # YAML flat-file backend (Tier 1)
     sqlite_store.py      # SQLite backend (Tier 2)
+    lens_store.py        # Remote lattice access via MCP (read-only)
     index.py             # In-memory FactIndex
+  web/                  # Interactive web viewer (FastAPI)
+    app.py              # FastAPI application setup
+    sse.py              # Server-sent events for live updates
+    api/                # REST API routers
+      facts.py          # Fact CRUD endpoints
+      graph.py          # Graph visualization endpoints
+      meta.py           # Metadata endpoints (stats, roles, tags)
   mcp/                  # MCP server (FastMCP)
     server.py            # Server setup
     tools.py             # Tool definitions
+  lens.py               # Lens mode client utilities
   models.py             # Pydantic Fact model + enums (FactStatus, FactLayer, etc.)
   config.py             # Settings, lattice root discovery, layer/prefix mappings
 ```

@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -e ".[dev,extract,mcp]"
+      - run: pip install -e ".[dev,extract,mcp,viewer]"
       - name: Run tests
         env:
           COLUMNS: "120"
