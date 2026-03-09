@@ -47,7 +47,9 @@ jobs:
       - name: Verify install from TestPyPI
         run: |
           sleep 15
-          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ lattice-lens==${{ github.event.release.tag_name#v }}
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"
+          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ lattice-lens=="${VERSION}"
 
   pypi:
     name: Publish to PyPI
