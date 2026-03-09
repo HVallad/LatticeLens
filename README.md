@@ -90,6 +90,9 @@ pip install -e ".[mcp]"
 
 # With LLM extraction support
 pip install -e ".[extract]"
+
+# With interactive web viewer
+pip install -e ".[viewer]"
 ```
 
 ### Initialize a lattice
@@ -121,7 +124,7 @@ Loads 12 example facts covering all three layers plus placeholder drafts for ref
 
 ## Commands
 
-LatticeLens provides 23 top-level commands organized into five categories: core operations, fact management, knowledge graph analysis, backend management, and lens mode (remote lattice).
+LatticeLens provides 24 top-level commands organized into six categories: core operations, fact management, knowledge graph analysis, backend management, web viewer, and lens mode (remote lattice).
 
 ### Core Commands
 
@@ -293,6 +296,18 @@ lattice log                     # Git history for all facts
 lattice log ADR-03 --limit 10  # History for a specific fact
 ```
 
+### Web Viewer — `lattice view`
+
+Launch an interactive web viewer for exploring the knowledge lattice in a browser. Requires the `viewer` extra (`pip install lattice-lens[viewer]`).
+
+```bash
+lattice view                             # Open viewer at http://127.0.0.1:8765
+lattice view --port 9000                 # Custom port
+lattice view --no-open                   # Don't auto-open browser
+```
+
+Not available in lens mode.
+
 ### MCP Server — `lattice serve`
 
 Start a Model Context Protocol server for AI agent integration.
@@ -445,6 +460,7 @@ These commands only make sense for locally-hosted lattices and are blocked in le
 
 | Command | Reason |
 |---------|--------|
+| `lattice view` | No local lattice to visualize |
 | `lattice serve` | Cannot serve a lens as a server |
 | `lattice seed` | Remote initialization concern |
 | `lattice diff` / `lattice log` | No local git-tracked files |
@@ -1016,6 +1032,18 @@ Show git history for lattice facts.
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `--limit` / `-n` | int | 20 | Max entries to show |
+
+### Web Viewer
+
+#### `lattice view`
+
+Open the interactive web viewer for the knowledge lattice. Requires `lattice-lens[viewer]`.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--port` | int | 8765 | Server port |
+| `--host` | text | `127.0.0.1` | Bind address |
+| `--no-open` | flag | false | Don't auto-open the browser |
 
 ### MCP Server
 
