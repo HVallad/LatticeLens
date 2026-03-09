@@ -6,6 +6,8 @@ on:
 
 permissions:
   contents: read
+  id-token: write
+  attestations: write
 
 jobs:
   build:
@@ -36,6 +38,7 @@ jobs:
     environment: test-pypi
     permissions:
       id-token: write
+      attestations: write
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -44,6 +47,8 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          verbose: true
+          attestations: false
       - name: Verify install from TestPyPI
         run: |
           sleep 15
@@ -58,6 +63,7 @@ jobs:
     environment: pypi
     permissions:
       id-token: write
+      attestations: write
     steps:
       - uses: actions/download-artifact@v4
         with:
