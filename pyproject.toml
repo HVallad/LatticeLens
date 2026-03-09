@@ -2,8 +2,22 @@
 name = "lattice-lens"
 version = "1.0.0"
 description = "Knowledge governance layer for AI agent systems"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.11"
+readme = "README.md"
+authors = [{name = "HVallad"}]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Quality Assurance",
+    "Typing :: Typed",
+]
 dependencies = [
     "typer>=0.12.0",
     "rich>=13.0.0",
@@ -12,11 +26,18 @@ dependencies = [
     "ruamel.yaml>=0.18.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/HVallad/LatticeLens"
+Repository = "https://github.com/HVallad/LatticeLens"
+Changelog = "https://github.com/HVallad/LatticeLens/blob/main/CHANGELOG.md"
+Issues = "https://github.com/HVallad/LatticeLens/issues"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
     "pytest-cov>=6.0.0",
     "ruff>=0.3.0",
+    "build>=1.0.0",
 ]
 extract = [
     "anthropic>=0.25.0",
