@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-fastapi = pytest.importorskip("fastapi", reason="fastapi not installed (pip install lattice-lens[viewer])")
+fastapi = pytest.importorskip(
+    "fastapi", reason="fastapi not installed (pip install lattice-lens[viewer])"
+)
 from fastapi.testclient import TestClient  # noqa: E402
 
 from lattice_lens.web.app import create_app  # noqa: E402
