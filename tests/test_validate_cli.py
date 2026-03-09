@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 from ruamel.yaml import YAML
@@ -168,3 +169,79 @@ class TestReindexCommand:
         assert "facts indexed" in result.output
         # Seed creates 12+ facts; verify a non-zero count is reported
         assert "0 facts" not in result.output
+
+
+class TestValidateLensMode:
+    """Tests for the validate command in lens mode (remote MCP)."""
+
+    def test_lens_mode_fix_rejected(self, initialized_dir: Path):
+        """--fix is not allowed in lens mode."""
+        with (
+            patch("lattice_lens.cli.validate_command.is_lens_mode", return_value=True),
+        ):
+            result = runner.invoke(app, ["validate", "--fix"])
+        assert result.exit_code == 1
+        assert "not available in lens mode" in result.output.lower()
+
+    def test_lens_mode_errors_exit_1(self, initialized_dir: Path):
+        """Lens mode with remote errors → exit 1."""
+        mock_store = MagicMock()
+        mock_store.facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        result_data = {
+            "ok": False,
+            "errors": ["Duplicate code ADR-01", "Broken ref NOPE-99"],
+            "warnings": ["Tag warning"],
+        }
+        with (
+            patch("lattice_lens.cli.validate_command.is_lens_mode", return_value=True),
+            patch("lattice_lens.cli.validate_command.require_lattice", return_value=mock_store),
+            patch(
+                "lattice_lens.mcp.tools.tool_lattice_validate",
+                return_value=result_data,
+            ),
+        ):
+            result = runner.invoke(app, ["validate"])
+        assert result.exit_code == 1
+        assert "2 error(s)" in result.output
+        assert "1 warning(s)" in result.output
+
+    def test_lens_mode_warnings_only_exit_0(self, initialized_dir: Path):
+        """Lens mode with warnings but no errors → exit 0."""
+        mock_store = MagicMock()
+        result_data = {
+            "ok": True,
+            "errors": [],
+            "warnings": ["Stale fact ADR-01"],
+        }
+        with (
+            patch("lattice_lens.cli.validate_command.is_lens_mode", return_value=True),
+            patch("lattice_lens.cli.validate_command.require_lattice", return_value=mock_store),
+            patch(
+                "lattice_lens.mcp.tools.tool_lattice_validate",
+                return_value=result_data,
+            ),
+        ):
+            result = runner.invoke(app, ["validate"])
+        assert result.exit_code == 0
+        assert "No errors" in result.output
+        assert "1 warning(s)" in result.output
+
+    def test_lens_mode_all_clean(self, initialized_dir: Path):
+        """Lens mode with no errors or warnings → 'All checks passed'."""
+        mock_store = MagicMock()
+        result_data = {
+            "ok": True,
+            "errors": [],
+            "warnings": [],
+        }
+        with (
+            patch("lattice_lens.cli.validate_command.is_lens_mode", return_value=True),
+            patch("lattice_lens.cli.validate_command.require_lattice", return_value=mock_store),
+            patch(
+                "lattice_lens.mcp.tools.tool_lattice_validate",
+                return_value=result_data,
+            ),
+        ):
+            result = runner.invoke(app, ["validate"])
+        assert result.exit_code == 0
+        assert "All checks passed" in result.output
