@@ -601,6 +601,196 @@ class TestFactEdit:
         assert "NOPE-99" in result.output
 
 
+# -- fact edit (non-interactive / flag-based) tests ---------------------------
+
+
+class TestFactEditNonInteractive:
+    """Tests for flag-based non-interactive editing (issue #30)."""
+
+    def test_edit_title_flag(self, initialized_dir: Path):
+        """--title updates fact text without opening $EDITOR."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(
+            app, ["fact", "edit", "ADR-01", "--title", "Updated fact text for testing"]
+        )
+        assert result.exit_code == 0
+        assert "Updated" in result.output
+
+    def test_edit_body_flag(self, initialized_dir: Path):
+        """--body is an alias for --title."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(
+            app, ["fact", "edit", "ADR-01", "--body", "Body alias fact text for testing"]
+        )
+        assert result.exit_code == 0
+        assert "Updated" in result.output
+
+    def test_edit_tags_flag(self, initialized_dir: Path):
+        """--tags replaces existing tags."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active", tags=["old-tag", "keep"])
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(app, ["fact", "edit", "ADR-01", "--tags", "new-tag,updated"])
+        assert result.exit_code == 0
+        assert "Updated" in result.output
+
+    def test_edit_owner_flag(self, initialized_dir: Path):
+        """--owner updates the owner field."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active", owner="old-owner")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(app, ["fact", "edit", "ADR-01", "--owner", "new-owner"])
+        assert result.exit_code == 0
+        assert "Updated" in result.output
+
+    def test_edit_type_flag(self, initialized_dir: Path):
+        """--type updates the fact type."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(app, ["fact", "edit", "ADR-01", "--type", "Risk Assessment"])
+        assert result.exit_code == 0
+        assert "Updated" in result.output
+
+    def test_edit_confidence_flag(self, initialized_dir: Path):
+        """--confidence updates the confidence level."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active", confidence="Confirmed")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(app, ["fact", "edit", "ADR-01", "--confidence", "Provisional"])
+        assert result.exit_code == 0
+        assert "Updated" in result.output
+
+    def test_edit_multiple_flags(self, initialized_dir: Path):
+        """Multiple flags can be combined in one call."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(
+            app,
+            [
+                "fact",
+                "edit",
+                "ADR-01",
+                "--title",
+                "Multi-flag update test text",
+                "--tags",
+                "alpha,beta",
+                "--owner",
+                "agent-ci",
+            ],
+        )
+        assert result.exit_code == 0
+        assert "Updated" in result.output
+
+    def test_edit_no_changes_with_flags(self, initialized_dir: Path):
+        """Flags that match existing values produce no-change exit."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active", owner="test-owner")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(app, ["fact", "edit", "ADR-01", "--owner", "test-owner"])
+        assert result.exit_code == 0
+        assert "No changes" in result.output
+
+    def test_edit_not_found_with_flags(self, initialized_dir: Path):
+        """Non-interactive edit of non-existent fact exits with error."""
+        result = runner.invoke(app, ["fact", "edit", "NOPE-99", "--title", "irrelevant"])
+        assert result.exit_code == 1
+
+    def test_edit_validation_error_with_flags(self, initialized_dir: Path):
+        """Invalid flag values produce validation error (no retry loop)."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        # fact text too short (min 10 chars)
+        result = runner.invoke(app, ["fact", "edit", "ADR-01", "--title", "short"])
+        assert result.exit_code == 1
+        assert "Validation error" in result.output
+
+    def test_edit_promotion_blocked_with_flags(self, initialized_dir: Path):
+        """Promotion via --status flag is blocked (use lattice fact promote)."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Draft")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(app, ["fact", "edit", "ADR-01", "--status", "Under Review"])
+        assert result.exit_code == 1
+        assert "promote" in result.output.lower()
+
+    def test_edit_json_output(self, initialized_dir: Path):
+        """--json flag produces JSON output."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(
+            app,
+            ["fact", "edit", "ADR-01", "--title", "JSON output test for editing", "--json"],
+        )
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["code"] == "ADR-01"
+        assert data["fact"] == "JSON output test for editing"
+
+    def test_edit_reason_flag(self, initialized_dir: Path):
+        """--reason sets a custom changelog reason."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(
+            app,
+            [
+                "fact",
+                "edit",
+                "ADR-01",
+                "--title",
+                "Custom reason test for editing",
+                "--reason",
+                "Automated update from CI",
+            ],
+        )
+        assert result.exit_code == 0
+        assert "Updated" in result.output
+
+    def test_edit_refs_flag(self, initialized_dir: Path):
+        """--refs with broken ref produces warning."""
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        fact = make_fact(code="ADR-01", status="Active")
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(app, ["fact", "edit", "ADR-01", "--refs", "NOPE-99"])
+        assert result.exit_code == 0
+        assert "Warning" in result.output
+        assert "NOPE-99" in result.output
+
+
 # -- fact deprecate tests -----------------------------------------------------
 
 
