@@ -280,8 +280,29 @@ def fact_ls(
 @fact_app.command("edit")
 def fact_edit(
     code: str = typer.Argument(help="Fact code to edit"),
+    title: Optional[str] = typer.Option(None, "--title", help="Set fact text (non-interactive)"),
+    body: Optional[str] = typer.Option(None, "--body", help="Alias for --title (set fact text)"),
+    tags: Optional[str] = typer.Option(
+        None, "--tags", help="Comma-separated tags (replaces existing)"
+    ),
+    layer: Optional[str] = typer.Option(None, "--layer", help="Set layer (WHY/GUARDRAILS/HOW)"),
+    status: Optional[str] = typer.Option(None, "--status", help="Set status"),
+    confidence: Optional[str] = typer.Option(None, "--confidence", help="Set confidence level"),
+    owner: Optional[str] = typer.Option(None, "--owner", help="Set owner"),
+    fact_type: Optional[str] = typer.Option(None, "--type", help="Set fact type"),
+    review_by: Optional[str] = typer.Option(
+        None, "--review-by", help="Set review-by date (YYYY-MM-DD, or empty to clear)"
+    ),
+    refs: Optional[str] = typer.Option(
+        None, "--refs", help="Comma-separated refs (CODE or CODE:edge_type, replaces existing)"
+    ),
+    projects: Optional[str] = typer.Option(
+        None, "--projects", help="Comma-separated projects (replaces existing)"
+    ),
+    reason: Optional[str] = typer.Option(None, "--reason", help="Changelog reason for the edit"),
+    as_json: bool = typer.Option(False, "--json", help="Output result as JSON"),
 ):
-    """Open a fact in $EDITOR, validate on save."""
+    """Edit a fact. With flags: non-interactive. Without flags: opens $EDITOR."""
     store = require_lattice()
     fact = store.get(code)
 
@@ -289,6 +310,105 @@ def fact_edit(
         err_console.print(f"[red]Error:[/red] Fact '{code}' not found")
         raise typer.Exit(1)
 
+    # Collect flag-based changes
+    flag_changes: dict = {}
+    fact_text = title or body
+    if fact_text is not None:
+        flag_changes["fact"] = fact_text
+    if tags is not None:
+        flag_changes["tags"] = [t.strip() for t in tags.split(",") if t.strip()]
+    if layer is not None:
+        flag_changes["layer"] = layer
+    if status is not None:
+        flag_changes["status"] = status
+    if confidence is not None:
+        flag_changes["confidence"] = confidence
+    if owner is not None:
+        flag_changes["owner"] = owner
+    if fact_type is not None:
+        flag_changes["type"] = fact_type
+    if review_by is not None:
+        flag_changes["review_by"] = date.fromisoformat(review_by) if review_by else None
+    if refs is not None:
+        parsed_refs: list[dict | str] = []
+        for r in refs.split(","):
+            r = r.strip()
+            if not r:
+                continue
+            if ":" in r:
+                ref_code, rel = r.split(":", 1)
+                parsed_refs.append({"code": ref_code.strip(), "rel": rel.strip()})
+            else:
+                parsed_refs.append(r)
+        flag_changes["refs"] = parsed_refs
+    if projects is not None:
+        flag_changes["projects"] = [p.strip() for p in projects.split(",") if p.strip()]
+
+    # If any flags were provided, use non-interactive mode
+    if flag_changes:
+        _edit_non_interactive(store, fact, code, flag_changes, reason, as_json)
+    else:
+        _edit_interactive(store, fact, code, as_json)
+
+
+def _edit_non_interactive(
+    store, fact: Fact, code: str, changes: dict, reason: str | None, as_json: bool
+):
+    """Apply flag-based changes without interactive prompts."""
+    # Validate the proposed changes by constructing the updated fact
+    merged = fact.model_dump(mode="json")
+    merged.update(changes)
+
+    try:
+        updated_fact = Fact(**merged)
+    except ValidationError as e:
+        err_console.print(f"[red]Validation error:[/red]\n{e}")
+        raise typer.Exit(1)
+
+    # Compute actual diff (some changes may be no-ops after normalization)
+    old_data = fact.model_dump(mode="json")
+    new_data = updated_fact.model_dump(mode="json")
+    actual_changes = {
+        k: v
+        for k, v in new_data.items()
+        if k not in ("version", "updated_at", "created_at") and v != old_data.get(k)
+    }
+
+    if not actual_changes:
+        if as_json:
+            print(json.dumps({"status": "no_changes", "code": code}))
+        else:
+            console.print("[dim]No changes detected.[/dim]")
+        raise typer.Exit(0)
+
+    # Block promotion-direction status changes — use `lattice fact promote`
+    if "status" in actual_changes:
+        old_status = FactStatus(old_data["status"])
+        new_status = FactStatus(actual_changes["status"])
+        if PROMOTION_TRANSITIONS.get(old_status) == new_status:
+            err_console.print(
+                f"[red]Error:[/red] Cannot promote {code} via edit. "
+                f'Use [bold]lattice fact promote {code} --reason "..."[/bold] '
+                f"to transition {old_status.value} -> {new_status.value}."
+            )
+            raise typer.Exit(1)
+
+    edit_reason = reason or "Edited via CLI (non-interactive)"
+    result = store.update(code, actual_changes, edit_reason)
+    warnings = check_refs(store, result.refs)
+
+    if as_json:
+        output = result.model_dump(mode="json")
+        output["_warnings"] = [str(w) for w in warnings]
+        print(json.dumps(output, indent=2))
+    else:
+        for w in warnings:
+            console.print(f"[yellow]Warning:[/yellow] {w}")
+        console.print(f"[green]Updated[/green] {result.code} (v{result.version})")
+
+
+def _edit_interactive(store, fact: Fact, code: str, as_json: bool):
+    """Open a fact in $EDITOR, validate on save."""
     editor = os.environ.get("EDITOR", os.environ.get("VISUAL", "notepad"))
 
     # Write current fact to a temp file
@@ -346,7 +466,7 @@ def fact_edit(
                     err_console.print(
                         f"[red]Error:[/red] Cannot promote {code} via edit. "
                         f'Use [bold]lattice fact promote {code} --reason "..."[/bold] '
-                        f"to transition {old_status.value} → {new_status.value}."
+                        f"to transition {old_status.value} -> {new_status.value}."
                     )
                     retry = typer.confirm("Re-edit?", default=True)
                     if not retry:
@@ -356,9 +476,15 @@ def fact_edit(
 
             result = store.update(code, changes, "Edited via CLI")
             warnings = check_refs(store, result.refs)
-            for w in warnings:
-                console.print(f"[yellow]Warning:[/yellow] {w}")
-            console.print(f"[green]Updated[/green] {result.code} (v{result.version})")
+
+            if as_json:
+                output = result.model_dump(mode="json")
+                output["_warnings"] = [str(w) for w in warnings]
+                print(json.dumps(output, indent=2))
+            else:
+                for w in warnings:
+                    console.print(f"[yellow]Warning:[/yellow] {w}")
+                console.print(f"[green]Updated[/green] {result.code} (v{result.version})")
             break
     finally:
         Path(tmp_path).unlink(missing_ok=True)
