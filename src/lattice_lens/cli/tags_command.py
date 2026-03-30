@@ -9,7 +9,11 @@ from rich.console import Console
 from rich.table import Table
 
 from lattice_lens.cli.helpers import require_lattice
-from lattice_lens.services.tag_service import build_tag_registry, write_tag_registry
+from lattice_lens.services.tag_service import (
+    build_tag_registry,
+    read_tag_registry,
+    write_tag_registry,
+)
 
 console = Console()
 
@@ -22,11 +26,16 @@ def tags(
 ):
     """Show tag registry: all tags with usage counts and vocabulary categories."""
     store = require_lattice()
-    registry = build_tag_registry(store)
 
     if rebuild:
+        registry = build_tag_registry(store)
         path = write_tag_registry(store.root, registry)
         console.print(f"[green]Rebuilt[/green] tag registry at [bold]{path}[/bold]")
+    else:
+        # Read from tags.yaml if it exists; fall back to scanning facts
+        registry = read_tag_registry(store.root)
+        if registry is None:
+            registry = build_tag_registry(store)
 
     if as_json:
         print(json.dumps(registry, indent=2))

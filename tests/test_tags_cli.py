@@ -90,6 +90,85 @@ class TestTagsCommand:
         assert "my-custom-tag" in result.output
         assert "DG-07" in result.output
 
+    def test_tags_reads_from_tags_yaml(self, initialized_dir: Path):
+        """When tags.yaml exists, `lattice tags` reads from it instead of scanning facts."""
+        from ruamel.yaml import YAML
+
+        yaml_rw = YAML()
+        yaml_rw.default_flow_style = False
+
+        # Write a tags.yaml with a sentinel tag that doesn't exist in any fact
+        tags_path = initialized_dir / ".lattice" / "tags.yaml"
+        registry = [
+            {"tag": "sentinel-tag", "count": 42, "category": "free"},
+            {"tag": "architecture", "count": 10, "category": "domain"},
+        ]
+        with open(tags_path, "w") as f:
+            yaml_rw.dump({"tags": registry}, f)
+
+        result = runner.invoke(app, ["tags", "--json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        tag_map = {e["tag"]: e["count"] for e in data}
+        # Should see the sentinel tag from tags.yaml, not from scanning facts
+        assert "sentinel-tag" in tag_map
+        assert tag_map["sentinel-tag"] == 42
+
+    def test_tags_falls_back_without_tags_yaml(self, initialized_dir: Path):
+        """Without tags.yaml, `lattice tags` falls back to scanning facts."""
+        from lattice_lens.config import FACTS_DIR, LATTICE_DIR
+        from ruamel.yaml import YAML
+        from tests.conftest import make_fact
+
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        yaml_rw = YAML()
+        yaml_rw.default_flow_style = False
+
+        # Ensure no tags.yaml exists
+        tags_path = initialized_dir / ".lattice" / "tags.yaml"
+        if tags_path.exists():
+            tags_path.unlink()
+
+        # Create a fact so there's something to scan
+        fact = make_fact(code="ADR-01", tags=["architecture", "design"])
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(app, ["tags", "--json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        tag_map = {e["tag"]: e for e in data}
+        assert "architecture" in tag_map
+
+    def test_tags_rebuild_ignores_tags_yaml(self, initialized_dir: Path):
+        """--rebuild always scans facts, ignoring stale tags.yaml."""
+        from lattice_lens.config import FACTS_DIR, LATTICE_DIR
+        from ruamel.yaml import YAML
+        from tests.conftest import make_fact
+
+        facts_dir = initialized_dir / LATTICE_DIR / FACTS_DIR
+        yaml_rw = YAML()
+        yaml_rw.default_flow_style = False
+
+        # Write a stale tags.yaml with a sentinel
+        tags_path = initialized_dir / ".lattice" / "tags.yaml"
+        with open(tags_path, "w") as f:
+            yaml_rw.dump({"tags": [{"tag": "stale-tag", "count": 99, "category": "free"}]}, f)
+
+        # Create a real fact
+        fact = make_fact(code="ADR-01", tags=["architecture", "design"])
+        with open(facts_dir / "ADR-01.yaml", "w") as f:
+            yaml_rw.dump(fact.model_dump(mode="json"), f)
+
+        result = runner.invoke(app, ["tags", "--rebuild", "--json"])
+        assert result.exit_code == 0
+        json_start = result.output.index("[")
+        data = json.loads(result.output[json_start:])
+        tag_map = {e["tag"]: e for e in data}
+        # stale-tag should NOT appear because --rebuild scans facts
+        assert "stale-tag" not in tag_map
+        assert "architecture" in tag_map
+
     # --- New tests ---
 
     def test_tags_no_lattice_errors(self, cli_dir: Path):
