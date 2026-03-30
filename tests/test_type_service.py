@@ -84,6 +84,59 @@ class TestAuditTypes:
         mismatches = audit_types(yaml_store)
         assert mismatches == []
 
+    def test_audit_reads_types_yaml(self, yaml_store):
+        """audit_types should read from types.yaml, not just hardcoded CANONICAL_TYPES."""
+        # Write a custom registry where RISK canonical name differs from the hardcoded one
+        custom = {
+            "GUARDRAILS": {
+                "RISK": {
+                    "name": "Custom Risk Type",
+                    "description": "Custom risk description",
+                },
+            },
+        }
+        write_type_registry(yaml_store.root, custom)
+
+        # Create a fact matching the custom registry (but NOT the hardcoded one)
+        yaml_store.create(
+            make_fact(
+                code="RISK-01",
+                layer="GUARDRAILS",
+                type="Custom Risk Type",
+                tags=["risk", "test"],
+            )
+        )
+
+        # Should have NO mismatches since the fact matches types.yaml
+        mismatches = audit_types(yaml_store)
+        assert mismatches == []
+
+    def test_audit_detects_mismatch_from_types_yaml(self, yaml_store):
+        """audit_types should flag mismatches against types.yaml, not just hardcoded map."""
+        custom = {
+            "GUARDRAILS": {
+                "RISK": {
+                    "name": "Custom Risk Type",
+                    "description": "Custom risk description",
+                },
+            },
+        }
+        write_type_registry(yaml_store.root, custom)
+
+        # Create a fact that does NOT match the custom registry
+        yaml_store.create(
+            make_fact(
+                code="RISK-01",
+                layer="GUARDRAILS",
+                type="Risk Register Entry",  # Matches hardcoded, but not types.yaml
+                tags=["risk", "test"],
+            )
+        )
+
+        mismatches = audit_types(yaml_store)
+        assert len(mismatches) == 1
+        assert mismatches[0]["canonical_type"] == "Custom Risk Type"
+
 
 class TestRegistryRoundtrip:
     def test_write_then_read(self, tmp_lattice):

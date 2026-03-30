@@ -168,21 +168,28 @@ def get_type_description(registry: dict, layer: str, prefix: str) -> str | None:
 def audit_types(store: LatticeStore) -> list[dict]:
     """Find facts whose type doesn't match their prefix's canonical type.
 
+    Reads from types.yaml when available, falling back to the hardcoded
+    CANONICAL_TYPES map.  This ensures custom types added to the registry
+    file are respected during audits.
+
     Returns list of {code, current_type, canonical_type, layer}.
     """
+    registry = read_type_registry(store.root) or CANONICAL_TYPES
+
     mismatches = []
     all_statuses = ["Active", "Draft", "Under Review", "Deprecated", "Superseded"]
     facts = store.list_facts(status=all_statuses)
     for fact in facts:
         prefix = fact.code.split("-")[0]
-        canonical = canonical_type_for_prefix(prefix)
+        layer = fact.layer.value
+        canonical = get_type_name(registry, layer, prefix)
         if canonical and fact.type != canonical:
             mismatches.append(
                 {
                     "code": fact.code,
                     "current_type": fact.type,
                     "canonical_type": canonical,
-                    "layer": fact.layer.value,
+                    "layer": layer,
                 }
             )
     return mismatches
