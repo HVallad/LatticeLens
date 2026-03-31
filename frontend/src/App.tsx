@@ -109,7 +109,7 @@ function AppInner() {
   const allCodes = useMemo(() => facts.map((f) => f.code), [facts]);
 
   const handleSelectCode = useCallback((code: string) => {
-    setSelectedCode(code || null);
+    setSelectedCode((prev) => (code && code === prev ? null : code || null));
   }, []);
 
   const handleDoubleClickNode = useCallback(
@@ -256,7 +256,7 @@ function AppInner() {
         <Sidebar
           facts={facts}
           selectedCode={selectedCode}
-          selectedFact={selectedFactQuery.data || null}
+          selectedFact={selectedCode ? selectedFactQuery.data || null : null}
           matchingCodes={matchingCodes}
           onSelect={handleSelectCode}
           onPromote={handlePromote}
