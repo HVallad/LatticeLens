@@ -1,6 +1,6 @@
 ---
 name: lattice
-description: Guide for using LatticeLens — the knowledge governance CLI. Use when the user asks about creating, querying, editing, or managing facts in a .lattice/ knowledge base.
+description: Guide for using LatticeLens — the knowledge governance CLI. Use BEFORE code changes to check which facts govern the affected area (lattice context, graph impact). Use DURING code changes to ensure new or modified code stays consistent with governance rules and facts. Use AFTER code changes to validate the lattice, update or create facts reflecting what changed, promote or deprecate stale facts, and review diffs. Also use when the user asks about creating, querying, editing, promoting, deprecating, or validating facts; assembling agent context; checking impact, orphans, or contradictions; importing/exporting facts; or reviewing lattice history.
 user-invocable: true
 argument-hint: "[command or question]"
 ---
@@ -98,9 +98,20 @@ lattice fact ls --json
 ### Editing
 
 ```bash
-# Opens in $EDITOR, validates on save, auto-bumps version
+# Interactive — opens in $EDITOR, validates on save, auto-bumps version
 lattice fact edit ADR-03
+
+# Non-interactive — use flags to update specific fields directly
+lattice fact edit ADR-03 --title "New fact text here"
+lattice fact edit ADR-03 --tags "security,compliance" --owner "new-owner"
+lattice fact edit ADR-03 --confidence Confirmed --reason "Peer reviewed"
+lattice fact edit ADR-03 --refs "SP-01,ADR-04:supersedes" --json
+
+# Available flags: --title/--body, --tags, --layer, --status, --confidence,
+#   --owner, --type, --review-by, --refs, --projects, --reason, --json
 ```
+
+Flag-based editing is preferred for scripting and agent use. When any flag is passed, `$EDITOR` is skipped entirely. The `--reason` flag sets the changelog entry. Code cannot be changed (AUP-02); status promotion must use `lattice fact promote` instead.
 
 ### Promoting through lifecycle
 
