@@ -61,7 +61,7 @@ class TestListTools:
         tools = _run(server.list_tools())
         tool_names = [t.name for t in tools]
 
-        assert len(tool_names) == 12
+        assert len(tool_names) == 17
         assert "fact_get" in tool_names
         assert "fact_query" in tool_names
         assert "fact_list" in tool_names
@@ -75,11 +75,19 @@ class TestListTools:
         assert "lattice_validate" in tool_names
         assert "fact_exists" in tool_names
         assert "all_codes" in tool_names
+        # Expanded coverage tools
+        assert "lattice_check" in tool_names
+        assert "tag_registry" in tool_names
+        assert "type_registry" in tool_names
+        assert "lattice_evaluate" in tool_names
+        assert "fact_export" in tool_names
         # Write tools should NOT be present
         assert "fact_create" not in tool_names
         assert "fact_update" not in tool_names
         assert "fact_deprecate" not in tool_names
         assert "fact_promote" not in tool_names
+        assert "fact_import" not in tool_names
+        assert "lattice_reindex" not in tool_names
 
     def test_writable(self, tmp_lattice):
         from lattice_lens.mcp.server import create_server
@@ -89,11 +97,13 @@ class TestListTools:
         tools = _run(server.list_tools())
         tool_names = [t.name for t in tools]
 
-        assert len(tool_names) == 16
+        assert len(tool_names) == 23
         assert "fact_create" in tool_names
         assert "fact_update" in tool_names
         assert "fact_deprecate" in tool_names
         assert "fact_promote" in tool_names
+        assert "fact_import" in tool_names
+        assert "lattice_reindex" in tool_names
 
 
 class TestCallTool:
@@ -227,3 +237,112 @@ class TestCallTool:
         get_data = json.loads(get_text)
         assert get_data["code"] == "ADR-01"
         assert "FastMCP" in get_data["fact"]
+
+    def test_lattice_check(self, seeded_store):
+        """lattice_check returns pass/fail with errors and warnings."""
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(seeded_store.root / "roles")
+        server = create_server(seeded_store.root, writable=False)
+
+        text = _call_tool_text(server, "lattice_check", {})
+        data = json.loads(text)
+        assert "passed" in data
+        assert isinstance(data["errors"], list)
+        assert isinstance(data["warnings"], list)
+
+    def test_tag_registry(self, seeded_store):
+        """tag_registry returns a list of tag entries."""
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(seeded_store.root / "roles")
+        server = create_server(seeded_store.root, writable=False)
+
+        text = _call_tool_text(server, "tag_registry", {})
+        data = json.loads(text)
+        assert isinstance(data, list)
+        assert len(data) > 0
+        assert "tag" in data[0]
+
+    def test_type_registry(self, seeded_store):
+        """type_registry returns the canonical type mapping."""
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(seeded_store.root / "roles")
+        server = create_server(seeded_store.root, writable=False)
+
+        text = _call_tool_text(server, "type_registry", {})
+        data = json.loads(text)
+        assert "registry" in data
+
+    def test_lattice_evaluate(self, seeded_store):
+        """lattice_evaluate returns governance evaluation."""
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(seeded_store.root / "roles")
+        server = create_server(seeded_store.root, writable=False)
+
+        text = _call_tool_text(server, "lattice_evaluate", {})
+        data = json.loads(text)
+        assert "lattice_found" in data
+        assert "guardrails" in data
+
+    def test_fact_export(self, seeded_store):
+        """fact_export returns serialized facts."""
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(seeded_store.root / "roles")
+        server = create_server(seeded_store.root, writable=False)
+
+        text = _call_tool_text(server, "fact_export", {"format": "json"})
+        data = json.loads(text)
+        assert data["format"] == "json"
+        assert "data" in data
+
+    def test_fact_import_roundtrip(self, yaml_store):
+        """Import facts via MCP, then verify they exist."""
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(yaml_store.root / "roles")
+        server = create_server(yaml_store.root, writable=True)
+
+        import_data = json.dumps(
+            [
+                {
+                    "code": "ADR-01",
+                    "layer": "WHY",
+                    "type": "Architecture Decision Record",
+                    "fact": "We chose FastMCP for the MCP server implementation.",
+                    "tags": ["architecture", "api"],
+                    "owner": "platform-team",
+                    "status": "Draft",
+                    "confidence": "Confirmed",
+                    "version": 1,
+                }
+            ]
+        )
+
+        text = _call_tool_text(
+            server,
+            "fact_import",
+            {"data": import_data, "format": "json", "strategy": "skip"},
+        )
+        result = json.loads(text)
+        assert result["created"] == 1
+
+        # Verify fact exists
+        get_text = _call_tool_text(server, "fact_get", {"code": "ADR-01"})
+        get_data = json.loads(get_text)
+        assert get_data["code"] == "ADR-01"
+
+    def test_lattice_reindex(self, seeded_store):
+        """lattice_reindex returns summary after rebuilding index."""
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(seeded_store.root / "roles")
+        server = create_server(seeded_store.root, writable=True)
+
+        text = _call_tool_text(server, "lattice_reindex", {})
+        data = json.loads(text)
+        assert "total_facts" in data
+        assert data["total_facts"] > 0

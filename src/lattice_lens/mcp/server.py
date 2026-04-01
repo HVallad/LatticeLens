@@ -11,6 +11,8 @@ from lattice_lens.config import ROLES_DIR, load_config
 from lattice_lens.mcp.tools import (
     tool_all_codes,
     tool_context_assemble,
+    tool_evaluate,
+    tool_export,
     tool_fact_create,
     tool_fact_deprecate,
     tool_fact_exists,
@@ -22,9 +24,15 @@ from lattice_lens.mcp.tools import (
     tool_graph_contradictions,
     tool_graph_impact,
     tool_graph_orphans,
+    tool_import,
+    tool_lattice_check,
     tool_lattice_status,
     tool_lattice_validate,
     tool_reconcile,
+    tool_reindex,
+    tool_semantic_search,
+    tool_tags,
+    tool_types,
 )
 from lattice_lens.store.yaml_store import YamlFileStore
 
@@ -208,6 +216,116 @@ def create_server(lattice_root: Path, writable: bool = False) -> FastMCP:
         _refresh()
         return _json(tool_all_codes(store))
 
+    @mcp.tool()
+    async def lattice_check(
+        strict: bool = False,
+        stale_is_error: bool = False,
+        reconcile_path: str | None = None,
+        include: list[str] | None = None,
+        exclude: list[str] | None = None,
+        min_coverage: int = 0,
+    ) -> str:
+        """Run CI-gate integrity checks on the lattice.
+
+        Composes schema validation and optional reconciliation into a single
+        pass/fail result suitable for CI gating.
+
+        Args:
+            strict: Treat warnings as errors.
+            stale_is_error: Treat stale facts as errors.
+            reconcile_path: Directory to reconcile against (optional).
+            include: Glob patterns to include for reconciliation.
+            exclude: Glob patterns to exclude for reconciliation.
+            min_coverage: Minimum coverage percentage (requires reconcile_path).
+        """
+        _refresh()
+        rec_path = Path(reconcile_path) if reconcile_path else None
+        return _json(
+            tool_lattice_check(
+                store,
+                strict=strict,
+                stale_is_error=stale_is_error,
+                reconcile_path=rec_path,
+                include_patterns=include,
+                exclude_patterns=exclude,
+                min_coverage=min_coverage,
+            )
+        )
+
+    @mcp.tool()
+    async def tag_registry() -> str:
+        """Get the tag registry: all tags with usage counts and vocabulary categories."""
+        _refresh()
+        return _json(tool_tags(store))
+
+    @mcp.tool()
+    async def type_registry(audit: bool = False) -> str:
+        """Get the type registry: canonical type mapping per code prefix.
+
+        Args:
+            audit: If True, returns facts with non-canonical types instead of the registry.
+        """
+        _refresh()
+        return _json(tool_types(store, audit_mode=audit))
+
+    @mcp.tool()
+    async def lattice_evaluate() -> str:
+        """Evaluate governance rules — returns active guardrails and knowledge summary.
+
+        Useful for understanding what governance constraints apply and what
+        knowledge is available in the lattice.
+        """
+        _refresh()
+        return _json(tool_evaluate(store))
+
+    @mcp.tool()
+    async def semantic_search(
+        query: str,
+        top_k: int = 10,
+        threshold: float = 0.3,
+        tag: str | None = None,
+        layer: str | None = None,
+        status: str | None = None,
+        project: str | None = None,
+    ) -> str:
+        """Find facts by meaning using semantic similarity search.
+
+        Requires the `semantic` extra (sentence-transformers). Returns ranked
+        results with similarity scores.
+
+        Args:
+            query: Natural-language search query.
+            top_k: Maximum number of results (default: 10).
+            threshold: Minimum similarity score 0-1 (default: 0.3).
+            tag: Filter results to facts with this tag.
+            layer: Filter results by layer (WHY, GUARDRAILS, HOW).
+            status: Filter results by status (Active, Draft, etc.).
+            project: Filter results by project name.
+        """
+        _refresh()
+        return _json(
+            tool_semantic_search(
+                store,
+                query=query,
+                top_k=top_k,
+                threshold=threshold,
+                tag=tag,
+                layer=layer,
+                status=status,
+                project=project,
+            )
+        )
+
+    @mcp.tool()
+    async def fact_export(format: str = "json") -> str:
+        """Export all facts from the lattice as JSON or YAML.
+
+        Args:
+            format: Output format — 'json' or 'yaml'.
+        """
+        _refresh()
+        return _json(tool_export(store, format=format))
+
     # ── Write Tools (writable mode only) ──
 
     if writable:
@@ -283,5 +401,29 @@ def create_server(lattice_root: Path, writable: bool = False) -> FastMCP:
             """
             _refresh()
             return _json(tool_fact_promote(store, code, reason))
+
+        @mcp.tool()
+        async def fact_import(
+            data: str,
+            format: str = "json",
+            strategy: str = "skip",
+        ) -> str:
+            """Import facts from a JSON or YAML string into the lattice.
+
+            Args:
+                data: Serialized facts (JSON array or YAML list).
+                format: Data format — 'json' or 'yaml'.
+                strategy: Merge strategy — 'skip' (default), 'overwrite', or 'fail'.
+            """
+            _refresh()
+            return _json(tool_import(store, data, format=format, strategy=strategy))
+
+        @mcp.tool()
+        async def lattice_reindex() -> str:
+            """Rebuild the in-memory index from fact files.
+
+            Returns summary counts after reindexing.
+            """
+            return _json(tool_reindex(store))
 
     return mcp

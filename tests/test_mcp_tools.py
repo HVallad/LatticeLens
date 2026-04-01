@@ -11,6 +11,8 @@ from lattice_lens.config import ROLES_DIR
 from lattice_lens.mcp.tools import (
     tool_all_codes,
     tool_context_assemble,
+    tool_evaluate,
+    tool_export,
     tool_fact_create,
     tool_fact_deprecate,
     tool_fact_exists,
@@ -22,8 +24,14 @@ from lattice_lens.mcp.tools import (
     tool_graph_contradictions,
     tool_graph_impact,
     tool_graph_orphans,
+    tool_import,
+    tool_lattice_check,
     tool_lattice_status,
     tool_lattice_validate,
+    tool_reindex,
+    tool_semantic_search,
+    tool_tags,
+    tool_types,
 )
 from lattice_lens.models import FactStatus
 
@@ -335,3 +343,201 @@ class TestAllCodes:
     def test_empty_store(self, yaml_store):
         result = tool_all_codes(yaml_store)
         assert result == []
+
+
+class TestLatticeCheck:
+    def test_clean_lattice(self, seeded_store):
+        result = tool_lattice_check(seeded_store)
+        assert "passed" in result
+        assert isinstance(result["errors"], list)
+        assert isinstance(result["warnings"], list)
+
+    def test_strict_mode(self, seeded_store):
+        result = tool_lattice_check(seeded_store, strict=True)
+        assert "passed" in result
+
+
+class TestTags:
+    def test_returns_registry(self, seeded_store):
+        result = tool_tags(seeded_store)
+        assert isinstance(result, list)
+        assert len(result) > 0
+        for entry in result:
+            assert "tag" in entry
+            assert "count" in entry
+            assert "category" in entry
+
+    def test_empty_store(self, yaml_store):
+        result = tool_tags(yaml_store)
+        assert isinstance(result, list)
+        assert result == []
+
+
+class TestTypes:
+    def test_returns_registry(self, seeded_store):
+        result = tool_types(seeded_store)
+        assert "registry" in result
+        assert isinstance(result["registry"], dict)
+        # Should contain the canonical layers
+        assert "WHY" in result["registry"]
+        assert "GUARDRAILS" in result["registry"]
+        assert "HOW" in result["registry"]
+
+    def test_audit_mode(self, seeded_store):
+        result = tool_types(seeded_store, audit_mode=True)
+        assert "mismatches" in result
+        assert isinstance(result["mismatches"], list)
+
+
+class TestEvaluate:
+    def test_returns_evaluation(self, seeded_store):
+        result = tool_evaluate(seeded_store)
+        assert "lattice_found" in result
+        assert "guardrails" in result
+        assert "knowledge_summary" in result
+        assert "available_roles" in result
+
+
+class TestExport:
+    def test_json_export(self, seeded_store):
+        result = tool_export(seeded_store, format="json")
+        assert result["format"] == "json"
+        assert "data" in result
+        # The data should be valid JSON
+        import json
+
+        parsed = json.loads(result["data"])
+        assert isinstance(parsed, list)
+        assert len(parsed) > 0
+
+    def test_yaml_export(self, seeded_store):
+        result = tool_export(seeded_store, format="yaml")
+        assert result["format"] == "yaml"
+        assert "data" in result
+
+    def test_invalid_format(self, seeded_store):
+        result = tool_export(seeded_store, format="xml")
+        assert "error" in result
+
+
+class TestImport:
+    def test_import_json(self, yaml_store):
+        import json
+
+        facts_data = json.dumps(
+            [
+                {
+                    "code": "ADR-01",
+                    "layer": "WHY",
+                    "type": "Architecture Decision Record",
+                    "fact": "We chose Python for the implementation language.",
+                    "tags": ["architecture", "language"],
+                    "owner": "test-team",
+                    "status": "Draft",
+                    "confidence": "Confirmed",
+                    "version": 1,
+                }
+            ]
+        )
+        result = tool_import(yaml_store, facts_data, format="json")
+        assert result["created"] == 1
+        assert result["skipped"] == 0
+        assert yaml_store.exists("ADR-01")
+
+    def test_import_skip_existing(self, yaml_store):
+        import json
+
+        fact = make_fact(code="ADR-01")
+        yaml_store.create(fact)
+
+        facts_data = json.dumps(
+            [
+                {
+                    "code": "ADR-01",
+                    "layer": "WHY",
+                    "type": "Architecture Decision Record",
+                    "fact": "We chose Python for the implementation language.",
+                    "tags": ["architecture", "language"],
+                    "owner": "test-team",
+                    "status": "Draft",
+                    "confidence": "Confirmed",
+                    "version": 1,
+                }
+            ]
+        )
+        result = tool_import(yaml_store, facts_data, format="json", strategy="skip")
+        assert result["skipped"] == 1
+        assert result["created"] == 0
+
+    def test_import_fail_strategy(self, yaml_store):
+        import json
+
+        fact = make_fact(code="ADR-01")
+        yaml_store.create(fact)
+
+        facts_data = json.dumps(
+            [
+                {
+                    "code": "ADR-01",
+                    "layer": "WHY",
+                    "type": "Architecture Decision Record",
+                    "fact": "Duplicate fact.",
+                    "tags": ["architecture", "language"],
+                    "owner": "test-team",
+                    "status": "Draft",
+                    "confidence": "Confirmed",
+                    "version": 1,
+                }
+            ]
+        )
+        result = tool_import(yaml_store, facts_data, format="json", strategy="fail")
+        assert "error" in result
+
+
+class TestReindex:
+    def test_reindex_seeded(self, seeded_store):
+        result = tool_reindex(seeded_store)
+        assert "total_facts" in result
+        assert result["total_facts"] > 0
+        assert "by_layer" in result
+        assert "by_status" in result
+
+    def test_reindex_empty(self, yaml_store):
+        result = tool_reindex(yaml_store)
+        assert result["total_facts"] == 0
+
+
+class TestSemanticSearch:
+    def test_returns_results_or_import_error(self, seeded_store):
+        """Tool returns results when sentence-transformers is available,
+        or a graceful error dict when it is not."""
+        result = tool_semantic_search(seeded_store, query="architecture decisions")
+        assert isinstance(result, dict)
+        if "error" in result:
+            assert "sentence-transformers" in result["error"]
+        else:
+            assert "query" in result
+            assert "results" in result
+            assert isinstance(result["results"], list)
+
+    def test_with_filters(self, seeded_store):
+        """Filters are forwarded without crashing."""
+        result = tool_semantic_search(
+            seeded_store,
+            query="security",
+            top_k=5,
+            threshold=0.5,
+            tag="architecture",
+            layer="WHY",
+        )
+        assert isinstance(result, dict)
+        if "error" not in result:
+            assert result["query"] == "security"
+            assert len(result["results"]) <= 5
+
+    def test_empty_store(self, yaml_store):
+        """Semantic search on an empty store returns no results or graceful error."""
+        result = tool_semantic_search(yaml_store, query="anything")
+        assert isinstance(result, dict)
+        if "error" not in result:
+            assert result["results"] == []

@@ -16,6 +16,12 @@ from lattice_lens.services.fact_service import (
     promote_fact,
     update_fact,
 )
+from lattice_lens.services.tag_service import build_tag_registry, read_tag_registry
+from lattice_lens.services.type_service import (
+    CANONICAL_TYPES,
+    audit_types,
+    read_type_registry,
+)
 from lattice_lens.store.protocol import LatticeStore
 
 
@@ -212,9 +218,160 @@ def tool_lattice_validate(store: LatticeStore) -> dict:
     }
 
 
+def tool_lattice_check(
+    store: LatticeStore,
+    *,
+    strict: bool = False,
+    stale_is_error: bool = False,
+    reconcile_path: Path | None = None,
+    include_patterns: list[str] | None = None,
+    exclude_patterns: list[str] | None = None,
+    min_coverage: int = 0,
+) -> dict:
+    """Run CI-gate integrity checks (validation + optional reconciliation)."""
+    from lattice_lens.services.check_service import run_check
+
+    result = run_check(
+        store,
+        stale_is_error=stale_is_error,
+        reconcile_path=reconcile_path,
+        include_patterns=include_patterns,
+        exclude_patterns=exclude_patterns,
+        min_coverage=min_coverage,
+    )
+    passed = not result.failed(strict=strict)
+    return {
+        "passed": passed,
+        "errors": [{"message": i.message, "file": i.file, "line": i.line} for i in result.errors],
+        "warnings": [
+            {"message": i.message, "file": i.file, "line": i.line} for i in result.warnings
+        ],
+        "coverage_pct": result.coverage_pct,
+    }
+
+
+def tool_tags(store: LatticeStore) -> list[dict]:
+    """Return the tag registry: all tags with usage counts and categories."""
+    registry = read_tag_registry(store.root)
+    if registry is None:
+        registry = build_tag_registry(store)
+    return registry
+
+
+def tool_types(store: LatticeStore, audit_mode: bool = False) -> dict:
+    """Return the type registry or audit mismatches.
+
+    Args:
+        audit_mode: If True, returns facts with non-canonical types instead.
+    """
+    if audit_mode:
+        return {"mismatches": audit_types(store)}
+    registry = read_type_registry(store.root) or CANONICAL_TYPES
+    return {"registry": registry}
+
+
+def tool_evaluate(store: LatticeStore) -> dict:
+    """Evaluate governance rules — returns guardrails and knowledge summary."""
+    from lattice_lens.services.evaluate_service import evaluate_governance
+
+    result = evaluate_governance(start_path=store.root.parent)
+    return result.to_dict()
+
+
+def tool_export(store: LatticeStore, format: str = "json") -> dict:
+    """Export all facts as a serialized string.
+
+    Args:
+        format: Output format — 'json' or 'yaml'.
+    """
+    from lattice_lens.services.exchange_service import export_facts
+
+    try:
+        data = export_facts(store, format=format)
+        return {"format": format, "data": data}
+    except ValueError as e:
+        return {"error": str(e)}
+
+
+def tool_import(
+    store: LatticeStore,
+    data: str,
+    format: str = "json",
+    strategy: str = "skip",
+) -> dict:
+    """Import facts from a JSON or YAML string.
+
+    Args:
+        data: Serialized facts (JSON array or YAML list).
+        format: Data format — 'json' or 'yaml'.
+        strategy: Merge strategy — 'skip', 'overwrite', or 'fail'.
+    """
+    from lattice_lens.services.exchange_service import import_facts
+
+    try:
+        return import_facts(store, data, format=format, strategy=strategy)
+    except (FileExistsError, ValueError) as e:
+        return {"error": str(e)}
+
+
+def tool_reindex(store: LatticeStore) -> dict:
+    """Rebuild the in-memory index from fact files and return summary."""
+    store.invalidate_index()
+    index = store.index
+    facts = index.all_facts()
+
+    by_status: dict[str, int] = {}
+    by_layer: dict[str, int] = {}
+    for f in facts:
+        by_status[f.status.value] = by_status.get(f.status.value, 0) + 1
+        by_layer[f.layer.value] = by_layer.get(f.layer.value, 0) + 1
+
+    return {
+        "total_facts": len(facts),
+        "by_layer": by_layer,
+        "by_status": by_status,
+    }
+
+
 def tool_fact_exists(store: LatticeStore, code: str) -> dict:
     """Check if a fact code exists in the lattice."""
     return {"code": code, "exists": store.exists(code)}
+
+
+def tool_semantic_search(
+    store: LatticeStore,
+    query: str,
+    top_k: int = 10,
+    threshold: float = 0.3,
+    tag: str | None = None,
+    layer: str | None = None,
+    status: str | None = None,
+    project: str | None = None,
+) -> dict:
+    """Semantic search — find facts by meaning."""
+    try:
+        from lattice_lens.services.embedding_service import semantic_search
+    except ImportError:
+        return {
+            "error": (
+                "sentence-transformers not installed. "
+                "Install with: pip install lattice-lens[semantic]"
+            )
+        }
+
+    facts = store.list_facts()
+    results = semantic_search(
+        query=query,
+        facts=facts,
+        lattice_root=store.root,
+        top_k=top_k,
+        threshold=threshold,
+        tag=tag,
+        layer=layer,
+        status=status,
+        project=project,
+    )
+    return {"query": query, "results": results}
 
 
 def tool_all_codes(store: LatticeStore) -> list[str]:
