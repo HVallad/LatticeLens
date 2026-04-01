@@ -33,6 +33,61 @@ DEFAULT_MODEL = "all-MiniLM-L6-v2"
 DEFAULT_TOP_K = 10
 DEFAULT_THRESHOLD = 0.3
 
+RECOMMENDED_MODELS: list[dict[str, str | int]] = [
+    {
+        "name": "all-MiniLM-L6-v2",
+        "dims": 384,
+        "size": "80MB",
+        "quality": "Good",
+        "speed": "Fast",
+    },
+    {
+        "name": "BAAI/bge-small-en-v1.5",
+        "dims": 384,
+        "size": "130MB",
+        "quality": "Better",
+        "speed": "Fast",
+    },
+    {
+        "name": "all-mpnet-base-v2",
+        "dims": 768,
+        "size": "420MB",
+        "quality": "Best",
+        "speed": "Medium",
+    },
+    {
+        "name": "nomic-ai/nomic-embed-text-v1.5",
+        "dims": 768,
+        "size": "550MB",
+        "quality": "Best",
+        "speed": "Medium",
+    },
+    {
+        "name": "Snowflake/snowflake-arctic-embed-s",
+        "dims": 384,
+        "size": "130MB",
+        "quality": "Better",
+        "speed": "Fast",
+    },
+]
+
+
+def get_embedding_model(lattice_root: Path) -> str:
+    """Read embedding model from .lattice/config.yaml, default to MiniLM."""
+    config_path = lattice_root / "config.yaml"
+    if config_path.exists():
+        try:
+            from ruamel.yaml import YAML
+
+            yaml = YAML()
+            with open(config_path) as f:
+                config = yaml.load(f)
+            if config:
+                return config.get("embedding", {}).get("model", DEFAULT_MODEL)
+        except Exception:
+            pass
+    return DEFAULT_MODEL
+
 
 def _fact_text(fact: Fact) -> str:
     """Build the text to embed for a fact: title + body."""
@@ -241,7 +296,7 @@ def semantic_search(
     facts: list[Fact],
     query: str,
     lattice_root: Path | None = None,
-    model_name: str = DEFAULT_MODEL,
+    model_name: str | None = None,
     top_k: int = DEFAULT_TOP_K,
     threshold: float = DEFAULT_THRESHOLD,
     force_rebuild: bool = False,
@@ -254,12 +309,21 @@ def semantic_search(
 
     Loads or builds the embedding index, searches, applies post-filters,
     and returns enriched results.
+
+    When model_name is None, reads the configured model from .lattice/config.yaml.
     """
     if not HAS_SENTENCE_TRANSFORMERS:
         raise ImportError(
             "sentence-transformers is required for semantic search. "
             "Install with: pip install lattice-lens[semantic]"
         )
+
+    # Resolve model: explicit argument > config file > default
+    if model_name is None:
+        if lattice_root is not None:
+            model_name = get_embedding_model(lattice_root)
+        else:
+            model_name = DEFAULT_MODEL
 
     index = EmbeddingIndex(model_name=model_name)
 
