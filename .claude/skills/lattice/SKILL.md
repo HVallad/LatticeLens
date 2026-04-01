@@ -131,6 +131,31 @@ New facts default to `Draft`. They must be promoted through `Under Review` to `A
 lattice fact deprecate ADR-03 --reason "Superseded by ADR-04"
 ```
 
+### Fact Access Tracking
+
+Track how often facts are accessed to identify unused or over-relied-on facts:
+
+```bash
+# Show access counts for all facts
+lattice fact stats
+
+# Find unused or stale facts (for pruning)
+lattice fact stats --cold
+lattice fact stats --cold --days 14     # not accessed in 14 days
+
+# Find most accessed facts
+lattice fact stats --hot
+lattice fact stats --hot --top 5
+
+# Check a specific fact
+lattice fact stats ADR-01
+
+# Machine-readable output
+lattice fact stats --json
+```
+
+Access is tracked automatically when facts are read via CLI, context assembly, API, or MCP. Stored in `.lattice/access_log.yaml` (not committed — instance-specific).
+
 ## Knowledge Graph (Phase 2)
 
 ### Impact analysis
