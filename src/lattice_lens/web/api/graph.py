@@ -25,6 +25,18 @@ def create_graph_router() -> APIRouter:
         if not include_inactive:
             excluded_statuses = {FactStatus.DEPRECATED, FactStatus.SUPERSEDED}
 
+        # Load access counts for node metadata (optional — never breaks graph)
+        access_counts: dict[str, int] = {}
+        try:
+            from lattice_lens.services.access_service import get_tracker
+
+            lattice_root = request.app.state.lattice_root
+            tracker = get_tracker(lattice_root)
+            counts = tracker.get_counts()
+            access_counts = {code: entry.get("count", 0) for code, entry in counts.items()}
+        except Exception:
+            pass
+
         nodes = []
         edges = []
 
@@ -42,6 +54,7 @@ def create_graph_router() -> APIRouter:
                     "fact": fact.fact,
                     "owner": fact.owner,
                     "version": fact.version,
+                    "access_count": access_counts.get(fact.code, 0),
                 }
             )
 

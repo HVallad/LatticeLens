@@ -54,6 +54,16 @@ def context(
         store.index, role, template, budget=budget, project=project, graph_depth=depth
     )
 
+    # Track access for all loaded facts (never let tracking failures break core)
+    try:
+        from lattice_lens.services.access_service import get_tracker
+
+        tracker = get_tracker(store.root)
+        for fact in result.loaded_facts:
+            tracker.record_access(fact.code, source="context")
+    except Exception:
+        pass
+
     if as_json:
         print(json.dumps(result.to_dict(), indent=2))
         return

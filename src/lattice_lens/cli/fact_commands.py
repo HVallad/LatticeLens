@@ -186,6 +186,15 @@ def fact_get(
         err_console.print(f"[red]Error:[/red] Fact '{code}' not found")
         raise typer.Exit(1)
 
+    # Track access (never let tracking failures break core functionality)
+    try:
+        from lattice_lens.services.access_service import get_tracker
+
+        tracker = get_tracker(store.root)
+        tracker.record_access(code, source="cli")
+    except Exception:
+        pass
+
     if as_json:
         print(json.dumps(fact.model_dump(mode="json"), indent=2))
         return
@@ -527,3 +536,207 @@ def fact_deprecate(
 
     result = store.deprecate(code, reason)
     console.print(f"[green]Deprecated[/green] {result.code} (v{result.version}): {reason}")
+
+
+@fact_app.command("stats")
+def fact_stats(
+    code: Optional[str] = typer.Argument(None, help="Specific fact code to show stats for"),
+    cold: bool = typer.Option(False, "--cold", help="Show facts never accessed or stale"),
+    hot: bool = typer.Option(False, "--hot", help="Show most accessed facts"),
+    days: int = typer.Option(30, "--days", help="Days threshold for cold facts"),
+    top: int = typer.Option(10, "--top", help="Number of top facts for --hot"),
+    as_json: bool = typer.Option(False, "--json", help="Machine-readable JSON output"),
+):
+    """Show access count statistics for facts."""
+    from lattice_lens.services.access_service import get_tracker
+
+    store = require_lattice()
+    tracker = get_tracker(store.root)
+
+    # Ensure all known facts appear in the output (even if never accessed)
+    all_codes = store.all_codes()
+    counts = tracker.get_counts()
+
+    if code is not None:
+        # Show stats for a specific fact
+        if not store.exists(code):
+            err_console.print(f"[red]Error:[/red] Fact '{code}' not found")
+            raise typer.Exit(1)
+
+        fact = store.get(code)
+        entry = counts.get(
+            code, {"count": 0, "last_accessed": None, "first_accessed": None, "sources": {}}
+        )
+
+        if as_json:
+            print(json.dumps({"code": code, **entry}, indent=2))
+            return
+
+        sources_display = ", ".join(f"{k}:{v}" for k, v in sorted(entry.get("sources", {}).items()))
+
+        content = (
+            f"[bold]Count:[/bold] {entry['count']}\n"
+            f"[bold]First accessed:[/bold] {entry.get('first_accessed') or 'never'}\n"
+            f"[bold]Last accessed:[/bold] {entry.get('last_accessed') or 'never'}\n"
+            f"[bold]Sources:[/bold] {sources_display or '(none)'}"
+        )
+        title = f"{code}"
+        if fact:
+            title += f" — {fact.type}"
+        console.print(Panel(content, title=f"[bold]{title}[/bold]", border_style="blue"))
+        return
+
+    if cold:
+        # Show cold facts
+        cold_facts = tracker.get_cold_facts(threshold=0, days=days)
+
+        # Also include facts that have never been tracked at all
+        tracked_codes = set(counts.keys())
+        for c in sorted(all_codes):
+            if c not in tracked_codes:
+                cold_facts.append(
+                    {"code": c, "count": 0, "last_accessed": None, "days_since": None}
+                )
+
+        if as_json:
+            print(json.dumps(cold_facts, indent=2))
+            return
+
+        if not cold_facts:
+            console.print("[dim]No cold facts found.[/dim]")
+            return
+
+        table = Table(title=f"Cold Facts (threshold=0, days={days})")
+        table.add_column("Code", style="bold")
+        table.add_column("Title")
+        table.add_column("Count", justify="right")
+        table.add_column("Last Accessed")
+
+        for item in cold_facts:
+            fact = store.get(item["code"])
+            title = fact.type if fact else "?"
+            last = item.get("last_accessed") or "never"
+            count_str = str(item["count"])
+            style = "red" if item["count"] == 0 else "yellow"
+            table.add_row(
+                f"[{style}]{item['code']}[/{style}]",
+                title,
+                count_str,
+                last if last == "never" else _relative_time(last),
+            )
+
+        console.print(table)
+        return
+
+    if hot:
+        # Show hot facts
+        hot_facts = tracker.get_hot_facts(top_k=top)
+
+        if as_json:
+            print(json.dumps(hot_facts, indent=2))
+            return
+
+        if not hot_facts:
+            console.print("[dim]No access data recorded yet.[/dim]")
+            return
+
+        table = Table(title=f"Hot Facts (top {top})")
+        table.add_column("Code", style="bold")
+        table.add_column("Title")
+        table.add_column("Count", justify="right")
+        table.add_column("Last Accessed")
+        table.add_column("Sources")
+
+        for item in hot_facts:
+            fact = store.get(item["code"])
+            title = fact.type if fact else "?"
+            sources = ", ".join(f"{k}:{v}" for k, v in sorted(item.get("sources", {}).items()))
+            last = item.get("last_accessed") or "never"
+            table.add_row(
+                f"[green]{item['code']}[/green]",
+                title,
+                str(item["count"]),
+                last if last == "never" else _relative_time(last),
+                sources or "-",
+            )
+
+        console.print(table)
+        return
+
+    # Default: show all facts with their access counts
+    rows: list[dict] = []
+    for c in sorted(all_codes):
+        entry = counts.get(c, {"count": 0, "last_accessed": None, "sources": {}})
+        fact = store.get(c)
+        rows.append(
+            {
+                "code": c,
+                "title": fact.type if fact else "?",
+                "count": entry.get("count", 0),
+                "last_accessed": entry.get("last_accessed"),
+                "sources": entry.get("sources", {}),
+            }
+        )
+
+    if as_json:
+        print(json.dumps(rows, indent=2))
+        return
+
+    if not rows:
+        console.print("[dim]No facts in lattice.[/dim]")
+        return
+
+    table = Table(title="Fact Access Statistics")
+    table.add_column("Code", style="bold")
+    table.add_column("Title")
+    table.add_column("Count", justify="right")
+    table.add_column("Last Accessed")
+    table.add_column("Sources")
+
+    for row in rows:
+        sources = ", ".join(f"{k}:{v}" for k, v in sorted(row["sources"].items()))
+        last = row["last_accessed"] or "never"
+        count = row["count"]
+
+        # Color coding: hot=green, cold=red, middle=default
+        if count == 0:
+            code_style = "red"
+        elif count >= 10:
+            code_style = "green"
+        else:
+            code_style = "yellow"
+
+        table.add_row(
+            f"[{code_style}]{row['code']}[/{code_style}]",
+            row["title"],
+            str(count),
+            last if last == "never" else _relative_time(last),
+            sources or "-",
+        )
+
+    console.print(table)
+
+
+def _relative_time(iso_str: str) -> str:
+    """Convert ISO timestamp to a human-readable relative time string."""
+    from datetime import datetime, timezone
+
+    try:
+        dt = datetime.fromisoformat(iso_str)
+        now = datetime.now(timezone.utc)
+        delta = now - dt
+        seconds = int(delta.total_seconds())
+
+        if seconds < 60:
+            return "just now"
+        elif seconds < 3600:
+            mins = seconds // 60
+            return f"{mins} min{'s' if mins != 1 else ''} ago"
+        elif seconds < 86400:
+            hours = seconds // 3600
+            return f"{hours} hour{'s' if hours != 1 else ''} ago"
+        else:
+            d = seconds // 86400
+            return f"{d} day{'s' if d != 1 else ''} ago"
+    except Exception:
+        return iso_str

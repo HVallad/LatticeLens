@@ -22,11 +22,21 @@ from lattice_lens.store.protocol import LatticeStore
 # ── Read Tools ──
 
 
-def tool_fact_get(store: LatticeStore, code: str) -> dict:
+def tool_fact_get(store: LatticeStore, code: str, source: str = "mcp") -> dict:
     """Get a single fact by its code."""
     fact = store.get(code)
     if fact is None:
         return {"error": f"Fact {code} not found"}
+
+    # Track access (never let tracking failures break core functionality)
+    try:
+        from lattice_lens.services.access_service import get_tracker
+
+        tracker = get_tracker(store.root)
+        tracker.record_access(code, source=source)
+    except Exception:
+        pass
+
     return fact.model_dump(mode="json")
 
 
@@ -71,6 +81,17 @@ def tool_context_assemble(
 
     template = templates[role]
     result = context_service.assemble_context(store.index, role, template, budget=budget)
+
+    # Track access for all loaded facts (never let tracking failures break core)
+    try:
+        from lattice_lens.services.access_service import get_tracker
+
+        tracker = get_tracker(store.root)
+        for f in result.loaded_facts:
+            tracker.record_access(f.code, source="mcp")
+    except Exception:
+        pass
+
     return {
         "role": result.role,
         "budget": {
