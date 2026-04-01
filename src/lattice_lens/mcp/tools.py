@@ -338,6 +338,42 @@ def tool_fact_exists(store: LatticeStore, code: str) -> dict:
     return {"code": code, "exists": store.exists(code)}
 
 
+def tool_semantic_search(
+    store: LatticeStore,
+    query: str,
+    top_k: int = 10,
+    threshold: float = 0.3,
+    tag: str | None = None,
+    layer: str | None = None,
+    status: str | None = None,
+    project: str | None = None,
+) -> dict:
+    """Semantic search — find facts by meaning."""
+    try:
+        from lattice_lens.services.embedding_service import semantic_search
+    except ImportError:
+        return {
+            "error": (
+                "sentence-transformers not installed. "
+                "Install with: pip install lattice-lens[semantic]"
+            )
+        }
+
+    facts = store.list_facts()
+    results = semantic_search(
+        query=query,
+        facts=facts,
+        lattice_root=store.root,
+        top_k=top_k,
+        threshold=threshold,
+        tag=tag,
+        layer=layer,
+        status=status,
+        project=project,
+    )
+    return {"query": query, "results": results}
+
+
 def tool_all_codes(store: LatticeStore) -> list[str]:
     """Return all fact codes in the lattice."""
     return store.all_codes()

@@ -30,6 +30,7 @@ from lattice_lens.mcp.tools import (
     tool_lattice_validate,
     tool_reconcile,
     tool_reindex,
+    tool_semantic_search,
     tool_tags,
     tool_types,
 )
@@ -276,6 +277,44 @@ def create_server(lattice_root: Path, writable: bool = False) -> FastMCP:
         """
         _refresh()
         return _json(tool_evaluate(store))
+
+    @mcp.tool()
+    async def semantic_search(
+        query: str,
+        top_k: int = 10,
+        threshold: float = 0.3,
+        tag: str | None = None,
+        layer: str | None = None,
+        status: str | None = None,
+        project: str | None = None,
+    ) -> str:
+        """Find facts by meaning using semantic similarity search.
+
+        Requires the `semantic` extra (sentence-transformers). Returns ranked
+        results with similarity scores.
+
+        Args:
+            query: Natural-language search query.
+            top_k: Maximum number of results (default: 10).
+            threshold: Minimum similarity score 0-1 (default: 0.3).
+            tag: Filter results to facts with this tag.
+            layer: Filter results by layer (WHY, GUARDRAILS, HOW).
+            status: Filter results by status (Active, Draft, etc.).
+            project: Filter results by project name.
+        """
+        _refresh()
+        return _json(
+            tool_semantic_search(
+                store,
+                query=query,
+                top_k=top_k,
+                threshold=threshold,
+                tag=tag,
+                layer=layer,
+                status=status,
+                project=project,
+            )
+        )
 
     @mcp.tool()
     async def fact_export(format: str = "json") -> str:

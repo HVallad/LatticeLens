@@ -29,6 +29,7 @@ from lattice_lens.mcp.tools import (
     tool_lattice_status,
     tool_lattice_validate,
     tool_reindex,
+    tool_semantic_search,
     tool_tags,
     tool_types,
 )
@@ -504,3 +505,39 @@ class TestReindex:
     def test_reindex_empty(self, yaml_store):
         result = tool_reindex(yaml_store)
         assert result["total_facts"] == 0
+
+
+class TestSemanticSearch:
+    def test_returns_results_or_import_error(self, seeded_store):
+        """Tool returns results when sentence-transformers is available,
+        or a graceful error dict when it is not."""
+        result = tool_semantic_search(seeded_store, query="architecture decisions")
+        assert isinstance(result, dict)
+        if "error" in result:
+            assert "sentence-transformers" in result["error"]
+        else:
+            assert "query" in result
+            assert "results" in result
+            assert isinstance(result["results"], list)
+
+    def test_with_filters(self, seeded_store):
+        """Filters are forwarded without crashing."""
+        result = tool_semantic_search(
+            seeded_store,
+            query="security",
+            top_k=5,
+            threshold=0.5,
+            tag="architecture",
+            layer="WHY",
+        )
+        assert isinstance(result, dict)
+        if "error" not in result:
+            assert result["query"] == "security"
+            assert len(result["results"]) <= 5
+
+    def test_empty_store(self, yaml_store):
+        """Semantic search on an empty store returns no results or graceful error."""
+        result = tool_semantic_search(yaml_store, query="anything")
+        assert isinstance(result, dict)
+        if "error" not in result:
+            assert result["results"] == []
