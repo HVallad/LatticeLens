@@ -6,6 +6,13 @@ import json
 from pathlib import Path
 
 import pytest
+
+try:
+    import sentence_transformers  # noqa: F401
+
+    HAS_SENTENCE_TRANSFORMERS = True
+except ImportError:
+    HAS_SENTENCE_TRANSFORMERS = False
 from ruamel.yaml import YAML
 from typer.testing import CliRunner
 
@@ -210,6 +217,7 @@ class TestConfigEmbeddingCLI:
 # --- Staleness detection with model change ---
 
 
+@pytest.mark.skipif(not HAS_SENTENCE_TRANSFORMERS, reason="sentence-transformers not installed")
 class TestModelStaleness:
     def test_load_rejects_different_model(self, lattice_dir: Path):
         """EmbeddingIndex.load returns False when cached model doesn't match."""
