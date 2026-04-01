@@ -1,6 +1,12 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import * as d3 from 'd3';
-import type { GraphData, GraphNode, GraphEdge, GraphLayout } from '../../types/graph';
+import type {
+  GraphData,
+  GraphNode,
+  GraphEdge,
+  GraphLayout,
+  HighlightSettings,
+} from '../../types/graph';
 import { STATUS_COLORS, EDGE_STYLES } from '../../utils/colors';
 import type { FactStatus, EdgeType } from '../../types/fact';
 
@@ -8,6 +14,7 @@ interface GraphCanvasProps {
   data: GraphData;
   selectedCode: string | null;
   matchingCodes: Set<string> | null;
+  highlightSettings: HighlightSettings;
   layout: GraphLayout;
   onSelectNode: (code: string) => void;
   onDoubleClickNode: (code: string) => void;
@@ -20,6 +27,7 @@ export function GraphCanvas({
   data,
   selectedCode,
   matchingCodes,
+  highlightSettings,
   layout,
   onSelectNode,
   onDoubleClickNode,
@@ -51,8 +59,19 @@ export function GraphCanvas({
     svg.selectAll('*').remove();
     simulationRef.current?.stop();
 
-    // Create defs for arrowheads
+    // Create defs for arrowheads and glow filter
     const defs = svg.append('defs');
+
+    // Glow filter for highlighted nodes
+    const glowFilter = defs.append('filter').attr('id', 'highlight-glow');
+    glowFilter
+      .append('feGaussianBlur')
+      .attr('stdDeviation', '4')
+      .attr('result', 'coloredBlur');
+    const feMerge = glowFilter.append('feMerge');
+    feMerge.append('feMergeNode').attr('in', 'coloredBlur');
+    feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
+
     Object.entries(EDGE_STYLES).forEach(([rel, style]) => {
       defs
         .append('marker')
@@ -261,30 +280,61 @@ export function GraphCanvas({
     svg.on('click', () => onSelectNodeRef.current(''));
   }, [data, layout]);
 
-  // Lightweight visual update — only changes opacity and selection ring
+  // Lightweight visual update — applies highlight settings without re-rendering
   useEffect(() => {
     const g = containerRef.current;
     if (!g) return;
 
-    // Update node opacity + selection ring
+    const { mode, dimOpacity, highlightColor, showGlow } = highlightSettings;
+    const isFiltering = mode === 'filter';
+
+    // Update node visibility, opacity, highlight color, and selection ring
     g.selectAll<SVGGElement, GraphNode>('.node')
+      .attr('display', (d) => {
+        if (!matchingCodes) return 'initial';
+        if (isFiltering && !matchingCodes.has(d.code)) return 'none';
+        return 'initial';
+      })
       .attr('opacity', (d) => {
         if (!matchingCodes) return 1;
-        return matchingCodes.has(d.code) ? 1 : 0.2;
+        return matchingCodes.has(d.code) ? 1 : dimOpacity;
+      })
+      .attr('filter', (d) => {
+        if (!matchingCodes || !showGlow) return '';
+        return matchingCodes.has(d.code) ? 'url(#highlight-glow)' : '';
       })
       .select('circle, polygon, rect')
-      .attr('stroke', (d) => (d.code === selectedCode ? '#fff' : 'transparent'))
-      .attr('stroke-width', (d) => (d.code === selectedCode ? 3 : 2));
+      .attr('stroke', (d) => {
+        if (d.code === selectedCode) return '#fff';
+        if (matchingCodes && matchingCodes.has(d.code) && highlightColor) {
+          return highlightColor;
+        }
+        return 'transparent';
+      })
+      .attr('stroke-width', (d) => {
+        if (d.code === selectedCode) return 3;
+        if (matchingCodes && matchingCodes.has(d.code) && highlightColor) return 2.5;
+        return 2;
+      });
 
-    // Update edge opacity
+    // Update edge visibility and opacity
     g.selectAll<SVGLineElement, GraphEdge>('.edge')
+      .attr('display', (d) => {
+        if (!matchingCodes || !isFiltering) return 'initial';
+        const src = (d.source as GraphNode).code || (d.source as string);
+        const tgt = (d.target as GraphNode).code || (d.target as string);
+        return matchingCodes.has(src) && matchingCodes.has(tgt)
+          ? 'initial'
+          : 'none';
+      })
       .attr('opacity', (d) => {
         if (!matchingCodes) return 0.6;
         const src = (d.source as GraphNode).code || (d.source as string);
         const tgt = (d.target as GraphNode).code || (d.target as string);
-        return matchingCodes.has(src) || matchingCodes.has(tgt) ? 0.6 : 0.1;
+        const connected = matchingCodes.has(src) || matchingCodes.has(tgt);
+        return connected ? 0.6 : Math.max(0.05, dimOpacity * 0.3);
       });
-  }, [matchingCodes, selectedCode]);
+  }, [matchingCodes, selectedCode, highlightSettings]);
 
   useEffect(() => {
     renderGraph();

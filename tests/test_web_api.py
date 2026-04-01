@@ -183,6 +183,63 @@ class TestGraphEndpoints:
         data = resp.json()
         assert data["source"] == "ADR-01"
 
+    def test_highlight_search_empty(self, seeded_web_client):
+        """Empty query returns no codes."""
+        resp = seeded_web_client.get("/api/graph/highlight?criterion=search&q=")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["criterion"] == "search"
+        assert data["codes"] == []
+
+    def test_highlight_search_text(self, seeded_web_client):
+        """Full-text search returns matching codes."""
+        resp = seeded_web_client.get("/api/graph/highlight?criterion=search&q=ADR")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["criterion"] == "search"
+        assert len(data["codes"]) > 0
+        assert all("ADR" in c for c in data["codes"])
+
+    def test_highlight_by_layer(self, seeded_web_client):
+        """Layer criterion filters by exact layer name."""
+        resp = seeded_web_client.get("/api/graph/highlight?criterion=layer&q=WHY")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["criterion"] == "layer"
+        # All returned codes should be WHY-layer facts
+        assert len(data["codes"]) > 0
+
+    def test_highlight_by_status(self, seeded_web_client):
+        """Status criterion filters by exact status value."""
+        resp = seeded_web_client.get("/api/graph/highlight?criterion=status&q=Active")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["criterion"] == "status"
+        assert isinstance(data["codes"], list)
+
+    def test_highlight_by_tag(self, seeded_web_client):
+        """Tag criterion matches facts that have an exact tag."""
+        # First, find what tags exist
+        graph_resp = seeded_web_client.get("/api/graph/data")
+        nodes = graph_resp.json()["nodes"]
+        # Collect all tags from nodes
+        all_tags = set()
+        for n in nodes:
+            all_tags.update(n.get("tags", []))
+
+        if all_tags:
+            tag = next(iter(all_tags))
+            resp = seeded_web_client.get(f"/api/graph/highlight?criterion=tag&q={tag}")
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["criterion"] == "tag"
+            assert len(data["codes"]) > 0
+
+    def test_highlight_invalid_criterion(self, seeded_web_client):
+        """Invalid criterion returns a validation error."""
+        resp = seeded_web_client.get("/api/graph/highlight?criterion=invalid&q=test")
+        assert resp.status_code == 422
+
 
 class TestMetaEndpoints:
     def test_meta_stats(self, seeded_web_client):

@@ -23,7 +23,7 @@ import {
   usePromoteFact,
 } from './api/hooks';
 import type { FactLayer, FactStatus } from './types/fact';
-import type { GraphLayout } from './types/graph';
+import type { GraphLayout, HighlightSettings } from './types/graph';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,6 +47,14 @@ function AppInner() {
   const [editMode, setEditMode] = useState<'create' | 'edit' | null>(null);
   const [editCode, setEditCode] = useState<string | null>(null);
   const [activeRole, setActiveRole] = useState<string | null>(null);
+  const [highlightSettings, setHighlightSettings] = useState<HighlightSettings>({
+    mode: 'highlight',
+    criterion: 'search',
+    value: '',
+    dimOpacity: 0.2,
+    highlightColor: '',
+    showGlow: false,
+  });
 
   // Data queries
   const statusParam = [...activeStatuses].join(',');
@@ -74,8 +82,42 @@ function AppInner() {
   const roles = rolesQuery.data || {};
   const roleContext = roleContextQuery.data;
 
-  // Search matching
+  // Search matching — uses highlight criterion to determine what to match
   const searchMatchingCodes = useMemo(() => {
+    const { criterion, value: hlValue } = highlightSettings;
+
+    // For non-search criteria, use the highlight value instead of the search bar
+    if (criterion === 'tag' && hlValue) {
+      const matched = new Set<string>();
+      for (const fact of facts) {
+        if (fact.tags.some((t) => t === hlValue)) {
+          matched.add(fact.code);
+        }
+      }
+      return matched;
+    }
+
+    if (criterion === 'layer' && hlValue) {
+      const matched = new Set<string>();
+      for (const fact of facts) {
+        if (fact.layer === hlValue) {
+          matched.add(fact.code);
+        }
+      }
+      return matched;
+    }
+
+    if (criterion === 'status' && hlValue) {
+      const matched = new Set<string>();
+      for (const fact of facts) {
+        if (fact.status === hlValue) {
+          matched.add(fact.code);
+        }
+      }
+      return matched;
+    }
+
+    // Default: free-text search
     if (!searchQuery.trim()) return null;
     const q = searchQuery.toLowerCase();
     const matched = new Set<string>();
@@ -95,7 +137,7 @@ function AppInner() {
     }
 
     return matched;
-  }, [searchQuery, facts]);
+  }, [searchQuery, facts, highlightSettings]);
 
   // Role context matching (takes priority over search when active)
   const roleMatchingCodes = useMemo(() => {
@@ -204,7 +246,14 @@ function AppInner() {
           value={searchQuery}
           onChange={(q) => {
             setSearchQuery(q);
-            if (q.trim()) setActiveRole(null);
+            if (q.trim()) {
+              setActiveRole(null);
+              setHighlightSettings((s) => ({
+                ...s,
+                criterion: 'search',
+                value: '',
+              }));
+            }
           }}
           tags={tags}
           allCodes={allCodes}
@@ -273,11 +322,17 @@ function AppInner() {
           onToggleLayout={() =>
             setGraphLayout((l) => (l === 'force' ? 'layered' : 'force'))
           }
+          highlightSettings={highlightSettings}
+          onHighlightChange={setHighlightSettings}
+          tags={tags}
+          layers={enums?.layers || []}
+          statuses={enums?.statuses || []}
         />
         <GraphCanvas
           data={graphData}
           selectedCode={selectedCode}
           matchingCodes={matchingCodes}
+          highlightSettings={highlightSettings}
           layout={graphLayout}
           onSelectNode={handleSelectCode}
           onDoubleClickNode={handleDoubleClickNode}
