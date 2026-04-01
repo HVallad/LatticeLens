@@ -16,6 +16,7 @@ from lattice_lens.cli.graph_commands import graph_app
 from lattice_lens.cli.init_command import init
 from lattice_lens.cli.lens_commands import lens_app
 from lattice_lens.cli.reconcile_command import reconcile_cmd
+from lattice_lens.cli.search_command import search
 from lattice_lens.cli.seed_command import seed
 from lattice_lens.cli.serve_command import serve
 from lattice_lens.cli.status_command import status
@@ -53,6 +54,7 @@ app.command()(serve)
 app.command()(tags)
 app.command()(types)
 app.command("reconcile")(reconcile_cmd)
+app.command()(search)
 app.command()(view)
 
 
