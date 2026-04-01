@@ -67,6 +67,18 @@ def create_meta_router() -> APIRouter:
         store = request.app.state.store
         index = store.index
         result = assemble_context(index, role_name, templates[role_name], project=project)
+
+        # Track access for assembled facts
+        try:
+            from lattice_lens.services.access_service import get_tracker
+
+            lattice_root = request.app.state.lattice_root
+            tracker = get_tracker(lattice_root)
+            for f in result.loaded_facts:
+                tracker.record_access(f.code, source="api")
+        except Exception:
+            pass
+
         return {
             "role": role_name,
             "facts_loaded": result.to_dict()["facts_loaded"],

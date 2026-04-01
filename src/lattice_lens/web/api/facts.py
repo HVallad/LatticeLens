@@ -80,7 +80,7 @@ def create_facts_router() -> APIRouter:
     async def get_fact(code: str, request: Request):
         """Get a single fact by code."""
         store = request.app.state.store
-        return tool_fact_get(store, code)
+        return tool_fact_get(store, code, source="api")
 
     @router.post("/facts")
     async def create_fact(body: FactCreateRequest, request: Request):
