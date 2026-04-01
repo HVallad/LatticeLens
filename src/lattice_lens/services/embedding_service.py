@@ -90,14 +90,13 @@ def get_embedding_model(lattice_root: Path) -> str:
 
 
 def _fact_text(fact: Fact) -> str:
-    """Build the text to embed for a fact: title + body."""
-    # 'type' serves as the title/category, 'fact' is the body
-    return f"{fact.type}. {fact.fact}"
+    """Build the text to embed for a fact — body only, metadata handled by filters."""
+    return fact.fact
 
 
 def _fact_checksum(fact: Fact) -> str:
     """Compute a content checksum for staleness detection."""
-    content = f"{fact.type}|{fact.fact}|{fact.version}"
+    content = f"{fact.fact}|{fact.version}"
     return hashlib.sha256(content.encode()).hexdigest()[:16]
 
 
