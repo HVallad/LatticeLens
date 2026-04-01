@@ -45,6 +45,10 @@ extract = [
 mcp = [
     "mcp[cli]>=1.2.0",
 ]
+semantic = [
+    "sentence-transformers>=2.0",
+    "numpy",
+]
 viewer = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.27.0",

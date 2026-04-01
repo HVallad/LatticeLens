@@ -3,3 +3,12 @@ backend: yaml
 auto_promote:
   enabled: false
   threshold_days: 14
+
+# Embedding model for semantic search
+# Popular alternatives:
+# model: "BAAI/bge-small-en-v1.5"       # better quality, same speed
+# model: "all-mpnet-base-v2"            # best quality, slower
+# model: "nomic-ai/nomic-embed-text-v1.5"  # near SOTA
+# model: "Snowflake/snowflake-arctic-embed-s"  # good balance
+embedding:
+  model: all-MiniLM-L6-v2
