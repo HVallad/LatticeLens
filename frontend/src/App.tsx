@@ -4,6 +4,7 @@ import { Sidebar } from './components/layout/Sidebar';
 import { EditPanel } from './components/layout/EditPanel';
 import { GraphCanvas } from './components/graph/GraphCanvas';
 import { GraphControls } from './components/graph/GraphControls';
+import { GraphLegend } from './components/graph/GraphLegend';
 import { SearchBar } from './components/search/SearchBar';
 import { FilterPanel } from './components/search/FilterPanel';
 import { ThemeToggle } from './components/common/ThemeToggle';
@@ -282,6 +283,7 @@ function AppInner() {
           onSelectNode={handleSelectCode}
           onDoubleClickNode={handleDoubleClickNode}
         />
+        <GraphLegend />
       </div>
 
       {/* Edit Panel */}
