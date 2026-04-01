@@ -95,6 +95,31 @@ lattice fact ls --type "Risk Assessment Finding"
 lattice fact ls --json
 ```
 
+## Semantic Search
+
+Search facts by meaning using embeddings:
+
+```bash
+# Find facts related to a topic
+lattice search "deployment safety concerns"
+
+# Filter results by tag, layer, status, or project
+lattice search "authentication" --tag security
+lattice search "how to deploy" --layer HOW
+lattice search "constraints" --status active
+lattice search "testing" --project backend
+
+# Control results
+lattice search "deployment" --top 5           # limit results
+lattice search "deployment" --threshold 0.5   # stricter similarity
+lattice search "deployment" --json            # machine-readable
+
+# Force re-index (auto-rebuilds when facts change)
+lattice search --rebuild-index
+```
+
+Requires `pip install lattice-lens[semantic]`. Embeddings are cached in `.lattice/embeddings.json` and auto-rebuild when facts change.
+
 ### Editing
 
 ```bash
@@ -283,6 +308,26 @@ query:
 ```
 
 Five default roles are created by `lattice init`: planning, architecture, implementation, qa, deploy.
+
+## Configuration
+
+### Embedding Model
+
+```bash
+# Show current embedding model
+lattice config embedding
+
+# Switch to a different model
+lattice config embedding --model "BAAI/bge-small-en-v1.5"
+
+# See recommended models
+lattice config embedding --list
+
+# Reset to default (all-MiniLM-L6-v2)
+lattice config embedding --reset
+```
+
+Changing the model invalidates cached embeddings — the index rebuilds on next search.
 
 ## Directory Structure
 
