@@ -46,6 +46,36 @@ class TestCanonicalTypes:
         assert canonical_type_for_prefix("UNKNOWN") is None
         assert description_for_prefix("UNKNOWN") is None
 
+    def test_canonical_type_reads_types_yaml(self, tmp_lattice):
+        """canonical_type_for_prefix reads types.yaml when lattice_root is provided."""
+        custom = {
+            "GUARDRAILS": {
+                "RISK": {
+                    "name": "Custom Risk Type",
+                    "description": "Custom risk description",
+                },
+            },
+        }
+        write_type_registry(tmp_lattice, custom)
+
+        result = canonical_type_for_prefix("RISK", lattice_root=tmp_lattice)
+        assert result == "Custom Risk Type"
+
+        assert canonical_type_for_prefix("RISK") == "Risk Register Entry"
+
+    def test_canonical_type_falls_back_when_no_types_yaml(self, tmp_lattice):
+        """canonical_type_for_prefix falls back to hardcoded when types.yaml is absent."""
+        result = canonical_type_for_prefix("ADR", lattice_root=tmp_lattice)
+        assert result == "Architecture Decision Record"
+
+    def test_canonical_type_falls_back_for_uncovered_prefix(self, tmp_lattice):
+        """canonical_type_for_prefix falls back for prefixes not in types.yaml."""
+        custom = {"GUARDRAILS": {"RISK": {"name": "Custom Risk", "description": "desc"}}}
+        write_type_registry(tmp_lattice, custom)
+
+        result = canonical_type_for_prefix("ADR", lattice_root=tmp_lattice)
+        assert result == "Architecture Decision Record"
+
 
 class TestAuditTypes:
     def test_finds_mismatches(self, yaml_store):

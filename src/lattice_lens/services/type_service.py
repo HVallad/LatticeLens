@@ -88,8 +88,23 @@ for _layer, _prefixes in CANONICAL_TYPES.items():
         _PREFIX_TO_DESC[_prefix] = _info["description"]
 
 
-def canonical_type_for_prefix(prefix: str) -> str | None:
-    """Look up the canonical type string for a code prefix."""
+def canonical_type_for_prefix(prefix: str, lattice_root: Path | None = None) -> str | None:
+    """Look up the canonical type string for a code prefix.
+
+    When *lattice_root* is provided the function reads the on-disk
+    ``types.yaml`` first (which may contain custom type definitions)
+    and falls back to the hardcoded ``CANONICAL_TYPES`` map only when
+    the file is absent or doesn't cover the requested prefix.
+    """
+    if lattice_root is not None:
+        registry = read_type_registry(lattice_root)
+        if registry is not None:
+            for layer_prefixes in registry.values():
+                if isinstance(layer_prefixes, dict) and prefix in layer_prefixes:
+                    info = layer_prefixes[prefix]
+                    if isinstance(info, dict):
+                        return info.get("name")
+                    return str(info)
     return _PREFIX_TO_TYPE.get(prefix)
 
 
