@@ -6,10 +6,11 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
+from lattice_lens.cli.backend_command import _find_duplicate_refs
 from lattice_lens.cli.main import app
 from lattice_lens.config import FACTS_DIR, HISTORY_DIR, LATTICE_DIR, ROLES_DIR
-from lattice_lens.store.yaml_store import YamlFileStore
 from lattice_lens.store.sqlite_store import SqliteStore
+from lattice_lens.store.yaml_store import YamlFileStore
 from tests.conftest import make_fact
 
 runner = CliRunner()
@@ -114,3 +115,133 @@ class TestBackendSwitch:
         monkeypatch.chdir(tmp_path)
         result = runner.invoke(app, ["backend", "switch", "postgres"])
         assert result.exit_code == 1
+
+    def test_switch_duplicate_refs_aborts(self, tmp_path, monkeypatch):
+        """Migration aborts with clear error when facts have duplicate refs."""
+        lattice_root = _setup_lattice(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        # Create a fact with duplicate reference targets
+        store = YamlFileStore(lattice_root)
+        store.create(
+            make_fact(
+                code="ADR-03",
+                refs=[
+                    {"code": "ADR-01", "rel": "relates"},
+                    {"code": "ADR-01", "rel": "depends_on"},
+                ],
+            )
+        )
+
+        result = runner.invoke(app, ["backend", "switch", "sqlite"])
+        assert result.exit_code == 1
+        assert "Duplicate references" in result.output
+        assert "ADR-03" in result.output
+        assert "ADR-01" in result.output
+
+    def test_switch_duplicate_refs_no_partial_db(self, tmp_path, monkeypatch):
+        """No partial .db file left behind when duplicates abort migration."""
+        lattice_root = _setup_lattice(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        store = YamlFileStore(lattice_root)
+        store.create(
+            make_fact(
+                code="ADR-03",
+                refs=[
+                    {"code": "ADR-01", "rel": "relates"},
+                    {"code": "ADR-01", "rel": "depends_on"},
+                ],
+            )
+        )
+
+        runner.invoke(app, ["backend", "switch", "sqlite"])
+
+        # Verify no database file was created
+        db_path = lattice_root / "lattice.db"
+        assert not db_path.exists(), "Partial database should not exist after aborted migration"
+
+    def test_switch_duplicate_refs_preserves_config(self, tmp_path, monkeypatch):
+        """Config stays on yaml when migration is aborted due to duplicates."""
+        lattice_root = _setup_lattice(tmp_path)
+        monkeypatch.chdir(tmp_path)
+
+        store = YamlFileStore(lattice_root)
+        store.create(
+            make_fact(
+                code="ADR-03",
+                refs=[
+                    {"code": "ADR-01", "rel": "relates"},
+                    {"code": "ADR-01", "rel": "depends_on"},
+                ],
+            )
+        )
+
+        runner.invoke(app, ["backend", "switch", "sqlite"])
+
+        config_text = (lattice_root / "config.yaml").read_text()
+        assert "yaml" in config_text
+        assert "sqlite" not in config_text
+
+    def test_switch_cleanup_partial_db_on_error(self, tmp_path, monkeypatch):
+        """Partial database is cleaned up if an unexpected error occurs during migration."""
+        lattice_root = _setup_lattice(tmp_path)
+        monkeypatch.chdir(tmp_path)
+        db_path = lattice_root / "lattice.db"
+
+        # The DB should not exist before migration
+        assert not db_path.exists()
+
+        # Successful migration should work fine (no duplicates)
+        result = runner.invoke(app, ["backend", "switch", "sqlite"])
+        assert result.exit_code == 0
+        assert db_path.exists()
+
+
+class TestFindDuplicateRefs:
+    def test_no_duplicates(self):
+        facts = [
+            make_fact(code="ADR-01", refs=["ADR-02", "ADR-03"]),
+            make_fact(code="ADR-02", refs=["ADR-01"]),
+        ]
+        assert _find_duplicate_refs(facts) == {}
+
+    def test_detects_duplicates(self):
+        facts = [
+            make_fact(
+                code="ADR-01",
+                refs=[
+                    {"code": "ADR-02", "rel": "relates"},
+                    {"code": "ADR-02", "rel": "depends_on"},
+                ],
+            ),
+        ]
+        result = _find_duplicate_refs(facts)
+        assert "ADR-01" in result
+        assert "ADR-02" in result["ADR-01"]
+
+    def test_empty_refs(self):
+        facts = [make_fact(code="ADR-01", refs=[])]
+        assert _find_duplicate_refs(facts) == {}
+
+    def test_multiple_facts_with_duplicates(self):
+        facts = [
+            make_fact(
+                code="ADR-01",
+                refs=[
+                    {"code": "ADR-02", "rel": "relates"},
+                    {"code": "ADR-02", "rel": "depends_on"},
+                ],
+            ),
+            make_fact(
+                code="ADR-03",
+                refs=[
+                    {"code": "ADR-04", "rel": "relates"},
+                    {"code": "ADR-04", "rel": "validates"},
+                ],
+            ),
+        ]
+        result = _find_duplicate_refs(facts)
+        assert len(result) == 2
+        assert "ADR-01" in result
+        assert "ADR-03" in result
