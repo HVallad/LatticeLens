@@ -88,9 +88,33 @@ for _category, _tags in VOCABULARY.items():
         _TAG_TO_CATEGORY[_tag] = _category
 
 
-def categorize_tag(tag: str) -> str:
-    """Return the vocabulary category for a tag, or 'free' if unrecognized."""
-    return _TAG_TO_CATEGORY.get(tag, "free")
+def load_vocabulary(lattice_root: Path | None = None) -> dict[str, str]:
+    """Build tag-to-category lookup, merging custom vocabulary from tags.yaml.
+
+    If *lattice_root* is provided and a ``tags.yaml`` file exists there, any
+    tag with a category other than ``"free"`` is added to the lookup, giving
+    the on-disk registry priority over the hardcoded defaults.
+    """
+    merged = dict(_TAG_TO_CATEGORY)
+    if lattice_root is not None:
+        registry = read_tag_registry(lattice_root)
+        if registry:
+            for entry in registry:
+                cat = entry.get("category", "free")
+                if cat != "free":
+                    merged[entry["tag"]] = cat
+    return merged
+
+
+def categorize_tag(tag: str, *, lattice_root: Path | None = None) -> str:
+    """Return the vocabulary category for a tag, or 'free' if unrecognized.
+
+    When *lattice_root* is given, custom vocabulary from ``.lattice/tags.yaml``
+    is loaded and merged with the hardcoded defaults so that tags promoted into
+    a category via the registry are no longer reported as ``"free"``.
+    """
+    vocab = load_vocabulary(lattice_root)
+    return vocab.get(tag, "free")
 
 
 def build_tag_registry(store: LatticeStore) -> list[dict]:

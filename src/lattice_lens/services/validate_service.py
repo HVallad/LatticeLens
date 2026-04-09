@@ -101,7 +101,7 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
 
     # Check ref integrity (soft warnings)
     for fact in all_facts:
-        for ref in fact.refs:
+        for ref in fact.refs or []:
             if ref.code not in all_codes:
                 result.add_warning(f"{fact.code}: Reference target '{ref.code}' does not exist")
 
@@ -111,7 +111,7 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
 
     supersedes_targets: set[str] = set()
     for fact in all_facts:
-        for ref in fact.refs:
+        for ref in fact.refs or []:
             if ref.rel == EdgeType.SUPERSEDES:
                 supersedes_targets.add(ref.code)
 
@@ -128,6 +128,7 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
     # Check type canonicality (RISK-03 mitigation)
     from lattice_lens.services.type_service import canonical_type_for_prefix
 
+    lattice_root = facts_dir.parent
     for fact in all_facts:
         prefix = fact.code.split("-")[0]
         canonical = canonical_type_for_prefix(prefix)
@@ -138,6 +139,8 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
             )
 
     # Check for frequent free tags (DG-07)
+    # Load custom vocabulary from .lattice/tags.yaml so that tags promoted
+    # into a category via the registry are not falsely flagged as "free".
     from lattice_lens.services.tag_service import categorize_tag
 
     tag_counts: dict[str, int] = {}
@@ -146,7 +149,7 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
             tag_counts[tag] = tag_counts.get(tag, 0) + 1
 
     for tag, count in tag_counts.items():
-        if count >= 3 and categorize_tag(tag) == "free":
+        if count >= 3 and categorize_tag(tag, lattice_root=lattice_root) == "free":
             result.add_warning(
                 f"Free tag '{tag}' appears in {count} facts. "
                 "Consider adding to controlled vocabulary (DG-07)."
@@ -160,7 +163,6 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
         validate_project_registry,
     )
 
-    lattice_root = facts_dir.parent
     if is_scoping_enabled(lattice_root):
         registry = read_project_registry(lattice_root)
         if registry is not None:

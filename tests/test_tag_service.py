@@ -7,6 +7,7 @@ from lattice_lens.models import FactStatus
 from lattice_lens.services.tag_service import (
     build_tag_registry,
     categorize_tag,
+    load_vocabulary,
     read_tag_registry,
     write_tag_registry,
 )
@@ -97,3 +98,68 @@ class TestRegistryRoundtrip:
 
     def test_read_nonexistent(self, tmp_lattice):
         assert read_tag_registry(tmp_lattice) is None
+
+
+class TestCustomVocabulary:
+    """Tests for loading custom vocabulary from tags.yaml (issue #48)."""
+
+    def test_categorize_tag_without_lattice_root_uses_hardcoded(self):
+        """Without lattice_root, only hardcoded vocabulary is used."""
+        assert categorize_tag("architecture") == "domain"
+        assert categorize_tag("my-custom-tag") == "free"
+
+    def test_categorize_tag_with_custom_vocab(self, tmp_lattice):
+        """Custom vocabulary in tags.yaml is respected during categorization."""
+        registry = [
+            {"tag": "my-custom-tag", "count": 5, "category": "domain"},
+            {"tag": "another-tag", "count": 3, "category": "concern"},
+        ]
+        write_tag_registry(tmp_lattice, registry)
+
+        # Without lattice_root: free
+        assert categorize_tag("my-custom-tag") == "free"
+        # With lattice_root: picks up custom category
+        assert categorize_tag("my-custom-tag", lattice_root=tmp_lattice) == "domain"
+        assert categorize_tag("another-tag", lattice_root=tmp_lattice) == "concern"
+
+    def test_custom_vocab_does_not_override_hardcoded_with_free(self, tmp_lattice):
+        """A tag marked free in tags.yaml does not override hardcoded category."""
+        registry = [
+            {"tag": "architecture", "count": 10, "category": "free"},
+        ]
+        write_tag_registry(tmp_lattice, registry)
+
+        # Hardcoded says domain, tags.yaml says free -- hardcoded wins
+        assert categorize_tag("architecture", lattice_root=tmp_lattice) == "domain"
+
+    def test_custom_vocab_overrides_hardcoded_category(self, tmp_lattice):
+        """A non-free category in tags.yaml takes priority over hardcoded."""
+        registry = [
+            {"tag": "architecture", "count": 10, "category": "concern"},
+        ]
+        write_tag_registry(tmp_lattice, registry)
+
+        # tags.yaml says concern -- overrides hardcoded domain
+        assert categorize_tag("architecture", lattice_root=tmp_lattice) == "concern"
+
+    def test_load_vocabulary_merges(self, tmp_lattice):
+        """load_vocabulary returns merged dict with custom entries."""
+        registry = [
+            {"tag": "my-tag", "count": 2, "category": "risk"},
+        ]
+        write_tag_registry(tmp_lattice, registry)
+
+        vocab = load_vocabulary(tmp_lattice)
+        assert vocab["my-tag"] == "risk"
+        # Hardcoded entries still present
+        assert vocab["architecture"] == "domain"
+
+    def test_load_vocabulary_no_tags_yaml(self, tmp_lattice):
+        """Without tags.yaml, load_vocabulary returns only hardcoded entries."""
+        vocab = load_vocabulary(tmp_lattice)
+        assert vocab["architecture"] == "domain"
+        assert "my-tag" not in vocab
+
+    def test_unknown_tag_still_free_with_lattice_root(self, tmp_lattice):
+        """A tag not in hardcoded vocab or tags.yaml is still free."""
+        assert categorize_tag("totally-unknown", lattice_root=tmp_lattice) == "free"

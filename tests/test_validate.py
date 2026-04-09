@@ -205,6 +205,24 @@ class TestValidation:
         result = validate_lattice(yaml_store.facts_dir)
         assert any("xyzzy-custom" in w and "DG-07" in w for w in result.warnings)
 
+    def test_custom_vocab_suppresses_free_tag_warning(self, yaml_store: YamlFileStore):
+        """A tag in custom vocabulary (tags.yaml) is not flagged as free (issue #48)."""
+        from lattice_lens.services.tag_service import write_tag_registry
+
+        # Register 'xyzzy-custom' as a domain tag in tags.yaml
+        lattice_root = yaml_store.facts_dir.parent
+        registry = [{"tag": "xyzzy-custom", "count": 5, "category": "domain"}]
+        write_tag_registry(lattice_root, registry)
+
+        # Create 3 facts sharing the same tag
+        for i in range(3):
+            fact = make_fact(code=f"ADR-{10 + i:02d}", tags=["example", "xyzzy-custom"])
+            yaml_store.create(fact)
+
+        result = validate_lattice(yaml_store.facts_dir)
+        # xyzzy-custom should NOT trigger the DG-07 warning because it is in custom vocab
+        assert not any("xyzzy-custom" in w and "DG-07" in w for w in result.warnings)
+
     def test_project_scoping_validation(self, yaml_store: YamlFileStore):
         """Project scoping validation catches unknown projects."""
         # Enable project scoping by creating projects.yaml
@@ -242,6 +260,53 @@ class TestValidation:
 
         result = validate_lattice(yaml_store.facts_dir)
         assert not any("stale" in w.lower() for w in result.warnings)
+
+    def test_refs_null_no_crash(self, yaml_store: YamlFileStore):
+        """Fact with refs: null does not crash validation (issue #45)."""
+        data = make_fact(code="ADR-10").model_dump(mode="json")
+        data["refs"] = None
+        path = yaml_store.facts_dir / "ADR-10.yaml"
+        with open(path, "w") as f:
+            yaml_rw.dump(data, f)
+
+        result = validate_lattice(yaml_store.facts_dir)
+        # Should not raise TypeError; fact is otherwise valid
+        assert result.ok
+
+    def test_refs_missing_no_crash(self, yaml_store: YamlFileStore):
+        """Fact with refs field entirely absent does not crash validation (issue #45)."""
+        data = make_fact(code="ADR-10").model_dump(mode="json")
+        del data["refs"]
+        path = yaml_store.facts_dir / "ADR-10.yaml"
+        with open(path, "w") as f:
+            yaml_rw.dump(data, f)
+
+        result = validate_lattice(yaml_store.facts_dir)
+        assert result.ok
+
+    def test_projects_null_no_crash(self, yaml_store: YamlFileStore):
+        """Fact with projects: null does not crash validation."""
+        data = make_fact(code="ADR-10").model_dump(mode="json")
+        data["projects"] = None
+        path = yaml_store.facts_dir / "ADR-10.yaml"
+        with open(path, "w") as f:
+            yaml_rw.dump(data, f)
+
+        result = validate_lattice(yaml_store.facts_dir)
+        assert result.ok
+
+    def test_tags_null_is_validation_error(self, yaml_store: YamlFileStore):
+        """Fact with tags: null is caught as a validation error (tags are required)."""
+        data = make_fact(code="ADR-10").model_dump(mode="json")
+        data["tags"] = None
+        path = yaml_store.facts_dir / "ADR-10.yaml"
+        with open(path, "w") as f:
+            yaml_rw.dump(data, f)
+
+        result = validate_lattice(yaml_store.facts_dir)
+        # tags: null with min_length=2 should fail Pydantic validation, not crash
+        assert not result.ok
+        assert any("Validation error" in e for e in result.errors)
 
 
 # ── fix_lattice tests ──
