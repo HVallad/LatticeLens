@@ -191,7 +191,7 @@ class LensStore:
     def update(self, code: str, changes: dict, reason: str) -> Fact:
         """Update a fact remotely."""
         self._require_writable()
-        data = self._call_json("fact_update", {"code": code, "reason": reason, **changes})
+        data = self._call_json("fact_update", {"code": code, "reason": reason, "changes": changes})
         if isinstance(data, dict) and "error" in data:
             raise ValueError(data["error"])
         return Fact.model_validate(data)
