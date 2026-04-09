@@ -2,16 +2,36 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
+
 import typer
 from rich.console import Console
 
 from lattice_lens.cli.helpers import is_lens_mode, require_lattice
 from lattice_lens.config import find_lattice_root, load_config, save_config
+from lattice_lens.models import Fact
 
 console = Console()
 err_console = Console(stderr=True)
 
 backend_app = typer.Typer()
+
+
+def _find_duplicate_refs(facts: list[Fact]) -> dict[str, list[str]]:
+    """Check facts for duplicate reference targets.
+
+    Returns a dict mapping fact codes to lists of duplicated target codes.
+    Empty dict means no duplicates found.
+    """
+    duplicates: dict[str, list[str]] = {}
+    for fact in facts:
+        seen: dict[str, int] = defaultdict(int)
+        for ref in fact.refs:
+            seen[ref.code] += 1
+        dupes = [code for code, count in seen.items() if count > 1]
+        if dupes:
+            duplicates[fact.code] = dupes
+    return duplicates
 
 
 @backend_app.command("status")
@@ -62,8 +82,8 @@ def backend_switch(
         return
 
     # Import both store types
-    from lattice_lens.store.yaml_store import YamlFileStore
     from lattice_lens.store.sqlite_store import SqliteStore
+    from lattice_lens.store.yaml_store import YamlFileStore
 
     # Create source store
     if current_backend == "yaml":
@@ -75,18 +95,56 @@ def backend_switch(
     all_facts = source.list_facts(status=None)
     console.print(f"Migrating {len(all_facts)} facts from {current_backend} to {target}...")
 
-    # Create target store
-    if target == "sqlite":
-        target_store = SqliteStore(root)
-    else:
-        target_store = YamlFileStore(root)
+    # Pre-migration validation: detect duplicate references
+    duplicates = _find_duplicate_refs(all_facts)
+    if duplicates:
+        err_console.print("[red]Error:[/red] Duplicate references detected. Migration aborted.")
+        err_console.print("")
+        for code, dupes in sorted(duplicates.items()):
+            err_console.print(f"  [bold]{code}[/bold] has duplicate refs to: {', '.join(dupes)}")
+        err_console.print("")
+        err_console.print(
+            "[yellow]Fix these facts before retrying the migration.[/yellow]\n"
+            "Each fact may only reference a given target once."
+        )
+        raise typer.Exit(1)
 
-    # Write facts to target
-    migrated = 0
-    for fact in all_facts:
-        if not target_store.exists(fact.code):
-            target_store.create(fact)
-            migrated += 1
+    # Determine db path for cleanup on failure (only relevant for sqlite target)
+    db_path = root / "lattice.db" if target == "sqlite" else None
+    db_existed_before = db_path.exists() if db_path else False
+
+    try:
+        # Create target store
+        if target == "sqlite":
+            target_store = SqliteStore(root)
+        else:
+            target_store = YamlFileStore(root)
+
+        # Sort facts topologically so dependencies (superseded_by) are inserted first
+        from lattice_lens.store.ordering import topological_sort_facts
+
+        sorted_facts = topological_sort_facts(all_facts)
+
+        # Write facts to target
+        migrated = 0
+        for fact in sorted_facts:
+            if not target_store.exists(fact.code):
+                target_store.create(fact)
+                migrated += 1
+
+        # Close SQLite connection before config update
+        if target == "sqlite":
+            target_store.close()
+    except Exception:
+        # Clean up partial database if we created it during this migration
+        if db_path and not db_existed_before and db_path.exists():
+            db_path.unlink()
+            # Also clean up WAL/SHM files
+            for suffix in ("-wal", "-shm"):
+                wal = db_path.parent / (db_path.name + suffix)
+                if wal.exists():
+                    wal.unlink()
+        raise
 
     # Update config
     config["backend"] = target
