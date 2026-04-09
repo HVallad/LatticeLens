@@ -101,7 +101,7 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
 
     # Check ref integrity (soft warnings)
     for fact in all_facts:
-        for ref in fact.refs:
+        for ref in fact.refs or []:
             if ref.code not in all_codes:
                 result.add_warning(f"{fact.code}: Reference target '{ref.code}' does not exist")
 
@@ -111,7 +111,7 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
 
     supersedes_targets: set[str] = set()
     for fact in all_facts:
-        for ref in fact.refs:
+        for ref in fact.refs or []:
             if ref.rel == EdgeType.SUPERSEDES:
                 supersedes_targets.add(ref.code)
 

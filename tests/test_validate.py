@@ -243,6 +243,53 @@ class TestValidation:
         result = validate_lattice(yaml_store.facts_dir)
         assert not any("stale" in w.lower() for w in result.warnings)
 
+    def test_refs_null_no_crash(self, yaml_store: YamlFileStore):
+        """Fact with refs: null does not crash validation (issue #45)."""
+        data = make_fact(code="ADR-10").model_dump(mode="json")
+        data["refs"] = None
+        path = yaml_store.facts_dir / "ADR-10.yaml"
+        with open(path, "w") as f:
+            yaml_rw.dump(data, f)
+
+        result = validate_lattice(yaml_store.facts_dir)
+        # Should not raise TypeError; fact is otherwise valid
+        assert result.ok
+
+    def test_refs_missing_no_crash(self, yaml_store: YamlFileStore):
+        """Fact with refs field entirely absent does not crash validation (issue #45)."""
+        data = make_fact(code="ADR-10").model_dump(mode="json")
+        del data["refs"]
+        path = yaml_store.facts_dir / "ADR-10.yaml"
+        with open(path, "w") as f:
+            yaml_rw.dump(data, f)
+
+        result = validate_lattice(yaml_store.facts_dir)
+        assert result.ok
+
+    def test_projects_null_no_crash(self, yaml_store: YamlFileStore):
+        """Fact with projects: null does not crash validation."""
+        data = make_fact(code="ADR-10").model_dump(mode="json")
+        data["projects"] = None
+        path = yaml_store.facts_dir / "ADR-10.yaml"
+        with open(path, "w") as f:
+            yaml_rw.dump(data, f)
+
+        result = validate_lattice(yaml_store.facts_dir)
+        assert result.ok
+
+    def test_tags_null_is_validation_error(self, yaml_store: YamlFileStore):
+        """Fact with tags: null is caught as a validation error (tags are required)."""
+        data = make_fact(code="ADR-10").model_dump(mode="json")
+        data["tags"] = None
+        path = yaml_store.facts_dir / "ADR-10.yaml"
+        with open(path, "w") as f:
+            yaml_rw.dump(data, f)
+
+        result = validate_lattice(yaml_store.facts_dir)
+        # tags: null with min_length=2 should fail Pydantic validation, not crash
+        assert not result.ok
+        assert any("Validation error" in e for e in result.errors)
+
 
 # ── fix_lattice tests ──
 

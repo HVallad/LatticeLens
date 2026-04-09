@@ -72,8 +72,10 @@ class Fact(BaseModel):
 
     @field_validator("refs", mode="before")
     @classmethod
-    def normalize_refs(cls, v: list) -> list[FactRef]:
-        """Accept list[str], list[dict], or list[FactRef]. Strings become relates edges."""
+    def normalize_refs(cls, v: list | None) -> list[FactRef]:
+        """Accept list[str], list[dict], list[FactRef], or None. Strings become relates edges."""
+        if v is None:
+            return []
         result = []
         for item in v:
             if isinstance(item, str):
@@ -91,9 +93,11 @@ class Fact(BaseModel):
         """Return just the ref target codes (backward-compat convenience)."""
         return [r.code for r in self.refs]
 
-    @field_validator("projects")
+    @field_validator("projects", mode="before")
     @classmethod
-    def normalize_projects(cls, v: list[str]) -> list[str]:
+    def normalize_projects(cls, v: list[str] | None) -> list[str]:
+        if v is None:
+            return []
         normalized = []
         for entry in v:
             entry = entry.strip()
