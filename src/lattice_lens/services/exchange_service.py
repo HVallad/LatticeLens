@@ -52,9 +52,23 @@ def import_facts(
 
     results: dict = {"created": 0, "skipped": 0, "overwritten": 0, "errors": []}
 
+    # Parse all facts first, then sort topologically so dependencies
+    # (superseded_by) are inserted before the facts that reference them.
+    from lattice_lens.store.ordering import topological_sort_facts
+
+    parsed_facts: list[tuple[dict, Fact]] = []
     for item in raw:
         try:
-            fact = Fact(**item)
+            parsed_facts.append((item, Fact(**item)))
+        except Exception as e:
+            results["errors"].append({"code": item.get("code", "?"), "error": str(e)})
+
+    sorted_facts = topological_sort_facts([f for _, f in parsed_facts])
+    # Rebuild item lookup for error reporting
+    item_by_code = {f.code: item for item, f in parsed_facts}
+
+    for fact in sorted_facts:
+        try:
             if store.exists(fact.code):
                 if strategy == "skip":
                     results["skipped"] += 1
@@ -74,7 +88,7 @@ def import_facts(
         except FileExistsError:
             raise  # Propagate fail-strategy aborts
         except Exception as e:
-            results["errors"].append({"code": item.get("code", "?"), "error": str(e)})
+            results["errors"].append({"code": fact.code, "error": str(e)})
 
     return results
 
