@@ -244,6 +244,59 @@ class TestValidation:
         assert not any("stale" in w.lower() for w in result.warnings)
 
 
+    def test_custom_types_yaml_respected(self, yaml_store: YamlFileStore):
+        """Validation uses custom types.yaml instead of only hardcoded CANONICAL_TYPES (#46)."""
+        from lattice_lens.services.type_service import write_type_registry
+
+        custom = {
+            "GUARDRAILS": {
+                "RISK": {
+                    "name": "Custom Risk Type",
+                    "description": "Custom risk description",
+                },
+            },
+        }
+        write_type_registry(yaml_store.root, custom)
+
+        fact = make_fact(
+            code="RISK-01",
+            layer="GUARDRAILS",
+            type="Custom Risk Type",
+            tags=["risk", "test"],
+        )
+        yaml_store.create(fact)
+
+        result = validate_lattice(yaml_store.facts_dir)
+        assert not any("differs from canonical" in w for w in result.warnings)
+
+    def test_custom_types_yaml_detects_mismatch(self, yaml_store: YamlFileStore):
+        """Validation flags mismatches against types.yaml, not just hardcoded map (#46)."""
+        from lattice_lens.services.type_service import write_type_registry
+
+        custom = {
+            "GUARDRAILS": {
+                "RISK": {
+                    "name": "Custom Risk Type",
+                    "description": "Custom risk description",
+                },
+            },
+        }
+        write_type_registry(yaml_store.root, custom)
+
+        fact = make_fact(
+            code="RISK-01",
+            layer="GUARDRAILS",
+            type="Risk Register Entry",
+            tags=["risk", "test"],
+        )
+        yaml_store.create(fact)
+
+        result = validate_lattice(yaml_store.facts_dir)
+        assert any(
+            "differs from canonical" in w and "Custom Risk Type" in w for w in result.warnings
+        )
+
+
 # ── fix_lattice tests ──
 
 

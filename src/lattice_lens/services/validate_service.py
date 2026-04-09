@@ -128,9 +128,10 @@ def validate_lattice(facts_dir: Path) -> ValidationResult:
     # Check type canonicality (RISK-03 mitigation)
     from lattice_lens.services.type_service import canonical_type_for_prefix
 
+    lattice_root = facts_dir.parent
     for fact in all_facts:
         prefix = fact.code.split("-")[0]
-        canonical = canonical_type_for_prefix(prefix)
+        canonical = canonical_type_for_prefix(prefix, lattice_root=lattice_root)
         if canonical and fact.type != canonical:
             result.add_warning(
                 f"{fact.code}: Type '{fact.type}' differs from canonical "
