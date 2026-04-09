@@ -227,3 +227,96 @@ class TestCallTool:
         get_data = json.loads(get_text)
         assert get_data["code"] == "ADR-01"
         assert "FastMCP" in get_data["fact"]
+
+    def test_fact_update_persists_changes(self, yaml_store):
+        """fact_update via MCP persists field changes, not just version bump."""
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(yaml_store.root / "roles")
+        server = create_server(yaml_store.root, writable=True)
+
+        # Create a fact first
+        fact = make_fact(code="ADR-01")
+        yaml_store.create(fact)
+        original_text = fact.fact
+
+        # Update the fact text via MCP tool
+        update_text = _call_tool_text(
+            server,
+            "fact_update",
+            {
+                "code": "ADR-01",
+                "reason": "clarify wording",
+                "changes": {"fact": "Updated fact text via MCP tool."},
+            },
+        )
+        update_data = json.loads(update_text)
+        assert "error" not in update_data
+        assert update_data["fact"] == "Updated fact text via MCP tool."
+        assert update_data["version"] == 2
+
+        # Verify the change persisted by reading back
+        get_text = _call_tool_text(server, "fact_get", {"code": "ADR-01"})
+        get_data = json.loads(get_text)
+        assert get_data["fact"] == "Updated fact text via MCP tool."
+        assert get_data["fact"] != original_text
+
+    def test_fact_update_persists_tags(self, yaml_store):
+        """fact_update via MCP persists tag changes."""
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(yaml_store.root / "roles")
+        server = create_server(yaml_store.root, writable=True)
+
+        fact = make_fact(code="ADR-01", tags=["old-tag", "keep-tag"])
+        yaml_store.create(fact)
+
+        update_text = _call_tool_text(
+            server,
+            "fact_update",
+            {
+                "code": "ADR-01",
+                "reason": "update tags",
+                "changes": {"tags": ["new-tag", "keep-tag"]},
+            },
+        )
+        update_data = json.loads(update_text)
+        assert "error" not in update_data
+        assert "new-tag" in update_data["tags"]
+        assert "old-tag" not in update_data["tags"]
+
+        # Verify persistence
+        get_text = _call_tool_text(server, "fact_get", {"code": "ADR-01"})
+        get_data = json.loads(get_text)
+        assert "new-tag" in get_data["tags"]
+        assert "old-tag" not in get_data["tags"]
+
+    def test_fact_update_multiple_fields(self, yaml_store):
+        """fact_update via MCP persists multiple field changes at once."""
+        from lattice_lens.mcp.server import create_server
+
+        _write_role_templates(yaml_store.root / "roles")
+        server = create_server(yaml_store.root, writable=True)
+
+        fact = make_fact(code="ADR-01")
+        yaml_store.create(fact)
+
+        update_text = _call_tool_text(
+            server,
+            "fact_update",
+            {
+                "code": "ADR-01",
+                "reason": "major revision",
+                "changes": {
+                    "fact": "Completely rewritten fact text.",
+                    "tags": ["revised", "architecture"],
+                    "owner": "new-team",
+                },
+            },
+        )
+        update_data = json.loads(update_text)
+        assert "error" not in update_data
+        assert update_data["fact"] == "Completely rewritten fact text."
+        assert "revised" in update_data["tags"]
+        assert update_data["owner"] == "new-team"
+        assert update_data["version"] == 2

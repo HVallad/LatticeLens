@@ -216,7 +216,7 @@ class TestLensStoreWriteOps:
             result = store.update("ADR-01", {"fact": "Updated fact text here."}, "test update")
             mock.assert_called_once_with(
                 "fact_update",
-                {"code": "ADR-01", "reason": "test update", "fact": "Updated fact text here."},
+                {"code": "ADR-01", "reason": "test update", "changes": {"fact": "Updated fact text here."}},
             )
 
         assert result.fact == "Updated fact text here."

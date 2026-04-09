@@ -251,13 +251,13 @@ def create_server(lattice_root: Path, writable: bool = False) -> FastMCP:
             return _json(tool_fact_create(store, data))
 
         @mcp.tool()
-        async def fact_update(code: str, reason: str, **changes) -> str:
+        async def fact_update(code: str, reason: str, changes: dict) -> str:
             """Update an existing fact. Increments version automatically.
 
             Args:
                 code: The fact code to update.
                 reason: Reason for the update.
-                **changes: Fields to update (e.g., fact="new text", tags=["a","b"]).
+                changes: Dict of fields to update (e.g., {"fact": "new text", "tags": ["a","b"]}).
             """
             _refresh()
             return _json(tool_fact_update(store, code, changes, reason))
